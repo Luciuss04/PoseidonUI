@@ -128,7 +128,7 @@ class Guardian(commands.Cog):
                 except discord.Forbidden:
                     pass
 
-            self.bot.loop.create_task(remove_role_later())
+            asyncio.create_task(remove_role_later())
         else:
             await interaction.followup.send(f"⚠️ No existe el rol **{rol_nombre}** en el servidor.", ephemeral=True)
 

@@ -25,7 +25,8 @@ STORE_MAP = {
 class Ofertas(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.publicar_ofertas.start()
+        if CANAL_OFERTAS_ID is not None:
+            self.publicar_ofertas.start()
 
     def cog_unload(self):
         self.publicar_ofertas.cancel()
@@ -41,10 +42,14 @@ class Ofertas(commands.Cog):
         juegos.sort(key=lambda j: float(j.get("savings", 0)), reverse=True)
 
         fecha = datetime.now().strftime("%d-%m-%Y")
-        thread = await interaction.channel.create_thread(
-            name=f"🌌 Profecías del Olimpo — {fecha}",
-            type=discord.ChannelType.public_thread
-        )
+        try:
+            thread = await interaction.channel.create_thread(
+                name=f"🌌 Profecías del Olimpo — {fecha}",
+                type=discord.ChannelType.public_thread
+            )
+        except Exception:
+            await interaction.followup.send("⚠️ No se pudo crear el thread en este canal.", ephemeral=True)
+            return
 
         for idx, j in enumerate(juegos[:30], start=1):
             await thread.send(embed=self.crear_embed(j, idx))
@@ -67,10 +72,13 @@ class Ofertas(commands.Cog):
         juegos.sort(key=lambda j: float(j.get("savings", 0)), reverse=True)
 
         fecha = datetime.now().strftime("%d-%m-%Y")
-        thread = await canal.create_thread(
-            name=f"🌌 Profecías del Olimpo — {fecha}",
-            type=discord.ChannelType.public_thread
-        )
+        try:
+            thread = await canal.create_thread(
+                name=f"🌌 Profecías del Olimpo — {fecha}",
+                type=discord.ChannelType.public_thread
+            )
+        except Exception:
+            return
 
         for idx, j in enumerate(juegos[:30], start=1):
             await thread.send(embed=self.crear_embed(j, idx))
@@ -79,7 +87,10 @@ class Ofertas(commands.Cog):
 
     async def cerrar_thread(self, thread, horas=24):
         await asyncio.sleep(horas * 3600)
-        await thread.edit(archived=True, locked=True)
+        try:
+            await thread.edit(archived=True, locked=True)
+        except Exception:
+            pass
 
     async def obtener_ofertas(self):
         params = {

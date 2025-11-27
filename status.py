@@ -74,8 +74,8 @@ class Status(commands.Cog):
         else:
             latency_status = f"🔴 {latency_ms} ms (Alta)"
 
-        # Uso de CPU y memoria
-        cpu_percent = psutil.cpu_percent(interval=1)
+        # Uso de CPU y memoria (consulta inmediata)
+        cpu_percent = psutil.cpu_percent(interval=None)
         memory_info = psutil.virtual_memory()
         memory_percent = memory_info.percent
 

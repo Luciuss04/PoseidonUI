@@ -44,6 +44,13 @@ bot = AteneaBot(command_prefix="!", intents=intents)
 async def on_ready():
     print(f"⚔️ Bot conectado como {bot.user}")
 
+@bot.event
+async def on_command_error(ctx, error):
+    try:
+        await ctx.send(f"⚠️ Ocurrió un error: {error}")
+    except Exception:
+        pass
+
 if not TOKEN:
     raise SystemExit("DISCORD_TOKEN no está configurado")
 bot.run(TOKEN)

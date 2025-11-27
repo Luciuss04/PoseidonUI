@@ -13,15 +13,26 @@ class LoLCog(commands.Cog):
         self.base_url = "https://euw1.api.riotgames.com"
 
     async def fetch(self, url):
+        if not RIOT_API_KEY:
+            return None
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers={"X-Riot-Token": RIOT_API_KEY}) as resp:
-                if resp.status == 200:
-                    return await resp.json()
+            try:
+                async with session.get(url, headers={"X-Riot-Token": RIOT_API_KEY}, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                    if resp.status == 200:
+                        try:
+                            return await resp.json()
+                        except Exception:
+                            return None
+                    return None
+            except Exception:
                 return None
 
     @commands.command()
     async def invocador(self, ctx, nombre: str):
         """Muestra información básica de un invocador"""
+        if not RIOT_API_KEY:
+            await ctx.send("⚠️ Falta configurar `RIOT_API_KEY` para consultar la API de Riot.")
+            return
         summoner_url = f"{self.base_url}/lol/summoner/v4/summoners/by-name/{nombre}"
         data = await self.fetch(summoner_url)
 
@@ -43,6 +54,9 @@ class LoLCog(commands.Cog):
     @commands.command()
     async def ranked(self, ctx, nombre: str):
         """Muestra estadísticas de clasificatoria"""
+        if not RIOT_API_KEY:
+            await ctx.send("⚠️ Falta configurar `RIOT_API_KEY` para consultar la API de Riot.")
+            return
         summoner_url = f"{self.base_url}/lol/summoner/v4/summoners/by-name/{nombre}"
         summoner = await self.fetch(summoner_url)
 
