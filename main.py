@@ -47,6 +47,27 @@ bot = PoseidonUIBot(command_prefix="!", intents=intents)
 @bot.event
 async def on_ready():
     print(f"⚔️ PoseidonUI conectado como {bot.user}")
+    try:
+        import pathlib
+        k = LICENSE_KEY
+        b = pathlib.Path("license_bindings.txt")
+        if k and b.exists():
+            lines = [ln.strip() for ln in b.read_text(encoding="utf-8").splitlines() if ln.strip() and not ln.strip().startswith("#")]
+            bind_gid = None
+            for ln in lines:
+                parts = ln.split("|")
+                if parts and parts[0] == k:
+                    try:
+                        bind_gid = int(parts[1])
+                    except Exception:
+                        bind_gid = None
+                    break
+            if bind_gid is not None and bind_gid != 0:
+                current = {g.id for g in bot.guilds}
+                if bind_gid not in current:
+                    await bot.close()
+    except Exception:
+        pass
 
 @bot.event
 async def on_command_error(ctx, error):

@@ -47,12 +47,35 @@ class About(commands.Cog):
         if not ok:
             await interaction.response.send_message("❌ Licencia no válida.", ephemeral=True)
             return
+        guild_id = interaction.guild.id if interaction.guild else 0
+        guild_name = interaction.guild.name if interaction.guild else "DM"
+        bind_path = pathlib.Path("license_bindings.txt")
+        bound_other = False
+        if bind_path.exists():
+            lines = [ln.strip() for ln in bind_path.read_text(encoding="utf-8").splitlines() if ln.strip() and not ln.strip().startswith("#")]
+            for ln in lines:
+                try:
+                    k, gid, *_ = ln.split("|")
+                    if k == key and int(gid) != guild_id and int(gid) != 0:
+                        bound_other = True
+                        break
+                except Exception:
+                    pass
+        if bound_other:
+            await interaction.response.send_message("❌ Esta licencia ya está activa en otro servidor.", ephemeral=True)
+            try:
+                owner = await self.bot.fetch_user(OWNER_ID)
+                await owner.send(f"⚠️ Intento de activar licencia ya usada\nUsuario: {interaction.user} ({interaction.user.id})\nServidor: {guild_name} ({guild_id})\nLicencia: {key}")
+            except Exception:
+                pass
+            return
+
         pathlib.Path("license_active.txt").write_text(key, encoding="utf-8")
-        await interaction.response.send_message("✅ Licencia activada. Gracias por adquirir PoseidonUI.", ephemeral=True)
+        entry = f"{key}|{guild_id}|{guild_name}|{datetime.utcnow().isoformat()}"
+        bind_path.open("a", encoding="utf-8").write(entry + "\n")
+        await interaction.response.send_message("✅ Licencia activada y vinculada al servidor.", ephemeral=True)
         try:
             owner = await self.bot.fetch_user(OWNER_ID)
-            guild_name = interaction.guild.name if interaction.guild else "DM"
-            guild_id = interaction.guild.id if interaction.guild else 0
             when = datetime.utcnow().isoformat()
             msg = (
                 f"🔑 Activación\nUsuario: {interaction.user} ({interaction.user.id})\n"
