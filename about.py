@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
+from config import OWNER_ID
 
 
 class About(commands.Cog):
@@ -27,7 +28,7 @@ class About(commands.Cog):
         embed.add_field(name="Prefijo", value="!", inline=True)
         embed.add_field(name="Slash", value="/botinfo /status /juicio /crear_roles_guardian /ofertas", inline=False)
         embed.set_footer(text="Configura .env y ejecuta start.bat")
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(embed=embed, view=BuyView(self.bot))
 
     @app_commands.command(name="demo", description="Presentación visual del bot para mostrar a clientes")
     async def demo(self, interaction: discord.Interaction):
@@ -68,3 +69,20 @@ class About(commands.Cog):
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(About(bot))
+
+
+class BuyView(discord.ui.View):
+    def __init__(self, bot: commands.Bot):
+        super().__init__(timeout=None)
+        self.bot = bot
+
+    @discord.ui.button(label="Comprar / Solicitar", style=discord.ButtonStyle.success, emoji="🛒", custom_id="buy_button")
+    async def buy_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message("✅ Solicitud enviada. Te contactaremos pronto.", ephemeral=True)
+        try:
+            owner = await self.bot.fetch_user(OWNER_ID)
+            await owner.send(f"🛒 Nueva solicitud de compra: {interaction.user} ({interaction.user.id}) en {interaction.guild.name if interaction.guild else 'DM'}")
+        except Exception:
+            pass
+    async def cog_load(self):
+        self.bot.add_view(BuyView(self.bot))
