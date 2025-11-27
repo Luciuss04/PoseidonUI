@@ -34,7 +34,7 @@ class About(commands.Cog):
     async def activar(self, interaction: discord.Interaction, key: str):
         import re
         import pathlib
-        from datetime import datetime, timedelta
+        from datetime import datetime
         if not re.fullmatch(r"POSEIDON-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}", key):
             await interaction.response.send_message("❌ Formato inválido de licencia.", ephemeral=True)
             return
@@ -71,16 +71,15 @@ class About(commands.Cog):
             return
 
         pathlib.Path("license_active.txt").write_text(key, encoding="utf-8")
-        expires_at = datetime.utcnow() + timedelta(days=30)
-        entry = f"{key}|{guild_id}|{guild_name}|{datetime.utcnow().isoformat()}|{expires_at.isoformat()}|30"
+        entry = f"{key}|{guild_id}|{guild_name}|{datetime.utcnow().isoformat()}|PERM|PERM"
         bind_path.open("a", encoding="utf-8").write(entry + "\n")
-        await interaction.response.send_message(f"✅ Licencia activada y vinculada. Expira: {expires_at.date().isoformat()}.", ephemeral=True)
+        await interaction.response.send_message("✅ Licencia activada y vinculada (permanente).", ephemeral=True)
         try:
             owner = await self.bot.fetch_user(OWNER_ID)
             when = datetime.utcnow().isoformat()
             msg = (
                 f"🔑 Activación\nUsuario: {interaction.user} ({interaction.user.id})\n"
-                f"Servidor: {guild_name} ({guild_id})\nLicencia: {key}\nFecha: {when}\nExpira: {expires_at.isoformat()}"
+                f"Servidor: {guild_name} ({guild_id})\nLicencia: {key}\nFecha: {when}\nEstado: PERMANENTE"
             )
             await owner.send(msg)
             pathlib.Path("activations.log").open("a", encoding="utf-8").write(msg + "\n")
@@ -90,83 +89,16 @@ class About(commands.Cog):
     @app_commands.command(name="estado_licencia", description="Ver estado y expiración de tu licencia")
     async def estado_licencia(self, interaction: discord.Interaction):
         import pathlib
-        from datetime import datetime
         lic_active = pathlib.Path("license_active.txt")
         if not lic_active.exists():
             await interaction.response.send_message("ℹ️ No hay licencia activada. Usa /activar o compra con /botinfo.", ephemeral=True)
             return
         key = lic_active.read_text(encoding="utf-8").strip()
-        bind_path = pathlib.Path("license_bindings.txt")
-        expires = None
-        guild_id = interaction.guild.id if interaction.guild else 0
-        if bind_path.exists():
-            for ln in [ln.strip() for ln in bind_path.read_text(encoding="utf-8").splitlines() if ln.strip() and not ln.strip().startswith("#")]:
-                parts = ln.split("|")
-                if parts and parts[0] == key and int(parts[1]) == guild_id:
-                    try:
-                        from datetime import datetime as dt
-                        expires = dt.fromisoformat(parts[4]) if len(parts) >= 5 else None
-                    except Exception:
-                        expires = None
-                    break
-        if not expires:
-            await interaction.response.send_message("ℹ️ Licencia activada sin datos de expiración.", ephemeral=True)
-            return
-        days_left = (expires - datetime.utcnow()).days
-        await interaction.response.send_message(f"🔎 Licencia: {key}\nExpira: {expires.date().isoformat()}\nDías restantes: {max(days_left,0)}", ephemeral=True)
+        await interaction.response.send_message(f"🔎 Licencia: {key}\nEstado: permanente", ephemeral=True)
 
     @app_commands.command(name="renovar", description="Renovar licencia añadiendo días de vigencia")
     async def renovar(self, interaction: discord.Interaction, dias: int):
-        import pathlib
-        from datetime import datetime, timedelta
-        if dias <= 0:
-            await interaction.response.send_message("❌ Días inválidos.", ephemeral=True)
-            return
-        if interaction.user.id != OWNER_ID:
-            try:
-                owner = await self.bot.fetch_user(OWNER_ID)
-                await owner.send(f"📩 Solicitud de renovación por {interaction.user} ({interaction.user.id}) en {interaction.guild.name if interaction.guild else 'DM'}: {dias} días")
-            except Exception:
-                pass
-            await interaction.response.send_message("ℹ️ Tu solicitud ha sido enviada al propietario.", ephemeral=True)
-            return
-
-        lic_active = pathlib.Path("license_active.txt")
-        if not lic_active.exists():
-            await interaction.response.send_message("❌ No hay licencia activa.", ephemeral=True)
-            return
-        key = lic_active.read_text(encoding="utf-8").strip()
-        bind_path = pathlib.Path("license_bindings.txt")
-        if not bind_path.exists():
-            await interaction.response.send_message("❌ No hay binding registrado.", ephemeral=True)
-            return
-        lines = [ln for ln in bind_path.read_text(encoding="utf-8").splitlines()]
-        updated = False
-        for i, ln in enumerate(lines):
-            parts = ln.split("|")
-            if parts and parts[0] == key:
-                try:
-                    from datetime import datetime as dt
-                    exp = dt.fromisoformat(parts[4]) if len(parts) >= 5 else dt.utcnow()
-                    new_exp = exp + timedelta(days=dias)
-                    parts[4] = new_exp.isoformat()
-                    if len(parts) >= 6:
-                        parts[5] = str(int(parts[5]) + dias)
-                    lines[i] = "|".join(parts)
-                    updated = True
-                except Exception:
-                    pass
-                break
-        if not updated:
-            await interaction.response.send_message("❌ No se pudo actualizar la licencia.", ephemeral=True)
-            return
-        bind_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-        await interaction.response.send_message(f"✅ Licencia renovada por {dias} días.", ephemeral=True)
-        try:
-            owner = await self.bot.fetch_user(OWNER_ID)
-            await owner.send(f"✅ Renovación aplicada a {key}: +{dias} días")
-        except Exception:
-            pass
+        await interaction.response.send_message("ℹ️ Las licencias son permanentes; no requieren renovación.", ephemeral=True)
 
     @app_commands.command(name="demo", description="Presentación visual del bot para mostrar a clientes")
     async def demo(self, interaction: discord.Interaction):

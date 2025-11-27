@@ -50,13 +50,11 @@ async def on_ready():
     print(f"⚔️ PoseidonUI conectado como {bot.user}")
     try:
         import pathlib
-        from datetime import datetime
         k = LICENSE_KEY
         b = pathlib.Path("license_bindings.txt")
         if k and b.exists():
             lines = [ln.strip() for ln in b.read_text(encoding="utf-8").splitlines() if ln.strip() and not ln.strip().startswith("#")]
             bind_gid = None
-            expires = None
             for ln in lines:
                 parts = ln.split("|")
                 if parts and parts[0] == k:
@@ -64,10 +62,6 @@ async def on_ready():
                         bind_gid = int(parts[1])
                     except Exception:
                         bind_gid = None
-                    try:
-                        expires = datetime.fromisoformat(parts[4]) if len(parts) >= 5 else None
-                    except Exception:
-                        expires = None
                     break
             if bind_gid is not None and bind_gid != 0:
                 current = {g.id for g in bot.guilds}
@@ -75,13 +69,6 @@ async def on_ready():
                     try:
                         owner = await bot.fetch_user(OWNER_ID)
                         await owner.send(f"⛔ El bot se inició en un servidor distinto al vinculado de la licencia {k}.")
-                    except Exception:
-                        pass
-                    await bot.close()
-                if expires and datetime.utcnow() > expires:
-                    try:
-                        owner = await bot.fetch_user(OWNER_ID)
-                        await owner.send(f"⌛ Licencia {k} expirada. El bot se cerrará.")
                     except Exception:
                         pass
                     await bot.close()
