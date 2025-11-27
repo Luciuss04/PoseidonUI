@@ -14,7 +14,7 @@ intents.guilds = True
 intents.members = True
 
 # ====== Crear bot con setup_hook ======
-class AteneaBot(commands.Bot):
+class PoseidonUIBot(commands.Bot):
     async def setup_hook(self):
         import oraculo
         import lol
@@ -37,12 +37,12 @@ class AteneaBot(commands.Bot):
         # Sincronizar slash commands
         await self.tree.sync()
 
-bot = AteneaBot(command_prefix="!", intents=intents)
+bot = PoseidonUIBot(command_prefix="!", intents=intents)
 
 # ====== Evento de conexión ======
 @bot.event
 async def on_ready():
-    print(f"⚔️ Bot conectado como {bot.user}")
+    print(f"⚔️ PoseidonUI conectado como {bot.user}")
 
 @bot.event
 async def on_command_error(ctx, error):
