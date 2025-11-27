@@ -24,6 +24,7 @@ class AteneaBot(commands.Bot):
         import crear_roles_guardian  
         import status
         import ofertas
+        import about
 
         # Cargar todos los módulos
         await oraculo.setup(self)
@@ -34,6 +35,7 @@ class AteneaBot(commands.Bot):
         await crear_roles_guardian.setup(self) 
         await status.setup(self)
         await ofertas.setup(self)
+        await about.setup(self)
         # Sincronizar slash commands
         await self.tree.sync()
 

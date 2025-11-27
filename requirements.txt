@@ -1,4 +1,4 @@
 discord.py==2.1.0
-python-dotenv
-aiohttp
-psutil
+python-dotenv==1.0.0
+aiohttp==3.9.5
+psutil==5.9.8
