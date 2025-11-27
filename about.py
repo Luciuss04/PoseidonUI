@@ -27,6 +27,7 @@ class About(commands.Cog):
         embed.set_image(url=banner_url)
         embed.add_field(name="Prefijo", value="!", inline=True)
         embed.add_field(name="Slash", value="/botinfo /status /juicio /crear_roles_guardian /ofertas", inline=False)
+        embed.add_field(name="Contacto", value="Discord: Luciuss04", inline=True)
         embed.set_footer(text="Configura .env y ejecuta start.bat")
         await interaction.response.send_message(embed=embed, view=BuyView(self.bot))
 
