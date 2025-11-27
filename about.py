@@ -75,14 +75,37 @@ class BuyView(discord.ui.View):
     def __init__(self, bot: commands.Bot):
         super().__init__(timeout=None)
         self.bot = bot
+        self.selected_plan = {}
+
+        self.add_item(PlanSelect(self))
 
     @discord.ui.button(label="Comprar / Solicitar", style=discord.ButtonStyle.success, emoji="🛒", custom_id="buy_button")
     async def buy_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message("✅ Solicitud enviada. Te contactaremos pronto.", ephemeral=True)
+        plan = self.selected_plan.get(interaction.user.id, "No especificado")
+        await interaction.response.send_message(f"✅ Solicitud enviada (Plan: {plan}). Te contactaremos pronto.", ephemeral=True)
         try:
             owner = await self.bot.fetch_user(OWNER_ID)
-            await owner.send(f"🛒 Nueva solicitud de compra: {interaction.user} ({interaction.user.id}) en {interaction.guild.name if interaction.guild else 'DM'}")
+            await owner.send(
+                f"🛒 Nueva solicitud de compra\nUsuario: {interaction.user} ({interaction.user.id})\nServidor: {interaction.guild.name if interaction.guild else 'DM'}\nPlan: {plan}"
+            )
         except Exception:
             pass
+
+
+class PlanSelect(discord.ui.Select):
+    def __init__(self, view: BuyView):
+        self.view_ref = view
+        options = [
+            discord.SelectOption(label="Básico", description="Botinfo, Demo, Status, Guardian", emoji="🟢"),
+            discord.SelectOption(label="Pro", description="+ Oráculo, Niveles, ajuste roles", emoji="🔵"),
+            discord.SelectOption(label="Élite", description="+ Ofertas y LoL", emoji="🟣"),
+            discord.SelectOption(label="Personalizado", description="Branding y features a medida", emoji="🟡"),
+        ]
+        super().__init__(placeholder="Elige un plan", min_values=1, max_values=1, options=options, custom_id="plan_select")
+
+    async def callback(self, interaction: discord.Interaction):
+        plan = self.values[0]
+        self.view_ref.selected_plan[interaction.user.id] = plan
+        await interaction.response.send_message(f"🛒 Plan seleccionado: {plan}", ephemeral=True)
     async def cog_load(self):
         self.bot.add_view(BuyView(self.bot))
