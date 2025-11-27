@@ -162,6 +162,24 @@ class BuyView(discord.ui.View):
         except Exception:
             pass
 
+    @discord.ui.button(label="Contactar", style=discord.ButtonStyle.primary, emoji="✉️", custom_id="contact_button")
+    async def contact_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        try:
+            await interaction.user.send("Contacto directo: Discord: Luciuss04")
+        except Exception:
+            pass
+        try:
+            owner = await self.bot.fetch_user(OWNER_ID)
+            await owner.send(
+                f"📨 Contacto solicitado\nUsuario: {interaction.user} ({interaction.user.id})\nServidor: {interaction.guild.name if interaction.guild else 'DM'}"
+            )
+        except Exception:
+            pass
+        try:
+            await interaction.response.send_message("✅ Te envié un DM con el contacto.", ephemeral=True)
+        except Exception:
+            pass
+
 
 class PlanSelect(discord.ui.Select):
     def __init__(self, view: BuyView):
