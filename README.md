@@ -64,3 +64,28 @@
 
 ## Soporte
 - Contáctanos para personalización: branding, features extra, integraciones.
+
+## Precios
+- Básico — 19€: instalación, `/botinfo`, `/demo`, módulos `status` y `guardian`.
+- Pro — 39€: incluye Básico + `oráculo`, `niveles`, configuración de roles/canales.
+- Élite — 69€: incluye Pro + `ofertas` diarias y módulos LoL (requiere `RIOT_API_KEY`).
+- Personalizado — desde 99€: branding, nuevas features, integraciones específicas.
+
+Contacta por Issues o email para cerrar compra y entrega.
+
+## Planes
+| Plan | Incluye | Ideal para |
+| --- | --- | --- |
+| Básico (19€) | Botinfo, Demo, Status, Guardian, instalación | Servidores pequeños |
+| Pro (39€) | Básico + Oráculo, Niveles, ajuste de roles/canales | Comunidad activa |
+| Élite (69€) | Pro + Ofertas diarias, LoL (RIOT_API_KEY) | Gaming / eSports |
+| Personalizado (99€+) | Branding, nuevas features, integraciones | Marca propia |
+
+[Comprar / Solicitar](https://github.com/Luciuss04/PoseidonUI/issues/new?title=Compra%20PoseidonUI&body=Plan:%20B%C3%A1sico/Pro/%C3%89lite/Personalizado)
+
+## FAQ
+- ¿Necesito habilitar intents? Sí: `message_content`, `guilds`, `members`.
+- ¿Se sube `.env`? No, está ignorado. Usa `.env.example` como guía.
+- ¿Cómo activo ofertas diarias? Define `CANAL_OFERTAS_ID` con el ID del canal.
+- ¿Qué necesito para LoL? `RIOT_API_KEY` válido en `.env`.
+- ¿Dónde veo una demo? Ejecuta `/botinfo` y `/demo` en tu servidor.
