@@ -34,10 +34,10 @@ class About(commands.Cog):
     async def activar(self, interaction: discord.Interaction, key: str):
         import re
         import pathlib
+        from datetime import datetime
         if not re.fullmatch(r"POSEIDON-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}", key):
             await interaction.response.send_message("❌ Formato inválido de licencia.", ephemeral=True)
             return
-        # Validar contra listado local
         lic_file = pathlib.Path("licenses.txt")
         ok = False
         if lic_file.exists():
@@ -47,9 +47,21 @@ class About(commands.Cog):
         if not ok:
             await interaction.response.send_message("❌ Licencia no válida.", ephemeral=True)
             return
-        # Persistir para próximos arranques
         pathlib.Path("license_active.txt").write_text(key, encoding="utf-8")
         await interaction.response.send_message("✅ Licencia activada. Gracias por adquirir PoseidonUI.", ephemeral=True)
+        try:
+            owner = await self.bot.fetch_user(OWNER_ID)
+            guild_name = interaction.guild.name if interaction.guild else "DM"
+            guild_id = interaction.guild.id if interaction.guild else 0
+            when = datetime.utcnow().isoformat()
+            msg = (
+                f"🔑 Activación\nUsuario: {interaction.user} ({interaction.user.id})\n"
+                f"Servidor: {guild_name} ({guild_id})\nLicencia: {key}\nFecha: {when}"
+            )
+            await owner.send(msg)
+            pathlib.Path("activations.log").open("a", encoding="utf-8").write(msg + "\n")
+        except Exception:
+            pass
 
     @app_commands.command(name="demo", description="Presentación visual del bot para mostrar a clientes")
     async def demo(self, interaction: discord.Interaction):
