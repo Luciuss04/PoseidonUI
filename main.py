@@ -2,10 +2,13 @@ import discord
 from discord.ext import commands
 import os
 from dotenv import load_dotenv
+import time
+import pathlib
 
 # ====== Cargar variables de entorno ======
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
+LICENSE_KEY = os.getenv("LICENSE_KEY")
 
 # ====== Configuración de intents ======
 intents = discord.Intents.default()
@@ -53,4 +56,17 @@ async def on_command_error(ctx, error):
 
 if not TOKEN:
     raise SystemExit("DISCORD_TOKEN no está configurado")
+if not LICENSE_KEY:
+    p = pathlib.Path("trial_start.txt")
+    now = int(time.time())
+    if not p.exists():
+        p.write_text(str(now), encoding="utf-8")
+    else:
+        try:
+            start = int(p.read_text(encoding="utf-8").strip())
+        except Exception:
+            start = now
+        days = (now - start) // 86400
+        if days >= 7:
+            raise SystemExit("Período de prueba de 7 días finalizado. Usa /botinfo para comprar.")
 bot.run(TOKEN)
