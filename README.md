@@ -1,8 +1,8 @@
-# Atenea Bot — Bot de Discord listo para servidores gaming y comunidad
+# PoseidonUI — Bot de Discord listo para servidores gaming y comunidad
 
 [![CI](https://github.com/Luciuss04/PoseidonUI/actions/workflows/ci.yml/badge.svg)](https://github.com/Luciuss04/PoseidonUI/actions/workflows/ci.yml)
 
-![Banner](https://raw.githubusercontent.com/Luciuss04/PoseidonUI/main/BotDiscord4.0/banner.png)
+![Banner](banner.png)
 
 ## Valor
 - Automatiza soporte con canales de Oráculo y cierre guiado.

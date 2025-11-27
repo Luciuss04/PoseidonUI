@@ -18,7 +18,6 @@ class AteneaBot(commands.Bot):
     async def setup_hook(self):
         import oraculo
         import lol
-        import offers
         import niveles
         import guardian
         import crear_roles_guardian  
@@ -29,7 +28,6 @@ class AteneaBot(commands.Bot):
         # Cargar todos los módulos
         await oraculo.setup(self)
         await lol.setup(self)
-        await offers.setup(self)
         await niveles.setup(self)
         await guardian.setup(self)
         await crear_roles_guardian.setup(self) 

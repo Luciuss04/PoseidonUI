@@ -18,7 +18,7 @@ class About(commands.Cog):
             "\n📊 Status: panel de diagnóstico y salud"
         )
         embed = discord.Embed(
-            title="Atenea Bot",
+            title="PoseidonUI",
             description=features,
             color=discord.Color.blurple()
         )
