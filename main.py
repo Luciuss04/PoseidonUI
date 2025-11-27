@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 import time
 import pathlib
+import re
 
 # ====== Cargar variables de entorno ======
 load_dotenv()
@@ -56,7 +57,27 @@ async def on_command_error(ctx, error):
 
 if not TOKEN:
     raise SystemExit("DISCORD_TOKEN no está configurado")
+def _validate_license(key: str) -> bool:
+    if not key:
+        return False
+    if not re.fullmatch(r"POSEIDON-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}", key):
+        return False
+    lic_file = pathlib.Path("licenses.txt")
+    if lic_file.exists():
+        lines = lic_file.read_text(encoding="utf-8").splitlines()
+        valid = {ln.strip() for ln in lines if ln.strip() and not ln.strip().startswith("#")}
+        return key in valid
+    return False
+
+# Cargar licencia desde archivo si no está en .env
 if not LICENSE_KEY:
+    lic_active = pathlib.Path("license_active.txt")
+    if lic_active.exists():
+        LICENSE_KEY = lic_active.read_text(encoding="utf-8").strip()
+
+if LICENSE_KEY and _validate_license(LICENSE_KEY):
+    pass
+else:
     p = pathlib.Path("trial_start.txt")
     now = int(time.time())
     if not p.exists():

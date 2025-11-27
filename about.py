@@ -30,6 +30,27 @@ class About(commands.Cog):
         embed.set_footer(text="Configura .env y ejecuta start.bat")
         await interaction.response.send_message(embed=embed, view=BuyView(self.bot))
 
+    @app_commands.command(name="activar", description="Activar licencia de PoseidonUI")
+    async def activar(self, interaction: discord.Interaction, key: str):
+        import re
+        import pathlib
+        if not re.fullmatch(r"POSEIDON-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}", key):
+            await interaction.response.send_message("❌ Formato inválido de licencia.", ephemeral=True)
+            return
+        # Validar contra listado local
+        lic_file = pathlib.Path("licenses.txt")
+        ok = False
+        if lic_file.exists():
+            lines = lic_file.read_text(encoding="utf-8").splitlines()
+            valid = {ln.strip() for ln in lines if ln.strip() and not ln.strip().startswith("#")}
+            ok = key in valid
+        if not ok:
+            await interaction.response.send_message("❌ Licencia no válida.", ephemeral=True)
+            return
+        # Persistir para próximos arranques
+        pathlib.Path("license_active.txt").write_text(key, encoding="utf-8")
+        await interaction.response.send_message("✅ Licencia activada. Gracias por adquirir PoseidonUI.", ephemeral=True)
+
     @app_commands.command(name="demo", description="Presentación visual del bot para mostrar a clientes")
     async def demo(self, interaction: discord.Interaction):
         await interaction.response.defer()
