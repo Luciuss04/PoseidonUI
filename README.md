@@ -63,4 +63,4 @@
 - Ejecuta `/botinfo` y `/demo` en un canal; verás tarjetas con cada módulo y el banner, ideal para enseñar el producto.
 
 ## Soporte
-- Abre Issues o contáctanos para personalización: branding, features extra, integraciones.
+- Contáctanos para personalización: branding, features extra, integraciones.
