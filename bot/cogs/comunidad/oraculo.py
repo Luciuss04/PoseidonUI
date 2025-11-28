@@ -1,8 +1,8 @@
-import discord
 import json
 import os
 import random
 from datetime import datetime, timedelta
+import discord
 from discord.ext import commands, tasks
 
 LOG_FILE = "oraculos.json"
@@ -289,4 +289,3 @@ class AutoArchivador(commands.Cog):
 async def setup(bot: commands.Bot):
     await bot.add_cog(OraculoPanel(bot))
     await bot.add_cog(AutoArchivador(bot))
-

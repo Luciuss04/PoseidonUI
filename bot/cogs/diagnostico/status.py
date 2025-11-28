@@ -1,9 +1,9 @@
-import discord
-from discord import app_commands
-from discord.ext import commands
 import time
 import platform
 import psutil
+import discord
+from discord import app_commands
+from discord.ext import commands
 
 STAFF_ROLES = ["Semidios", "Discípulo de Atena"]
 
@@ -122,4 +122,3 @@ class Status(commands.Cog):
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Status(bot))
-

@@ -1,8 +1,8 @@
-from discord.ext import commands
-import aiohttp
 import os
-from dotenv import load_dotenv
+import aiohttp
 import discord
+from discord.ext import commands
+from dotenv import load_dotenv
 
 load_dotenv()
 RIOT_API_KEY = os.getenv("RIOT_API_KEY")
@@ -85,4 +85,3 @@ class LoLCog(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(LoLCog(bot))
-

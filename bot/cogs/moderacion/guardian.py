@@ -1,8 +1,8 @@
+import asyncio
+import secrets
 import discord
 from discord.ext import commands
 from discord import app_commands
-import asyncio
-import secrets
 
 WELCOME_CHANNEL = "📜-puertas-del-olimpo"
 FAREWELL_CHANNEL = "🏺-el-umbral-de-hades"
@@ -113,4 +113,3 @@ class Guardian(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(Guardian(bot))
-

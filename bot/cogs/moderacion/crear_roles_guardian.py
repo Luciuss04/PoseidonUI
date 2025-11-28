@@ -1,7 +1,7 @@
+import random
 import discord
 from discord.ext import commands
 from discord import app_commands
-import random
 
 JUICIO_ROLES = {
     "⚡ Favor divino": "Bendecido",
@@ -57,4 +57,3 @@ class CrearRolesGuardian(commands.Cog):
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(CrearRolesGuardian(bot))
-

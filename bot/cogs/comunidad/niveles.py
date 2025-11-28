@@ -1,4 +1,5 @@
-import json, random
+import json
+import random
 from discord.ext import commands
 from bot.config import DATA_FILE, RANGOS
 
@@ -64,4 +65,3 @@ class NivelesCog(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(NivelesCog(bot))
-

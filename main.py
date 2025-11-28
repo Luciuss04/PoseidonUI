@@ -1,10 +1,10 @@
-import discord
-from discord.ext import commands
 import os
-from dotenv import load_dotenv
-import time
 import pathlib
 import re
+import time
+import discord
+from discord.ext import commands
+from dotenv import load_dotenv
 from bot.config import OWNER_ID
 
 # ====== Cargar variables de entorno ======
