@@ -33,17 +33,24 @@ class Ofertas(commands.Cog):
     @app_commands.command(name="ofertas", description="Muestra al menos 30 ofertas de juegos de PC con tienda visible")
     async def ofertas(self, interaction: discord.Interaction):
         await interaction.response.defer()
+        fecha = datetime.now().strftime("%d-%m-%Y")
+        nombre_thread = f"🌌 Profecías del Olimpo — {fecha}"
+        try:
+            existentes = [t for t in interaction.channel.threads if t.name == nombre_thread]
+            if existentes:
+                await interaction.followup.send("🕒 Ya se han publicado las ofertas de hoy en este canal.", ephemeral=True)
+                return
+        except Exception:
+            pass
         juegos = await self.obtener_ofertas()
         if not juegos:
             await interaction.followup.send("⚡ Hoy el Olimpo no encontró tesoros.", ephemeral=True)
             return
 
         juegos.sort(key=lambda j: float(j.get("savings", 0)), reverse=True)
-
-        fecha = datetime.now().strftime("%d-%m-%Y")
         try:
             thread = await interaction.channel.create_thread(
-                name=f"🌌 Profecías del Olimpo — {fecha}",
+                name=nombre_thread,
                 type=discord.ChannelType.public_thread
             )
         except Exception:
@@ -62,6 +69,14 @@ class Ofertas(commands.Cog):
         canal = self.bot.get_channel(CANAL_OFERTAS_ID)
         if not canal:
             return
+        fecha = datetime.now().strftime("%d-%m-%Y")
+        nombre_thread = f"🌌 Profecías del Olimpo — {fecha}"
+        try:
+            existentes = [t for t in canal.threads if t.name == nombre_thread]
+            if existentes:
+                return
+        except Exception:
+            pass
 
         juegos = await self.obtener_ofertas()
         if not juegos:
@@ -69,11 +84,9 @@ class Ofertas(commands.Cog):
             return
 
         juegos.sort(key=lambda j: float(j.get("savings", 0)), reverse=True)
-
-        fecha = datetime.now().strftime("%d-%m-%Y")
         try:
             thread = await canal.create_thread(
-                name=f"🌌 Profecías del Olimpo — {fecha}",
+                name=nombre_thread,
                 type=discord.ChannelType.public_thread
             )
         except Exception:
