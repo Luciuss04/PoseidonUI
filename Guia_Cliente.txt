@@ -1,0 +1,60 @@
+PoseidonUI — Guía rápida para clientes
+
+1) Requisitos
+- Python 3.11+ instalado y en PATH
+- Crear aplicación/bot en https://discord.com/developers y copiar el DISCORD_TOKEN
+- Habilitar Intents en el bot: Message Content, Guilds y Members
+
+2) Instalación
+- Clona el repositorio
+- En Windows, ejecuta start.bat dentro de BotDiscord4.0/ (crea venv e instala dependencias)
+- Copia .env.example a .env y completa:
+  - DISCORD_TOKEN= (obligatorio)
+  - RIOT_API_KEY= (opcional, solo para comandos de LoL)
+  - CANAL_OFERTAS_ID= (opcional, canal donde se publicarán threads diarios)
+  - LICENSE_KEY= (opcional; también puedes activar con /activar)
+
+3) Activación y licencia
+- Si ejecutas sin licencia, tendrás una prueba de 7 días (trial)
+- Para activar una licencia permanente:
+  - Opción A: coloca LICENSE_KEY en .env
+  - Opción B: en tu servidor de Discord, ejecuta /activar POSEIDON-XXXX-XXXX-XXXX
+- La licencia queda vinculada a tu servidor. Los intentos de usarla en otro servidor se bloquean
+- Al activar, recibirás confirmación y el propietario es notificado por DM
+
+4) Arranque
+- Opción rápida: doble clic en start.bat
+- Opción manual: activar venv (Windows) y ejecutar: python main.py
+
+5) Comandos principales
+- Prefijo !
+  - !oferta / !ofertas: muestra ofertas de juegos
+- Slash /
+  - /botinfo: información del bot y botón Comprar (con selector de plan)
+  - /demo: publica tarjetas de presentación en un hilo
+  - /status: panel de salud (admins/staff)
+  - /juicio: rol temporal ritual del Guardian
+  - /crear_roles_guardian: crea roles base del sistema Guardian
+  - /ofertas: publica 30+ ofertas en un thread
+  - /activar: activa licencia (si no usas LICENSE_KEY en .env)
+  - /estado_licencia: muestra la licencia activa (permanente)
+
+6) Configuración rápida
+- Intents: habilita Message Content en el portal de Discord
+- Roles/canales: si usas nombres distintos, ajusta guardian.py y config.py
+- Ofertas diarias: pon CANAL_OFERTAS_ID con el ID del canal destino
+- LoL: RIOT_API_KEY debe ser válido para consultar invocadores/ranked
+
+7) Problemas comunes
+- DISCORD_TOKEN inválido: el bot no arranca
+- Intents no habilitados: algunos comandos no funcionan
+- RIOT_API_KEY ausente: comandos de LoL mostrarán error controlado
+- Sin licencia y trial vencido: el bot se detiene y pide compra
+
+8) Compra y soporte
+- Usa /botinfo y pulsa Comprar / Solicitar para contactar al propietario
+- También puedes abrir un Issue en GitHub
+- Soporte y personalizaciones disponibles (branding, nuevas funciones, integraciones)
+
+9) Contacto directo
+- Discord: Luciuss04 (envía un DM directamente)

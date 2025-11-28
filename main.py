@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import time
 import pathlib
 import re
-from config import OWNER_ID
+from bot.config import OWNER_ID
 
 # ====== Cargar variables de entorno ======
 load_dotenv()
@@ -21,14 +21,14 @@ intents.members = True
 # ====== Crear bot con setup_hook ======
 class PoseidonUIBot(commands.Bot):
     async def setup_hook(self):
-        import oraculo
-        import lol
-        import niveles
-        import guardian
-        import crear_roles_guardian  
-        import status
-        import ofertas
-        import about
+        from bot.cogs.comunidad import oraculo
+        from bot.cogs.integraciones import lol
+        from bot.cogs.comunidad import niveles
+        from bot.cogs.moderacion import guardian
+        from bot.cogs.moderacion import crear_roles_guardian
+        from bot.cogs.diagnostico import status
+        from bot.cogs.economia import ofertas
+        from bot.cogs.info import about
 
         # Cargar todos los módulos
         await oraculo.setup(self)

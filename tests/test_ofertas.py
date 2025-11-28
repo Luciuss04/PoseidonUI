@@ -4,7 +4,7 @@ import unittest
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-import ofertas
+from bot.cogs.economia import ofertas
 
 
 class TestOfertas(unittest.TestCase):

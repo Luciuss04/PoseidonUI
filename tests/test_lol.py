@@ -5,7 +5,7 @@ import unittest
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 import importlib
-import lol
+from bot.cogs.integraciones import lol
 
 
 class TestLoL(unittest.IsolatedAsyncioTestCase):

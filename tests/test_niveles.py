@@ -4,7 +4,7 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 import unittest
-from niveles import xp_necesaria, obtener_rango
+from bot.cogs.comunidad.niveles import xp_necesaria, obtener_rango
 
 
 class TestNiveles(unittest.TestCase):
