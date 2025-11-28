@@ -1,5 +1,5 @@
 @echo off
-REM Start script for Atenea Bot (BotDiscord4.0)
+REM Start script for PoseidonUI Bot (BotDiscord4.0)
 SETLOCAL
 
 REM Move to script directory
