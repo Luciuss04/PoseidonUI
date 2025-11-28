@@ -45,6 +45,22 @@ class TestLicenseParsing(unittest.TestCase):
         js2 = "{\"K1\": true, \"K2\": false}"
         self.assertEqual(mod._parse_licenses_text(js2), {"K1"})
 
+    def test_plan_map_parsing(self):
+        import importlib
+        cwd = pathlib.Path(__file__).parent.parent
+        spec = importlib.util.spec_from_file_location("app_main4", str(cwd / "main.py"))
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        txt = "POSE-PRO|pro\nPOSE-BASIC|basic\nPOSE-CUSTOM|custom\n# comment\nJUSTKEY"
+        mp = mod._parse_license_plan_map(txt)
+        self.assertEqual(mp["POSE-PRO"], "pro")
+        self.assertEqual(mp["POSE-BASIC"], "basic")
+        self.assertEqual(mp["POSE-CUSTOM"], "custom")
+        self.assertEqual(mp["JUSTKEY"], "basic")
+        js = "{\"L1\": \"elite\", \"L2\": true}"
+        mp2 = mod._parse_license_plan_map(js)
+        self.assertEqual(mp2["L1"], "elite")
+        self.assertEqual(mp2["L2"], "basic")
+
 if __name__ == "__main__":
     unittest.main()
-
