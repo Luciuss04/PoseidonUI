@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from bot.config import OWNER_ID
 
 # ====== Cargar variables de entorno ======
-load_dotenv()
+load_dotenv(override=True)
 TOKEN = os.getenv("DISCORD_TOKEN")
 LICENSE_KEY = os.getenv("LICENSE_KEY")
 
@@ -48,6 +48,16 @@ bot = PoseidonUIBot(command_prefix="!", intents=intents)
 @bot.event
 async def on_ready():
     print(f"⚔️ PoseidonUI conectado como {bot.user}")
+    try:
+        for guild in bot.guilds:
+            try:
+                me = guild.me
+                if me and me.nick != "PoseidonUI":
+                    await me.edit(nick="PoseidonUI")
+            except Exception:
+                pass
+    except Exception:
+        pass
     try:
         import pathlib
         k = LICENSE_KEY
