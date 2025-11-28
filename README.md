@@ -71,7 +71,7 @@
 - Élite — 69€: incluye Pro + `ofertas` diarias y módulos LoL (requiere `RIOT_API_KEY`).
 - Personalizado — desde 99€: branding, nuevas features, integraciones específicas.
 
-Contacta por Issues o email para cerrar compra y entrega.
+Contacta por Issues o discord para cerrar compra y entrega.
 
 ## Planes
 | Plan | Incluye | Ideal para |
