@@ -149,3 +149,9 @@ Contacta por Issues o discord para cerrar compra y entrega.
 - ¿Cómo activo ofertas diarias? Define `CANAL_OFERTAS_ID` con el ID del canal.
 - ¿Qué necesito para LoL? `RIOT_API_KEY` válido en `.env`.
 - ¿Dónde veo una demo? Ejecuta `/botinfo` y `/demo` en tu servidor.
+## Brand Kit
+- Paleta: Morado `#6A0DAD` (principal), Dorado `#FFD700` (acento/premios).
+- Uso: morado en títulos y botones; dorado en detalles, contornos y highlights.
+- CTA: 
+  - `[Demo](#galería)` — revisa capturas reales.
+  - `[Comprar](https://github.com/Luciuss04/PoseidonUI/issues/new?title=Compra%20PoseidonUI&body=Plan:%20B%C3%A1sico/Pro/%C3%89lite/Personalizado)` — elige tu plan.
