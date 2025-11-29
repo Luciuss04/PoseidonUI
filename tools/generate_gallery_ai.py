@@ -30,7 +30,7 @@ def run():
     load_dotenv()
     token = os.getenv("REPLICATE_API_TOKEN")
     if not token:
-        raise RuntimeError("Falata REPLICATE_API_TOKEN en .env")
+        raise RuntimeError("Falta REPLICATE_API_TOKEN en .env")
     os.environ["REPLICATE_API_TOKEN"] = token
     out_dir = os.path.join("assets", "generated")
     ensure_dir(out_dir)
