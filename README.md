@@ -103,20 +103,19 @@ Custom: todo lo anterior
 
 | Función | Claro | Oscuro |
 | --- | --- | --- |
-| Encuestas | ![Encuesta](assets/encuesta.svg) | ![Encuesta (dark)](assets/encuesta_dark.svg) |
-| Sorteos | ![Sorteo](assets/sorteo.svg) | ![Sorteo (dark)](assets/sorteo_dark.svg) |
-| Tienda | ![Tienda](assets/tienda.svg) | ![Tienda (dark)](assets/tienda_dark.svg) |
-| RSS | ![RSS](assets/rss.svg) | ![RSS (dark)](assets/rss_dark.svg) |
-| Moderación | ![Moderación](assets/moderacion.svg) | ![Moderación (dark)](assets/moderacion_dark.svg) |
-| Ayuda | ![Ayuda](assets/ayuda.svg) | ![Ayuda (dark)](assets/ayuda_dark.svg) |
-| Planes | ![Planes](assets/planes.svg) | ![Planes (dark)](assets/planes_dark.svg) |
+| Encuestas | ![Encuesta](assets/Encuesta.png) | ![Encuesta (oscura)](assets/Encuesta(oscura).png) |
+| Sorteos | ![Sorteo](assets/Sorteo.png) | ![Sorteo (oscuro)](assets/sorteo(oscuro).png) |
+| Tienda | ![Tienda](assets/Tienda.png) | ![Tienda (oscuro)](assets/Tienda(oscuro).png) |
+| RSS | ![RSS](assets/Rss.png) | ![RSS (oscuro)](assets/Rss(oscuro).png) |
+| Moderación | ![Moderación](assets/Moderacion.png) | ![Moderación (oscuro)](assets/Moderacion(oscuro).png) |
+| Ayuda | ![Ayuda](assets/Ayuda.png) | ![Ayuda (oscuro)](assets/Ayuda(oscuro).png) |
+| Planes | ![Planes](assets/planes.png) | ![Planes (oscuro)](assets/planes%20oscuro.png) |
 
 ### Cómo añadir media
-- Crea carpeta `assets/` en la raíz del repo y sube tus imágenes/GIFs.
-- Nombres sugeridos: `encuesta.svg`, `sorteo.svg`, `tienda.svg`, `rss.svg`, `moderacion.svg`.
-- También: `ayuda.svg`, `planes.svg`.
+- Sube tus capturas/GIFs a la carpeta `assets/` en la raíz del repo.
+- Formato recomendado: `.png` o `.gif` en 16:9.
+- Ejemplos usados arriba: `Encuesta.png`, `Sorteo.png`, `Tienda.png`, `Rss.png`, `Moderacion.png`, `Ayuda.png`, `planes.png` y sus variantes oscuras `(...(oscuro)/(oscura))`.
 - Los enlaces del README apuntan a esa carpeta; al hacer push se mostrarán automáticamente.
-- Generación con IA: con `REPLICATE_API_TOKEN` en `.env`, ejecuta `python tools/generate_gallery_ai.py` y se guardarán PNGs en `assets/generated/`.
 
 ## Soporte
 - Contáctanos para personalización: branding, features extra, integraciones.
