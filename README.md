@@ -2,7 +2,13 @@
 
 [![CI](https://github.com/Luciuss04/PoseidonUI/actions/workflows/ci.yml/badge.svg)](https://github.com/Luciuss04/PoseidonUI/actions/workflows/ci.yml)
 
+[![Brand Morado](https://img.shields.io/badge/Brand-Morado-%236A0DAD?style=for-the-badge)](#)
+[![Brand Dorado](https://img.shields.io/badge/Brand-Dorado-%23FFD700?style=for-the-badge)](#)
+[![Comprar](https://img.shields.io/badge/Comprar-Planes-%23FFD700?style=for-the-badge)](https://github.com/Luciuss04/PoseidonUI/issues/new?title=Compra%20PoseidonUI&body=Plan:%20B%C3%A1sico/Pro/%C3%89lite/Personalizado)
+
 ![Banner](banner.png)
+
+> 👑 Tridente morado y dorado para tu comunidad: experiencia premium con estilo.
 
 ## Valor
 - Automatiza soporte con canales de Oráculo y cierre guiado.
@@ -99,7 +105,7 @@ Custom: todo lo anterior
 ```
 
 ## Galería
-> Capturas reales del bot en temas claro y oscuro.
+> Capturas reales del bot en temas claro y oscuro con acentos morado/dorado.
 
 | Función | Claro | Oscuro |
 | --- | --- | --- |
