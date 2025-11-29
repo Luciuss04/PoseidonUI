@@ -86,6 +86,18 @@
 - Diagnóstico: `/ping`, `/uptime`, `/comandos`.
 - Info: `/ayuda`, `/planes`, `/precio`.
 
+### Mini demo — Ayuda y Planes
+```text
+/ayuda
+🧾 Comandos: status, ping, uptime, ayuda, planes, precio, guardian, juicio, crear_roles_guardian, oraculo, niveles, encuestas, recordatorios, utilidades, monedas, sorteos, tienda, rss, web, lol...
+
+/planes
+Básico: status, guardian, about, info
+Pro: oraculo, niveles, crear_roles_guardian, encuestas, recordatorios, antispam, herramientas, monedas
+Élite: ofertas, sorteos, tienda, integraciones web, rss, lol
+Custom: todo lo anterior
+```
+
 ## Galería
 > Sustituye las rutas por tus capturas/GIFs una vez subidas.
 - Encuestas: ![Encuesta](assets/encuesta.gif)
