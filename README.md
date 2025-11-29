@@ -16,10 +16,14 @@
 - `⚡ Oráculo` — panel de ayuda con apertura/cierre de canales.
 - `🛡 Guardian` — verificación con botón y Juicio Divino con roles temporales.
 - `🌟 Niveles` — XP por mensajes y rangos míticos.
-- `🏆 LoL` — `/invocador`, `/ranked` via Riot API.
 - `🏷 Ofertas` — thread diario con ofertas (CheapShark).
-- `📊 Status` — `/status` para admins/staff.
-- `ℹ️ Botinfo` — `/botinfo` y `/demo` para mostrar el producto.
+- `📊 Status/Tools` — `/status`, `/ping`, `/uptime`, `/comandos`.
+- `ℹ️ Info` — `/botinfo`, `/demo`, `/ayuda`, `/planes`, `/precio`.
+- `🧠 Comunidad` — encuestas (`/encuesta`), recordatorios (`/recordatorio`), utilidades (`/sugerencia`, `/anuncio`, `/evento`, `tags`, canales temporales).
+- `💰 Economía` — monedas (`/balance`, `/daily`, `/work`, `/dar`, `/quitar`, `/top`), sorteos (`/sorteo`).
+- `🛍 Tienda` — `/tienda_add`, `/tienda_list`, `/comprar`, `/inventario`, `/regalar`, `/tienda_clear`.
+- `🧰 Moderación` — anti‑spam automático, `/clear`, `/slowmode`, `/mute`, `/unmute`, `/lock`, `/unlock`, `/warn`.
+- `🌐 Integraciones` — LoL (`RIOT_API_KEY`), web (`/wiki`, `/crypto`, `/hn`, `/quote`, `/ip`, `/cat`, `/dog`), RSS (`/rss`).
 
 ## Requisitos
 - Python 3.11+
@@ -33,6 +37,10 @@
    - `DISCORD_TOKEN`
    - `RIOT_API_KEY` (opcional, para LoL)
    - `CANAL_OFERTAS_ID` (opcional, para publicaciones diarias)
+   - `LICENSE_KEY` (tu clave de licencia)
+   - `LICENSES_PATH` (ruta privada local de licencias, p.ej. `C:\\PoseidonLicenses`)
+   - `LICENSE_SIGNING_SECRET` (secreto para firmar licencias HMAC)
+   - `ALLOW_PLAIN_LICENSES=0/1` (recomendado `0`)
 4. Arranca el bot: `python main.py` o `start.bat`.
 
 ## Comandos
@@ -50,9 +58,14 @@
 - Intents: habilita `Message Content Intent` en el portal de Discord Developer.
 - Roles/canales: ajusta nombres en `guardian.py` y `config.py` si tu servidor usa otros nombres.
 - Publicación de ofertas: define `CANAL_OFERTAS_ID` para el canal donde se crean threads diarios.
+- Licencias: el bot valida `LICENSE_KEY` contra `licenses_plans.txt` en `LICENSES_PATH`.
+  - Formato soportado: `KEY|PLAN|SIG` donde `SIG=HMAC_SHA256_base64url(KEY|PLAN)`.
+  - Planes: `basic`, `pro`, `elite`, `custom`.
+  - Con `ALLOW_PLAIN_LICENSES=0`, solo se aceptan claves firmadas.
 
 ## Seguridad
 - No subas `.env`. Está ignorado por `.gitignore`.
+- No subas licencias; usa `LICENSES_PATH` privado fuera del repo.
 - Datos generados (`niveles.json`, `oraculos.json`) están ignorados.
 
 ## Calidad
@@ -66,9 +79,9 @@
 - Contáctanos para personalización: branding, features extra, integraciones.
 
 ## Precios
-- Básico — 19€: instalación, `/botinfo`, `/demo`, módulos `status` y `guardian`.
-- Pro — 39€: incluye Básico + `oráculo`, `niveles`, configuración de roles/canales.
-- Élite — 69€: incluye Pro + `ofertas` diarias y módulos LoL (requiere `RIOT_API_KEY`).
+- Básico — 19€: instalación, `status/tools`, `guardian`, `about`, `info`.
+- Pro — 39€: incluye Básico + `oráculo`, `niveles`, `crear_roles_guardian`, `encuestas`, `recordatorios`, `antispam`, `herramientas`, `monedas`.
+- Élite — 69€: incluye Pro + `ofertas`, `sorteos`, `tienda`, `integraciones web`, `RSS`, `LoL` (requiere `RIOT_API_KEY`).
 - Personalizado — desde 99€: branding, nuevas features, integraciones específicas.
 
 Contacta por Issues o discord para cerrar compra y entrega.
