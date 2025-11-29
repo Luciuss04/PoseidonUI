@@ -100,18 +100,18 @@ Custom: todo lo anterior
 
 ## Galería
 > Sustituye las rutas por tus capturas/GIFs una vez subidas.
-- Encuestas: ![Encuesta](assets/encuesta.gif)
-- Sorteos: ![Sorteo](assets/sorteo.gif)
-- Tienda: ![Tienda](assets/tienda.png)
-- RSS: ![RSS](assets/rss.png)
-- Moderación: ![Moderación](assets/moderacion.gif)
-- Ayuda: ![Ayuda](assets/ayuda.png)
-- Planes: ![Planes](assets/planes.png)
+- Encuestas: ![Encuesta](assets/encuesta.svg)
+- Sorteos: ![Sorteo](assets/sorteo.svg)
+- Tienda: ![Tienda](assets/tienda.svg)
+- RSS: ![RSS](assets/rss.svg)
+- Moderación: ![Moderación](assets/moderacion.svg)
+- Ayuda: ![Ayuda](assets/ayuda.svg)
+- Planes: ![Planes](assets/planes.svg)
 
 ### Cómo añadir media
 - Crea carpeta `assets/` en la raíz del repo y sube tus imágenes/GIFs.
-- Nombres sugeridos: `encuesta.gif`, `sorteo.gif`, `tienda.png`, `rss.png`, `moderacion.gif`.
- - También: `ayuda.png`, `planes.png`.
+- Nombres sugeridos: `encuesta.svg`, `sorteo.svg`, `tienda.svg`, `rss.svg`, `moderacion.svg`.
+- También: `ayuda.svg`, `planes.svg`.
 - Los enlaces del README apuntan a esa carpeta; al hacer push se mostrarán automáticamente.
 
 ## Soporte

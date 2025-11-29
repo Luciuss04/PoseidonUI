@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450">
+<defs>
+<linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+<stop offset="0" stop-color="#6C5CE7"/>
+<stop offset="1" stop-color="#00CEC9"/>
+</linearGradient>
+</defs>
+<rect width="800" height="450" fill="url(#g)"/>
+<text x="40" y="80" fill="#fff" font-family="Segoe UI" font-size="40" font-weight="700">Encuesta</text>
+<rect x="40" y="110" width="720" height="260" rx="14" fill="#2D3436" opacity="0.6"/>
+<text x="60" y="150" fill="#fff" font-family="Segoe UI" font-size="22">¿Qué juego?</text>
+<rect x="60" y="180" width="220" height="40" rx="8" fill="#0984E3"/>
+<text x="75" y="206" fill="#fff" font-family="Segoe UI" font-size="18">LoL</text>
+<rect x="300" y="180" width="220" height="40" rx="8" fill="#6C5CE7"/>
+<text x="315" y="206" fill="#fff" font-family="Segoe UI" font-size="18">Valorant</text>
+<rect x="540" y="180" width="220" height="40" rx="8" fill="#00CEC9"/>
+<text x="555" y="206" fill="#083" font-family="Segoe UI" font-size="18">CS2</text>
+<rect x="60" y="240" width="160" height="38" rx="8" fill="#D63031"/>
+<text x="75" y="265" fill="#fff" font-family="Segoe UI" font-size="16">Cerrar encuesta</text>
+</svg>

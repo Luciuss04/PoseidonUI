@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450">
+<rect width="800" height="450" fill="#FFF5F5"/>
+<text x="40" y="80" fill="#C0392B" font-family="Segoe UI" font-size="40" font-weight="700">Moderación</text>
+<rect x="40" y="110" width="720" height="260" rx="14" fill="#FFFFFF" stroke="#E6A5A5"/>
+<rect x="60" y="150" width="140" height="36" rx="6" fill="#E74C3C"/>
+<text x="80" y="175" fill="#fff" font-family="Segoe UI" font-size="16">Clear</text>
+<rect x="210" y="150" width="160" height="36" rx="6" fill="#D35400"/>
+<text x="230" y="175" fill="#fff" font-family="Segoe UI" font-size="16">Slowmode</text>
+<rect x="380" y="150" width="140" height="36" rx="6" fill="#7F8C8D"/>
+<text x="400" y="175" fill="#fff" font-family="Segoe UI" font-size="16">Mute</text>
+<rect x="530" y="150" width="140" height="36" rx="6" fill="#27AE60"/>
+<text x="550" y="175" fill="#fff" font-family="Segoe UI" font-size="16">Unlock</text>
+</svg>
