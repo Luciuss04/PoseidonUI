@@ -2,13 +2,9 @@
 
 [![CI](https://github.com/Luciuss04/PoseidonUI/actions/workflows/ci.yml/badge.svg)](https://github.com/Luciuss04/PoseidonUI/actions/workflows/ci.yml)
 
-[![Brand Morado](https://img.shields.io/badge/Brand-Morado-%236A0DAD?style=for-the-badge)](#)
-[![Brand Dorado](https://img.shields.io/badge/Brand-Dorado-%23FFD700?style=for-the-badge)](#)
-[![Comprar](https://img.shields.io/badge/Comprar-Planes-%23FFD700?style=for-the-badge)](https://github.com/Luciuss04/PoseidonUI/issues/new?title=Compra%20PoseidonUI&body=Plan:%20B%C3%A1sico/Pro/%C3%89lite/Personalizado)
 
 ![Banner](banner.png)
 
-> 👑 Tridente morado y dorado para tu comunidad: experiencia premium con estilo.
 
 ## Valor
 - Automatiza soporte con canales de Oráculo y cierre guiado.
@@ -105,7 +101,7 @@ Custom: todo lo anterior
 ```
 
 ## Galería
-> Capturas reales del bot en temas claro y oscuro con acentos morado/dorado.
+> Capturas reales del bot en temas claro y oscuro.
 
 | Función | Claro | Oscuro |
 | --- | --- | --- |
@@ -149,9 +145,3 @@ Contacta por Issues o discord para cerrar compra y entrega.
 - ¿Cómo activo ofertas diarias? Define `CANAL_OFERTAS_ID` con el ID del canal.
 - ¿Qué necesito para LoL? `RIOT_API_KEY` válido en `.env`.
 - ¿Dónde veo una demo? Ejecuta `/botinfo` y `/demo` en tu servidor.
-## Brand Kit
-- Paleta: Morado `#6A0DAD` (principal), Dorado `#FFD700` (acento/premios).
-- Uso: morado en títulos y botones; dorado en detalles, contornos y highlights.
-- CTA: 
-  - `[Demo](#galería)` — revisa capturas reales.
-  - `[Comprar](https://github.com/Luciuss04/PoseidonUI/issues/new?title=Compra%20PoseidonUI&body=Plan:%20B%C3%A1sico/Pro/%C3%89lite/Personalizado)` — elige tu plan.
