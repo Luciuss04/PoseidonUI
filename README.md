@@ -116,6 +116,7 @@ Custom: todo lo anterior
 - Nombres sugeridos: `encuesta.svg`, `sorteo.svg`, `tienda.svg`, `rss.svg`, `moderacion.svg`.
 - También: `ayuda.svg`, `planes.svg`.
 - Los enlaces del README apuntan a esa carpeta; al hacer push se mostrarán automáticamente.
+- Generación con IA: con `REPLICATE_API_TOKEN` en `.env`, ejecuta `python tools/generate_gallery_ai.py` y se guardarán PNGs en `assets/generated/`.
 
 ## Soporte
 - Contáctanos para personalización: branding, features extra, integraciones.
