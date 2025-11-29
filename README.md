@@ -86,6 +86,19 @@
 - Diagnóstico: `/ping`, `/uptime`, `/comandos`.
 - Info: `/ayuda`, `/planes`, `/precio`.
 
+## Galería
+> Sustituye las rutas por tus capturas/GIFs una vez subidas.
+- Encuestas: ![Encuesta](assets/encuesta.gif)
+- Sorteos: ![Sorteo](assets/sorteo.gif)
+- Tienda: ![Tienda](assets/tienda.png)
+- RSS: ![RSS](assets/rss.png)
+- Moderación: ![Moderación](assets/moderacion.gif)
+
+### Cómo añadir media
+- Crea carpeta `assets/` en la raíz del repo y sube tus imágenes/GIFs.
+- Nombres sugeridos: `encuesta.gif`, `sorteo.gif`, `tienda.png`, `rss.png`, `moderacion.gif`.
+- Los enlaces del README apuntan a esa carpeta; al hacer push se mostrarán automáticamente.
+
 ## Soporte
 - Contáctanos para personalización: branding, features extra, integraciones.
 
