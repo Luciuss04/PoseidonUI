@@ -75,6 +75,17 @@
 ## Demo rápida
 - Ejecuta `/botinfo` y `/demo` en un canal; verás tarjetas con cada módulo y el banner, ideal para enseñar el producto.
 
+## Ejemplos de uso
+- Encuestas: `/encuesta "¿Qué juego?" "LoL;Valorant;CS2"` y cierra con el botón para ver resultados.
+- Sorteos: `/sorteo "Nitro 1 mes" 10` y los usuarios se apuntan con el botón.
+- Tienda: `/tienda_add "Nitro" 999`, `/tienda_list`, `/comprar "Nitro"`, `/inventario`.
+- RSS: `/rss "https://hnrss.org/frontpage"` muestra los últimos 5 enlaces.
+- Recordatorios: `/recordatorio 30 "Reunión"` envía un DM en 30 min.
+- Moderación: `/clear 50`, `/slowmode 10`, `/mute @usuario 15`, `/unlock`.
+- Integraciones web: `/wiki python`, `/crypto bitcoin`, `/hn`, `/quote`, `/ip 8.8.8.8`.
+- Diagnóstico: `/ping`, `/uptime`, `/comandos`.
+- Info: `/ayuda`, `/planes`, `/precio`.
+
 ## Soporte
 - Contáctanos para personalización: branding, features extra, integraciones.
 
