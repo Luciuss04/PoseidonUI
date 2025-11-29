@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450">
+<rect width="800" height="450" fill="#0F172A"/>
+<text x="40" y="80" fill="#E5E7EB" font-family="Segoe UI" font-size="40" font-weight="700">Encuesta</text>
+<rect x="40" y="110" width="720" height="260" rx="14" fill="#111827" stroke="#1F2937"/>
+<text x="60" y="150" fill="#CBD5E1" font-family="Segoe UI" font-size="22">¿Qué juego?</text>
+<rect x="60" y="180" width="220" height="40" rx="8" fill="#2563EB"/>
+<text x="75" y="206" fill="#F8FAFC" font-family="Segoe UI" font-size="18">LoL</text>
+<rect x="300" y="180" width="220" height="40" rx="8" fill="#7C3AED"/>
+<text x="315" y="206" fill="#F8FAFC" font-family="Segoe UI" font-size="18">Valorant</text>
+<rect x="540" y="180" width="220" height="40" rx="8" fill="#14B8A6"/>
+<text x="555" y="206" fill="#0F172A" font-family="Segoe UI" font-size="18">CS2</text>
+<rect x="60" y="240" width="160" height="38" rx="8" fill="#DC2626"/>
+<text x="75" y="265" fill="#F8FAFC" font-family="Segoe UI" font-size="16">Cerrar encuesta</text>
+</svg>

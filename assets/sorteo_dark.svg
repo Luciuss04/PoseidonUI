@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450">
+<rect width="800" height="450" fill="#052E2B"/>
+<text x="40" y="80" fill="#D1FAE5" font-family="Segoe UI" font-size="40" font-weight="700">Sorteo</text>
+<rect x="40" y="110" width="720" height="240" rx="14" fill="#064E3B" stroke="#10B981"/>
+<text x="60" y="150" fill="#D1FAE5" font-family="Segoe UI" font-size="22">Premio: Nitro 1 mes</text>
+<text x="60" y="185" fill="#A7F3D0" font-family="Segoe UI" font-size="18">Duración: 10 min</text>
+<rect x="60" y="220" width="220" height="42" rx="8" fill="#10B981"/>
+<text x="80" y="248" fill="#052E2B" font-family="Segoe UI" font-size="18">Participar 🎟️</text>
+</svg>

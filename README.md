@@ -108,6 +108,8 @@ Custom: todo lo anterior
 - Ayuda: ![Ayuda](assets/ayuda.svg)
 - Planes: ![Planes](assets/planes.svg)
 
+> Variantes oscuras disponibles: `assets/*_dark.svg`
+
 ### Cómo añadir media
 - Crea carpeta `assets/` en la raíz del repo y sube tus imágenes/GIFs.
 - Nombres sugeridos: `encuesta.svg`, `sorteo.svg`, `tienda.svg`, `rss.svg`, `moderacion.svg`.

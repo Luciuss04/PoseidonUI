@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450">
+<rect width="800" height="450" fill="#0D1218"/>
+<text x="40" y="80" fill="#E2E8F0" font-family="Segoe UI" font-size="40" font-weight="700">Ayuda</text>
+<rect x="40" y="110" width="720" height="260" rx="14" fill="#0F1620" stroke="#334155"/>
+<text x="60" y="150" fill="#CBD5E1" font-family="Segoe UI" font-size="18">Comandos: status, ping, uptime, ayuda, planes, precio, guardian...</text>
+</svg>

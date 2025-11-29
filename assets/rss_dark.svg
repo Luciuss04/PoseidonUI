@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450">
+<rect width="800" height="450" fill="#0B1226"/>
+<text x="40" y="80" fill="#C4D3FF" font-family="Segoe UI" font-size="40" font-weight="700">RSS</text>
+<rect x="40" y="110" width="720" height="260" rx="14" fill="#0D1B38" stroke="#3358D4"/>
+<text x="60" y="150" fill="#C4D3FF" font-family="Segoe UI" font-size="18">https://hnrss.org/frontpage</text>
+<text x="60" y="190" fill="#7EA1FF" font-family="Segoe UI" font-size="16">• Enlace 1</text>
+<text x="60" y="220" fill="#7EA1FF" font-family="Segoe UI" font-size="16">• Enlace 2</text>
+<text x="60" y="250" fill="#7EA1FF" font-family="Segoe UI" font-size="16">• Enlace 3</text>
+<text x="60" y="280" fill="#7EA1FF" font-family="Segoe UI" font-size="16">• Enlace 4</text>
+<text x="60" y="310" fill="#7EA1FF" font-family="Segoe UI" font-size="16">• Enlace 5</text>
+</svg>

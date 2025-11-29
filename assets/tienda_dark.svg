@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450">
+<rect width="800" height="450" fill="#0B1020"/>
+<text x="40" y="80" fill="#C7D2FE" font-family="Segoe UI" font-size="40" font-weight="700">Tienda</text>
+<rect x="40" y="110" width="720" height="260" rx="14" fill="#0F172A" stroke="#1E293B"/>
+<text x="60" y="150" fill="#93C5FD" font-family="Segoe UI" font-size="22">Nitro</text>
+<text x="200" y="150" fill="#86EFAC" font-family="Segoe UI" font-size="22">999</text>
+<rect x="60" y="180" width="140" height="36" rx="6" fill="#4338CA"/>
+<text x="80" y="205" fill="#F8FAFC" font-family="Segoe UI" font-size="16">Comprar</text>
+<rect x="210" y="180" width="180" height="36" rx="6" fill="#334155"/>
+<text x="230" y="205" fill="#F8FAFC" font-family="Segoe UI" font-size="16">Inventario</text>
+</svg>
