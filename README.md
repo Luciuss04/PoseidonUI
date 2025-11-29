@@ -93,10 +93,13 @@
 - Tienda: ![Tienda](assets/tienda.png)
 - RSS: ![RSS](assets/rss.png)
 - Moderación: ![Moderación](assets/moderacion.gif)
+- Ayuda: ![Ayuda](assets/ayuda.png)
+- Planes: ![Planes](assets/planes.png)
 
 ### Cómo añadir media
 - Crea carpeta `assets/` en la raíz del repo y sube tus imágenes/GIFs.
 - Nombres sugeridos: `encuesta.gif`, `sorteo.gif`, `tienda.png`, `rss.png`, `moderacion.gif`.
+ - También: `ayuda.png`, `planes.png`.
 - Los enlaces del README apuntan a esa carpeta; al hacer push se mostrarán automáticamente.
 
 ## Soporte
