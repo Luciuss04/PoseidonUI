@@ -103,7 +103,7 @@ Custom: todo lo anterior
 
 | Función | Claro | Oscuro |
 | --- | --- | --- |
-| Encuestas | ![Encuesta](assets/Encuesta.png) | ![Encuesta (oscura)](assets/Encuesta(oscura).png) |
+| Encuestas | ![Encuesta](assets/encuesta.png) | ![Encuesta (oscura)](assets/Encuesta(oscura).png) |
 | Sorteos | ![Sorteo](assets/Sorteo.png) | ![Sorteo (oscuro)](assets/sorteo(oscuro).png) |
 | Tienda | ![Tienda](assets/Tienda.png) | ![Tienda (oscuro)](assets/Tienda(oscuro).png) |
 | RSS | ![RSS](assets/Rss.png) | ![RSS (oscuro)](assets/Rss(oscuro).png) |
