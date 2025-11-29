@@ -100,15 +100,16 @@ Custom: todo lo anterior
 
 ## Galería
 > Sustituye las rutas por tus capturas/GIFs una vez subidas.
-- Encuestas: ![Encuesta](assets/encuesta.svg)
-- Sorteos: ![Sorteo](assets/sorteo.svg)
-- Tienda: ![Tienda](assets/tienda.svg)
-- RSS: ![RSS](assets/rss.svg)
-- Moderación: ![Moderación](assets/moderacion.svg)
-- Ayuda: ![Ayuda](assets/ayuda.svg)
-- Planes: ![Planes](assets/planes.svg)
 
-> Variantes oscuras disponibles: `assets/*_dark.svg`
+| Función | Claro | Oscuro |
+| --- | --- | --- |
+| Encuestas | ![Encuesta](assets/encuesta.svg) | ![Encuesta (dark)](assets/encuesta_dark.svg) |
+| Sorteos | ![Sorteo](assets/sorteo.svg) | ![Sorteo (dark)](assets/sorteo_dark.svg) |
+| Tienda | ![Tienda](assets/tienda.svg) | ![Tienda (dark)](assets/tienda_dark.svg) |
+| RSS | ![RSS](assets/rss.svg) | ![RSS (dark)](assets/rss_dark.svg) |
+| Moderación | ![Moderación](assets/moderacion.svg) | ![Moderación (dark)](assets/moderacion_dark.svg) |
+| Ayuda | ![Ayuda](assets/ayuda.svg) | ![Ayuda (dark)](assets/ayuda_dark.svg) |
+| Planes | ![Planes](assets/planes.svg) | ![Planes (dark)](assets/planes_dark.svg) |
 
 ### Cómo añadir media
 - Crea carpeta `assets/` en la raíz del repo y sube tus imágenes/GIFs.
