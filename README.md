@@ -99,7 +99,7 @@ Custom: todo lo anterior
 ```
 
 ## Galería
-> Sustituye las rutas por tus capturas/GIFs una vez subidas.
+> Capturas reales del bot en temas claro y oscuro.
 
 | Función | Claro | Oscuro |
 | --- | --- | --- |
@@ -112,10 +112,9 @@ Custom: todo lo anterior
 | Planes | ![Planes](assets/planes.png) | ![Planes (oscuro)](assets/planes%20oscuro.png) |
 
 ### Cómo añadir media
-- Sube tus capturas/GIFs a la carpeta `assets/` en la raíz del repo.
-- Formato recomendado: `.png` o `.gif` en 16:9.
-- Ejemplos usados arriba: `Encuesta.png`, `Sorteo.png`, `Tienda.png`, `Rss.png`, `Moderacion.png`, `Ayuda.png`, `planes.png` y sus variantes oscuras `(...(oscuro)/(oscura))`.
-- Los enlaces del README apuntan a esa carpeta; al hacer push se mostrarán automáticamente.
+- Personaliza la galería reemplazando los archivos en `assets/`.
+- Usa `.png` o `.gif` 16:9 y mantén nombres consistentes para claro/oscuro.
+- Tras hacer push, GitHub mostrará las imágenes automáticamente.
 
 ## Soporte
 - Contáctanos para personalización: branding, features extra, integraciones.
