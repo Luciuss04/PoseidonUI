@@ -17,13 +17,6 @@
   </g>
   <text x="70" y="130" fill="#E5E7EB" font-family="Inter, Segoe UI" font-size="30" font-weight="700">📊 Encuesta</text>
   <text x="70" y="165" fill="#94A3B8" font-family="Inter, Segoe UI" font-size="20">¿Qué juego?</text>
-  <g transform="translate(720,120)">
-    <path d="M10 0 L0 10" stroke="#93C5FD" stroke-width="4" fill="none" stroke-linecap="round"/>
-    <path d="M10 0 L20 10" stroke="#93C5FD" stroke-width="4" fill="none" stroke-linecap="round"/>
-    <path d="M10 0 L10 28" stroke="#93C5FD" stroke-width="4" fill="none" stroke-linecap="round"/>
-    <path d="M0 20 L0 34" stroke="#93C5FD" stroke-width="4" fill="none" stroke-linecap="round"/>
-    <path d="M20 20 L20 34" stroke="#93C5FD" stroke-width="4" fill="none" stroke-linecap="round"/>
-  </g>
   <g>
     <rect x="70" y="190" width="200" height="44" rx="10" fill="#2563EB"/>
     <circle cx="85" cy="212" r="10" fill="#fff"/>
