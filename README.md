@@ -103,13 +103,13 @@ Custom: todo lo anterior
 
 | Función | Claro | Oscuro |
 | --- | --- | --- |
-| Encuestas | ![Encuesta](assets/encuesta.png) | ![Encuesta (oscura)](assets/Encuesta(oscura).png) |
-| Sorteos | ![Sorteo](assets/Sorteo.png) | ![Sorteo (oscuro)](assets/sorteo(oscuro).png) |
-| Tienda | ![Tienda](assets/Tienda.png) | ![Tienda (oscuro)](assets/Tienda(oscuro).png) |
-| RSS | ![RSS](assets/Rss.png) | ![RSS (oscuro)](assets/Rss(oscuro).png) |
-| Moderación | ![Moderación](assets/Moderacion.png) | ![Moderación (oscuro)](assets/Moderacion(oscuro).png) |
-| Ayuda | ![Ayuda](assets/Ayuda.png) | ![Ayuda (oscuro)](assets/Ayuda(oscuro).png) |
-| Planes | ![Planes](assets/planes.png) | ![Planes (oscuro)](assets/planes%20oscuro.png) |
+| Encuestas | ![Encuesta](assets/encuesta.png) | ![Encuesta (oscura)](assets/encuesta_dark.png) |
+| Sorteos | ![Sorteo](assets/sorteo.png) | ![Sorteo (oscuro)](assets/sorteo_dark.png) |
+| Tienda | ![Tienda](assets/tienda.png) | ![Tienda (oscuro)](assets/tienda_dark.png) |
+| RSS | ![RSS](assets/rss.png) | ![RSS (oscuro)](assets/rss_dark.png) |
+| Moderación | ![Moderación](assets/moderacion.png) | ![Moderación (oscuro)](assets/moderacion_dark.png) |
+| Ayuda | ![Ayuda](assets/ayuda.png) | ![Ayuda (oscuro)](assets/ayuda_dark.png) |
+| Planes | ![Planes](assets/planes.png) | ![Planes (oscuro)](assets/planes_dark.png) |
 
 ### Cómo añadir media
 - Personaliza la galería reemplazando los archivos en `assets/`.
