@@ -22,6 +22,13 @@
   <text x="70" y="130" fill="#D1FAE5" font-family="Inter, Segoe UI" font-size="30" font-weight="700">🎁 Sorteo activo</text>
   <text x="70" y="165" fill="#A7F3D0" font-family="Inter, Segoe UI" font-size="18">Premio: <tspan font-weight="700">Nitro 1 mes</tspan></text>
   <text x="70" y="195" fill="#A7F3D0" font-family="Inter, Segoe UI" font-size="18">Duración: 10 min</text>
+  <g transform="translate(720,110)">
+    <path d="M10 0 L0 10" stroke="#93C5FD" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M10 0 L20 10" stroke="#93C5FD" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M10 0 L10 28" stroke="#93C5FD" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M0 20 L0 34" stroke="#93C5FD" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M20 20 L20 34" stroke="#93C5FD" stroke-width="4" fill="none" stroke-linecap="round"/>
+  </g>
   <g>
     <rect x="70" y="220" width="220" height="44" rx="10" fill="url(#btn)"/>
     <text x="90" y="248" fill="#052E2B" font-family="Inter, Segoe UI" font-size="18">Participar</text>

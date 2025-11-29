@@ -17,4 +17,11 @@
   </g>
   <text x="70" y="130" fill="#E2E8F0" font-family="Inter, Segoe UI" font-size="30" font-weight="700">❓ Ayuda</text>
   <text x="70" y="165" fill="#CBD5E1" font-family="Inter, Segoe UI" font-size="18">Comandos: status, ping, uptime, ayuda, planes, precio, guardian...</text>
+  <g transform="translate(720,120)">
+    <path d="M10 0 L0 10" stroke="#93C5FD" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M10 0 L20 10" stroke="#93C5FD" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M10 0 L10 28" stroke="#93C5FD" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M0 20 L0 34" stroke="#93C5FD" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M20 20 L20 34" stroke="#93C5FD" stroke-width="4" fill="none" stroke-linecap="round"/>
+  </g>
 </svg>

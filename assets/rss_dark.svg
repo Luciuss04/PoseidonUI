@@ -17,6 +17,13 @@
   </g>
   <text x="70" y="130" fill="#C4D3FF" font-family="Inter, Segoe UI" font-size="30" font-weight="700">📰 RSS</text>
   <text x="70" y="160" fill="#93C5FD" font-family="Inter, Segoe UI" font-size="16">https://hnrss.org/frontpage</text>
+  <g transform="translate(720,110)">
+    <path d="M10 0 L0 10" stroke="#93C5FD" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M10 0 L20 10" stroke="#93C5FD" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M10 0 L10 28" stroke="#93C5FD" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M0 20 L0 34" stroke="#93C5FD" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M20 20 L20 34" stroke="#93C5FD" stroke-width="4" fill="none" stroke-linecap="round"/>
+  </g>
   <g>
     <circle cx="730" cy="125" r="20" fill="#F59E0B"/>
     <path d="M720 140 a30 30 0 0 1 30 30" stroke="#fff" stroke-width="4" fill="none"/>
