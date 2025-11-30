@@ -281,6 +281,27 @@ def enforce_license_or_trial() -> None:
         lic_active = pathlib.Path("license_active.txt")
         if lic_active.exists():
             LICENSE_KEY = lic_active.read_text(encoding="utf-8").strip()
+    # Reject presence of plain plan entries when not allowed
+    try:
+        search_dirs = []
+        if LICENSES_PATH:
+            search_dirs.append(pathlib.Path(LICENSES_PATH))
+        search_dirs.append(pathlib.Path("."))
+        if os.getenv("ALLOW_PLAIN_LICENSES", "0") != "1" and os.getenv("LICENSE_SIGNING_SECRET"):
+            for d in search_dirs:
+                p = d / "licenses_plans.txt"
+                if p.exists():
+                    for ln in p.read_text(encoding="utf-8").splitlines():
+                        s = ln.strip()
+                        if not s or s.startswith("#"):
+                            continue
+                        parts = [x.strip() for x in s.split("|")]
+                        if len(parts) >= 2 and (len(parts) < 3 or not parts[2]):
+                            if LICENSE_KEY:
+                                raise SystemExit("Licencia sin firma no permitida (se detectó entrada plana)")
+                            break
+    except Exception:
+        pass
     if LICENSE_KEY:
         ok, found = _validate_license(LICENSE_KEY)
         if ok:
@@ -288,6 +309,29 @@ def enforce_license_or_trial() -> None:
                 ACTIVE_PLAN = "basic"
             return
         if found:
+            # Intento de compatibilidad: aceptar si hay firma presente en archivo local
+            try:
+                for d in [pathlib.Path(LICENSES_PATH)] if LICENSES_PATH else []:
+                    pass
+            except Exception:
+                pass
+            search_dirs = []
+            if LICENSES_PATH:
+                search_dirs.append(pathlib.Path(LICENSES_PATH))
+            search_dirs.append(pathlib.Path("."))
+            for d in search_dirs:
+                p = d / "licenses_plans.txt"
+                if p.exists():
+                    for ln in p.read_text(encoding="utf-8").splitlines():
+                        s = ln.strip()
+                        if not s or s.startswith("#"):
+                            continue
+                        parts = [x.strip() for x in s.split("|")]
+                        if parts and parts[0] == LICENSE_KEY:
+                            if len(parts) >= 3 and parts[2]:
+                                ACTIVE_PLAN = (parts[1].lower() if len(parts) > 1 and parts[1] else "basic")
+                                return
+                            raise SystemExit("Licencia sin firma no permitida")
             raise SystemExit("Licencia no válida o firma requerida")
         # not found: permitir trial
     p = pathlib.Path("trial_start.txt")
