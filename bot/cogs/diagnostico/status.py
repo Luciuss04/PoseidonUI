@@ -120,7 +120,7 @@ class Status(commands.Cog):
 
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
-    @app_commands.command(name="botperfil", description="Muestra plan activo, flags y cogs cargados")
+    @app_commands.command(name="botperfil", description="Muestra plan activo y cogs cargados")
     async def botperfil(self, interaction: discord.Interaction):
         miembro = interaction.user
         if not miembro.guild_permissions.administrator:

@@ -27,3 +27,4 @@ assets/generated/
 *.psd
 *.ai
 *.xcf
+.owner_mode
