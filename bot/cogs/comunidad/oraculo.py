@@ -192,15 +192,15 @@ class OraculoChannelView(discord.ui.View):
         )
         await canal.send(embed=embed)
         try:
-            menciones = []
+            lista = []
             for t, ow in canal.overwrites.items():
                 if isinstance(t, discord.Member):
-                    menciones.append(t.mention)
-            if menciones:
-                await canal.send("🔔 Participantes: " + " ".join(menciones[:10]))
+                    lista.append(t.mention)
             rol_staff = discord.utils.get(guild.roles, name=STAFF_ROLE_NAME)
             if rol_staff:
-                await canal.send(f"🛡️ Staff: {rol_staff.mention}")
+                lista.append(rol_staff.mention)
+            if lista:
+                await canal.send("� Participantes y Staff: " + " ".join(lista[:10]))
         except Exception:
             pass
         guardar_log({
