@@ -120,5 +120,41 @@ class Status(commands.Cog):
 
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
+    @app_commands.command(name="botperfil", description="Muestra plan activo, flags y cogs cargados")
+    async def botperfil(self, interaction: discord.Interaction):
+        miembro = interaction.user
+        if not miembro.guild_permissions.administrator:
+            tiene_rol_staff = any(rol.name in STAFF_ROLES for rol in miembro.roles)
+            if not tiene_rol_staff:
+                await interaction.response.send_message(
+                    "⛔ Solo administradores o miembros con rol **Semidios** o **Discípulo de Atena** pueden usar este comando.",
+                    ephemeral=True
+                )
+                return
+        try:
+            import os
+            import main as app_main
+            plan = app_main.ACTIVE_PLAN or "basic"
+            trial = app_main.IS_TRIAL
+            enable_all = os.getenv("ENABLE_ALL_COGS", "0")
+            enabled_only = os.getenv("ENABLED_COGS_ONLY", "")
+            disabled = os.getenv("DISABLED_COGS", "")
+            mods = sorted({c.__module__ for c in self.bot.cogs.values()})
+            embed = discord.Embed(
+                title="📦 Perfil del Bot",
+                description="Configuración y módulos activos",
+                color=discord.Color.blurple()
+            )
+            embed.add_field(name="🔑 Plan", value=plan, inline=True)
+            embed.add_field(name="🧪 Trial", value="sí" if trial else "no", inline=True)
+            embed.add_field(name="⚙️ ENABLE_ALL_COGS", value=enable_all or "0", inline=True)
+            embed.add_field(name="✅ ENABLED_COGS_ONLY", value=enabled_only or "(vacío)", inline=False)
+            embed.add_field(name="🚫 DISABLED_COGS", value=disabled or "(vacío)", inline=False)
+            lista = "\n".join(mods) if mods else "(sin cogs)"
+            embed.add_field(name="📚 Cogs cargados", value=lista, inline=False)
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+        except Exception as e:
+            await interaction.response.send_message(f"⚠️ Error: {e}", ephemeral=True)
+
 async def setup(bot: commands.Bot):
     await bot.add_cog(Status(bot))
