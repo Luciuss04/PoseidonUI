@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from bot.config import OWNER_ID
 
 # ====== Cargar variables de entorno ======
-load_dotenv(override=True)
+load_dotenv(override=False)
 TOKEN = os.getenv("DISCORD_TOKEN")
 LICENSE_KEY = os.getenv("LICENSE_KEY")
 LICENSES_URL = os.getenv("LICENSES_URL")
