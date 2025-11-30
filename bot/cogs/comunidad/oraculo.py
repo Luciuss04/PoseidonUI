@@ -220,7 +220,7 @@ class OraculoChannelView(discord.ui.View):
         if not categoria_abiertos:
             categoria_abiertos = await guild.create_category(CATEGORIA_ABIERTOS)
         nuevo_nombre = canal.name
-        for pref in ("sellado-", "auto-", "resuelto-"):
+        for pref in ("sellado-", "auto-", "resuelto-", "cerrado-"):
             if nuevo_nombre.startswith(pref):
                 nuevo_nombre = nuevo_nombre[len(pref):]
                 break
@@ -365,6 +365,7 @@ class CloseOraculoModal(discord.ui.Modal, title="Sellar Oráculo"):
 
 class ResolveOraculoModal(discord.ui.Modal, title="Resolver Oráculo"):
     resumen = discord.ui.TextInput(label="Resumen breve", required=True, max_length=200)
+    cierre_total = discord.ui.TextInput(label="Cerrar definitivamente (sí/no)", required=False, max_length=3)
 
     async def on_submit(self, interaction: discord.Interaction):
         guild = interaction.guild
@@ -373,12 +374,14 @@ class ResolveOraculoModal(discord.ui.Modal, title="Resolver Oráculo"):
         categoria_cerrados = discord.utils.get(guild.categories, name=CATEGORIA_CERRADOS)
         if not categoria_cerrados:
             categoria_cerrados = await guild.create_category(CATEGORIA_CERRADOS)
-        await canal.edit(category=categoria_cerrados, name=f"resuelto-{canal.name}")
+        close_def = str(self.cierre_total.value or "").strip().lower() in {"si", "sí", "yes", "true", "1"}
+        nuevo_nombre = f"resuelto-{canal.name}" if not close_def else f"cerrado-{canal.name}"
+        await canal.edit(category=categoria_cerrados, name=nuevo_nombre)
         for overwrite_target in list(canal.overwrites):
             if isinstance(overwrite_target, discord.Member):
-                await canal.set_permissions(overwrite_target, send_messages=False)
+                await canal.set_permissions(overwrite_target, send_messages=False, view_channel=(not close_def))
         embed = discord.Embed(
-            title="✅ Oráculo Resuelto",
+            title="✅ Oráculo Resuelto" if not close_def else "🔒 Oráculo Resuelto y Cerrado",
             description=f"📝 Solución: {self.resumen.value.strip()}",
             color=discord.Color.green()
         )
