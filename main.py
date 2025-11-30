@@ -202,14 +202,15 @@ async def _fetch_remote_plan_map(url: str) -> dict[str, tuple[str, str | None]] 
     except Exception:
         return None
 def _verify_sig(key: str, plan: str, sig: str | None) -> bool:
-    if not LICENSE_SIGNING_SECRET:
+    secret = os.getenv("LICENSE_SIGNING_SECRET")
+    if not secret:
         return True
     if not sig:
-        return ALLOW_PLAIN_LICENSES == "1"
+        return os.getenv("ALLOW_PLAIN_LICENSES", "0") == "1"
     try:
         import hmac, hashlib, base64
         msg = f"{key}|{plan}".encode()
-        mac = hmac.new(LICENSE_SIGNING_SECRET.encode(), msg, hashlib.sha256).digest()
+        mac = hmac.new(secret.encode(), msg, hashlib.sha256).digest()
         calc = base64.urlsafe_b64encode(mac).decode().rstrip("=")
         return hmac.compare_digest(calc, sig)
     except Exception:
