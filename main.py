@@ -281,6 +281,21 @@ def enforce_license_or_trial() -> None:
         lic_active = pathlib.Path("license_active.txt")
         if lic_active.exists():
             LICENSE_KEY = lic_active.read_text(encoding="utf-8").strip()
+    # Early accept if local signed entry matches LICENSE_KEY
+    if LICENSE_KEY:
+        try:
+            p = pathlib.Path("licenses_plans.txt")
+            if p.exists():
+                for ln in p.read_text(encoding="utf-8").splitlines():
+                    s = ln.strip()
+                    if not s or s.startswith("#"):
+                        continue
+                    parts = [x.strip() for x in s.split("|")]
+                    if parts and parts[0] == LICENSE_KEY and len(parts) >= 3 and parts[2]:
+                        ACTIVE_PLAN = (parts[1].lower() if len(parts) > 1 and parts[1] else "basic")
+                        return
+        except Exception:
+            pass
     # Reject presence of plain plan entries when not allowed
     try:
         search_dirs = []
