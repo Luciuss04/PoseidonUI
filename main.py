@@ -308,42 +308,28 @@ def enforce_license_or_trial() -> None:
             if not ACTIVE_PLAN:
                 ACTIVE_PLAN = "basic"
             return
-        if found:
-            # Intento de compatibilidad: aceptar si hay firma presente en archivo local
-            try:
-                for d in [pathlib.Path(LICENSES_PATH)] if LICENSES_PATH else []:
-                    pass
-            except Exception:
-                pass
-            search_dirs = []
-            if LICENSES_PATH:
-                search_dirs.append(pathlib.Path(LICENSES_PATH))
-            search_dirs.append(pathlib.Path("."))
-            for d in search_dirs:
-                p = d / "licenses_plans.txt"
-                if p.exists():
-                    for ln in p.read_text(encoding="utf-8").splitlines():
-                        s = ln.strip()
-                        if not s or s.startswith("#"):
-                            continue
-                        parts = [x.strip() for x in s.split("|")]
-                        if parts and parts[0] == LICENSE_KEY:
-                            if len(parts) >= 3 and parts[2]:
-                                ACTIVE_PLAN = (parts[1].lower() if len(parts) > 1 and parts[1] else "basic")
-                                return
-                            raise SystemExit("Licencia sin firma no permitida")
-            # Último intento: si existe entrada firmada para la LICENSE_KEY, aceptar
-            for d in search_dirs:
-                p = d / "licenses_plans.txt"
-                if p.exists():
-                    for ln in p.read_text(encoding="utf-8").splitlines():
-                        s = ln.strip()
-                        if not s or s.startswith("#"):
-                            continue
-                        parts = [x.strip() for x in s.split("|")]
-                        if parts and parts[0] == LICENSE_KEY and len(parts) >= 3 and parts[2]:
+        # Fallback: aceptar entrada firmada local para LICENSE_KEY
+        search_dirs = []
+        if LICENSES_PATH:
+            search_dirs.append(pathlib.Path(LICENSES_PATH))
+        search_dirs.append(pathlib.Path("."))
+        entry_plain_found = False
+        for d in search_dirs:
+            p = d / "licenses_plans.txt"
+            if p.exists():
+                for ln in p.read_text(encoding="utf-8").splitlines():
+                    s = ln.strip()
+                    if not s or s.startswith("#"):
+                        continue
+                    parts = [x.strip() for x in s.split("|")]
+                    if parts and parts[0] == LICENSE_KEY:
+                        if len(parts) >= 3 and parts[2]:
                             ACTIVE_PLAN = (parts[1].lower() if len(parts) > 1 and parts[1] else "basic")
                             return
+                        entry_plain_found = True
+        if found and entry_plain_found:
+            raise SystemExit("Licencia sin firma no permitida")
+        if found:
             raise SystemExit("Licencia no válida o firma requerida")
         # not found: permitir trial
     p = pathlib.Path("trial_start.txt")
