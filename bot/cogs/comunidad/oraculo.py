@@ -150,32 +150,40 @@ class OraculoChannelView(discord.ui.View):
                 ephemeral=True
             )
             return
+        modal = CloseOraculoModal()
+        await interaction.response.send_modal(modal)
 
+class CloseOraculoModal(discord.ui.Modal, title="Sellar Oráculo"):
+    resumen = discord.ui.TextInput(label="Resumen del cierre", style=discord.TextStyle.paragraph, required=False, max_length=500)
+
+    async def on_submit(self, interaction: discord.Interaction):
+        guild = interaction.guild
+        canal = interaction.channel
+        miembro = interaction.user
         categoria_cerrados = discord.utils.get(guild.categories, name=CATEGORIA_CERRADOS)
         if not categoria_cerrados:
             categoria_cerrados = await guild.create_category(CATEGORIA_CERRADOS)
-
-        oraculo_data = {
-            "canal": canal.name,
-            "cerrado_por": f"{miembro} ({miembro.id})",
-            "fecha_cierre": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
-        }
-        guardar_log(oraculo_data)
-
         await canal.edit(category=categoria_cerrados, name=f"sellado-{canal.name}")
         for overwrite_target in list(canal.overwrites):
             if isinstance(overwrite_target, discord.Member):
                 await canal.set_permissions(overwrite_target, send_messages=False)
-
         frase = random.choice(FRASES_CIERRE)
+        desc = frase
+        if str(self.resumen.value).strip():
+            desc = f"{frase}\n\n📝 Resumen: {self.resumen.value.strip()}"
         embed = discord.Embed(
             title="⚖️ Oráculo Sellado",
-            description=frase,
+            description=desc,
             color=discord.Color.dark_gold()
         )
         embed.set_footer(text="Atenea vigila desde las alturas 🏛️")
         await canal.send(embed=embed)
-
+        guardar_log({
+            "canal": canal.name,
+            "cerrado_por": f"{miembro} ({miembro.id})",
+            "fecha_cierre": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
+            "resumen": self.resumen.value.strip()
+        })
         await interaction.response.send_message("✅ El Oráculo ha sido sellado correctamente.", ephemeral=True)
 
 async def crear_oraculo(interaction: discord.Interaction, tipo: str = "general"):
@@ -188,10 +196,10 @@ async def crear_oraculo(interaction: discord.Interaction, tipo: str = "general")
 
     nombre_base = miembro.name.lower().replace(" ", "-")
     nombre_canal = f"oraculo-{nombre_base}"
-    contador = 1
-    while discord.utils.get(guild.text_channels, name=nombre_canal):
-        contador += 1
-        nombre_canal = f"oraculo-{nombre_base}-{contador}"
+    existentes = [c for c in categoria_abiertos.text_channels if c.name.startswith(nombre_canal)]
+    if existentes:
+        await interaction.response.send_message(f"ℹ️ Ya tienes un Oráculo abierto: {existentes[0].mention}", ephemeral=True)
+        return
 
     overwrites = {
         guild.default_role: discord.PermissionOverwrite(view_channel=False),
@@ -208,6 +216,10 @@ async def crear_oraculo(interaction: discord.Interaction, tipo: str = "general")
         category=categoria_abiertos,
         reason=f"Oráculo abierto por {miembro}"
     )
+    try:
+        await canal.edit(slowmode_delay=2)
+    except Exception:
+        pass
 
     tipo_norm = normalizar_tipo(tipo)
     frases = FRASES_APERTURA.get(tipo_norm, FRASES_APERTURA["general"])
@@ -225,9 +237,20 @@ async def crear_oraculo(interaction: discord.Interaction, tipo: str = "general")
         color=color
     )
     embed.set_footer(text="Que la sabiduría guíe tu camino ✨")
+    embed.add_field(name="Tipo", value=tipo_norm.capitalize(), inline=True)
+    embed.add_field(name="Apertura", value=datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"), inline=True)
+    if rol_staff:
+        embed.add_field(name="Staff", value=rol_staff.mention, inline=False)
 
     view = OraculoChannelView()
-    await canal.send(content=f"{miembro.mention}, tu Oráculo ha sido abierto.", embed=embed, view=view)
+    content = f"{miembro.mention}"
+    if rol_staff:
+        content += f" {rol_staff.mention}"
+    msg = await canal.send(content=content + ", tu Oráculo ha sido abierto.", embed=embed, view=view)
+    try:
+        await msg.pin()
+    except Exception:
+        pass
 
     await interaction.response.send_message(f"✅ Tu Oráculo ha sido abierto: {canal.mention}", ephemeral=True)
 
@@ -247,16 +270,42 @@ class OraculoPanel(commands.Cog):
         for guild in self.bot.guilds:
             canal = discord.utils.get(guild.text_channels, name=PANEL_CHANNEL_NAME)
             if canal:
-                embed = discord.Embed(
-                    title="📩 Panel del Oráculo de Atenea",
-                    description=(
-                        "Pulsa el selector para abrir un Oráculo según tu necesidad.\n\n"
-                        "Tipos disponibles: General, Urgente, Creativo, Soporte, Administrativo, Denuncia, Colaboración, Místico"
-                    ),
-                    color=discord.Color.gold()
-                )
-                embed.set_image(url="https://cdn.discordapp.com/attachments/1425781431682076682/1440115588746706984/Imagen_para_el_bot_d.png")
-                await canal.send(embed=embed, view=OraculoOpenView())
+                ya_existe = False
+                try:
+                    pins = await canal.pins()
+                    for msg in pins:
+                        if msg.author == self.bot.user and msg.embeds:
+                            e = msg.embeds[0]
+                            if e.title == "📩 Panel del Oráculo de Atenea":
+                                ya_existe = True
+                                break
+                except Exception:
+                    pass
+                if not ya_existe:
+                    try:
+                        async for msg in canal.history(limit=50):
+                            if msg.author == self.bot.user and msg.embeds:
+                                e = msg.embeds[0]
+                                if e.title == "📩 Panel del Oráculo de Atenea":
+                                    ya_existe = True
+                                    break
+                    except Exception:
+                        pass
+                if not ya_existe:
+                    embed = discord.Embed(
+                        title="📩 Panel del Oráculo de Atenea",
+                        description=(
+                            "Pulsa el selector para abrir un Oráculo según tu necesidad.\n\n"
+                            "Tipos disponibles: General, Urgente, Creativo, Soporte, Administrativo, Denuncia, Colaboración, Místico"
+                        ),
+                        color=discord.Color.gold()
+                    )
+                    embed.set_image(url="https://cdn.discordapp.com/attachments/1425781431682076682/1440115588746706984/Imagen_para_el_bot_d.png")
+                    msg = await canal.send(embed=embed, view=OraculoOpenView())
+                    try:
+                        await msg.pin()
+                    except Exception:
+                        pass
 
 class AutoArchivador(commands.Cog):
     def __init__(self, bot):
