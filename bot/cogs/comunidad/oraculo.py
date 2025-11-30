@@ -153,6 +153,50 @@ class OraculoChannelView(discord.ui.View):
         modal = CloseOraculoModal()
         await interaction.response.send_modal(modal)
 
+    @discord.ui.button(label="➕ Añadir participante", style=discord.ButtonStyle.secondary, custom_id="add_participant")
+    async def add_participant(self, interaction: discord.Interaction, button: discord.ui.Button):
+        miembro = interaction.user
+        guild = interaction.guild
+        rol_staff = discord.utils.get(guild.roles, name=STAFF_ROLE_NAME)
+        if not (miembro.guild_permissions.administrator or (rol_staff and rol_staff in miembro.roles)):
+            await interaction.response.send_message("⛔ Solo administradores o Staff pueden añadir participantes.", ephemeral=True)
+            return
+        await interaction.response.send_modal(AddParticipantModal())
+
+    @discord.ui.button(label="🔓 Reabrir Oráculo", style=discord.ButtonStyle.success, custom_id="reopen_oraculo")
+    async def reopen_oraculo(self, interaction: discord.Interaction, button: discord.ui.Button):
+        miembro = interaction.user
+        guild = interaction.guild
+        canal = interaction.channel
+        rol_staff = discord.utils.get(guild.roles, name=STAFF_ROLE_NAME)
+        if not (miembro.guild_permissions.administrator or (rol_staff and rol_staff in miembro.roles)):
+            await interaction.response.send_message("⛔ Solo administradores o Staff pueden reabrir Oráculos.", ephemeral=True)
+            return
+        categoria_abiertos = discord.utils.get(guild.categories, name=CATEGORIA_ABIERTOS)
+        if not categoria_abiertos:
+            categoria_abiertos = await guild.create_category(CATEGORIA_ABIERTOS)
+        nuevo_nombre = canal.name
+        for pref in ("sellado-", "auto-"):
+            if nuevo_nombre.startswith(pref):
+                nuevo_nombre = nuevo_nombre[len(pref):]
+                break
+        await canal.edit(category=categoria_abiertos, name=nuevo_nombre)
+        for overwrite_target in list(canal.overwrites):
+            if isinstance(overwrite_target, discord.Member):
+                await canal.set_permissions(overwrite_target, send_messages=True, view_channel=True)
+        embed = discord.Embed(
+            title="🔓 Oráculo Reabierto",
+            description="El Oráculo ha sido reabierto. Puedes continuar la conversación.",
+            color=discord.Color.green()
+        )
+        await canal.send(embed=embed)
+        guardar_log({
+            "canal": canal.name,
+            "reabierto_por": f"{miembro} ({miembro.id})",
+            "fecha_reapertura": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+        })
+        await interaction.response.send_message("✅ Oráculo reabierto.", ephemeral=True)
+
 class CloseOraculoModal(discord.ui.Modal, title="Sellar Oráculo"):
     resumen = discord.ui.TextInput(label="Resumen del cierre", style=discord.TextStyle.paragraph, required=False, max_length=500)
 
@@ -185,6 +229,32 @@ class CloseOraculoModal(discord.ui.Modal, title="Sellar Oráculo"):
             "resumen": self.resumen.value.strip()
         })
         await interaction.response.send_message("✅ El Oráculo ha sido sellado correctamente.", ephemeral=True)
+
+class AddParticipantModal(discord.ui.Modal, title="Añadir participante"):
+    usuario = discord.ui.TextInput(label="Usuario (mención o ID)", required=True, max_length=64)
+
+    async def on_submit(self, interaction: discord.Interaction):
+        guild = interaction.guild
+        canal = interaction.channel
+        val = str(self.usuario.value).strip()
+        uid = None
+        try:
+            if val.startswith("<@") and val.endswith(">"):
+                import re
+                m = re.search(r"\d+", val)
+                if m:
+                    uid = int(m.group(0))
+            elif val.isdigit():
+                uid = int(val)
+        except Exception:
+            uid = None
+        miembro_obj = guild.get_member(uid) if uid else None
+        if not miembro_obj:
+            await interaction.response.send_message("⚠️ Usuario inválido. Usa mención o ID.", ephemeral=True)
+            return
+        await canal.set_permissions(miembro_obj, view_channel=True, send_messages=True, attach_files=True)
+        await canal.send(f"➕ {miembro_obj.mention} añadido al Oráculo.")
+        await interaction.response.send_message("✅ Participante añadido.", ephemeral=True)
 
 async def crear_oraculo(interaction: discord.Interaction, tipo: str = "general"):
     guild = interaction.guild
