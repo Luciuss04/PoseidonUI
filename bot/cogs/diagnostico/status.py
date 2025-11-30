@@ -137,6 +137,7 @@ class Status(commands.Cog):
             plan = app_main.ACTIVE_PLAN or "basic"
             trial = app_main.IS_TRIAL
             enable_all = os.getenv("ENABLE_ALL_COGS", "0")
+            owner_mode = os.getenv("POSEIDON_OWNER_MODE", "0")
             enabled_only = os.getenv("ENABLED_COGS_ONLY", "")
             disabled = os.getenv("DISABLED_COGS", "")
             mods = sorted({c.__module__ for c in self.bot.cogs.values()})
@@ -148,6 +149,7 @@ class Status(commands.Cog):
             embed.add_field(name="🔑 Plan", value=plan, inline=True)
             embed.add_field(name="🧪 Trial", value="sí" if trial else "no", inline=True)
             embed.add_field(name="⚙️ ENABLE_ALL_COGS", value=enable_all or "0", inline=True)
+            embed.add_field(name="👑 OWNER_MODE", value=owner_mode or "0", inline=True)
             embed.add_field(name="✅ ENABLED_COGS_ONLY", value=enabled_only or "(vacío)", inline=False)
             embed.add_field(name="🚫 DISABLED_COGS", value=disabled or "(vacío)", inline=False)
             lista = "\n".join(mods) if mods else "(sin cogs)"

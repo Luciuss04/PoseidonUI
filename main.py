@@ -434,7 +434,9 @@ def _allowed_cogs_for_plan(plan: str) -> list[str]:
         "bot.cogs.comunidad.calendario",
     ]
     all_extra = []
-    if os.getenv("ENABLE_ALL_COGS") == "1":
+    owner_mode = os.getenv("POSEIDON_OWNER_MODE") == "1"
+    enable_all = os.getenv("ENABLE_ALL_COGS") == "1"
+    if owner_mode and enable_all:
         cogs = list(base + pro_extra + elite_extra + all_extra)
     else:
         cogs = list(base)
@@ -460,7 +462,7 @@ def _allowed_cogs_for_plan(plan: str) -> list[str]:
             else:
                 out.append(raw)
         return out
-    if enabled_only and os.getenv("ENABLE_ALL_COGS") != "1":
+    if enabled_only and not (owner_mode and enable_all):
         want = set(normalize(enabled_only))
         cogs = [m for m in cogs if m in want]
     block = set(normalize(disabled))
