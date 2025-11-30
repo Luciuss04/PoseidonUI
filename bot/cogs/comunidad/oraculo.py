@@ -220,7 +220,7 @@ class OraculoChannelView(discord.ui.View):
         if not categoria_abiertos:
             categoria_abiertos = await guild.create_category(CATEGORIA_ABIERTOS)
         nuevo_nombre = canal.name
-        for pref in ("sellado-", "auto-"):
+        for pref in ("sellado-", "auto-", "resuelto-"):
             if nuevo_nombre.startswith(pref):
                 nuevo_nombre = nuevo_nombre[len(pref):]
                 break
@@ -302,6 +302,23 @@ class OraculoChannelView(discord.ui.View):
         except Exception:
             await interaction.response.send_message("⚠️ No se pudo cambiar el nombre.", ephemeral=True)
 
+    @discord.ui.button(label="✅ Resolver", style=discord.ButtonStyle.success, custom_id="resolve_oraculo")
+    async def resolve_oraculo(self, interaction: discord.Interaction, button: discord.ui.Button):
+        miembro = interaction.user
+        guild = interaction.guild
+        canal = interaction.channel
+        rol_staff = discord.utils.get(guild.roles, name=STAFF_ROLE_NAME)
+        owner_ok = False
+        try:
+            toks = _topic_tokens(canal)
+            owner_ok = toks.get("owner") == str(miembro.id)
+        except Exception:
+            owner_ok = False
+        if not (miembro.guild_permissions.administrator or owner_ok or (rol_staff and rol_staff in miembro.roles)):
+            await interaction.response.send_message("⛔ No tienes permisos.", ephemeral=True)
+            return
+        await interaction.response.send_modal(ResolveOraculoModal())
+
 class CloseOraculoModal(discord.ui.Modal, title="Sellar Oráculo"):
     resumen = discord.ui.TextInput(label="Resumen del cierre", style=discord.TextStyle.paragraph, required=False, max_length=500)
 
@@ -345,6 +362,45 @@ class CloseOraculoModal(discord.ui.Modal, title="Sellar Oráculo"):
             "resumen": self.resumen.value.strip()
         })
         await interaction.response.send_message("✅ El Oráculo ha sido sellado correctamente.", ephemeral=True)
+
+class ResolveOraculoModal(discord.ui.Modal, title="Resolver Oráculo"):
+    resumen = discord.ui.TextInput(label="Resumen breve", required=True, max_length=200)
+
+    async def on_submit(self, interaction: discord.Interaction):
+        guild = interaction.guild
+        canal = interaction.channel
+        miembro = interaction.user
+        categoria_cerrados = discord.utils.get(guild.categories, name=CATEGORIA_CERRADOS)
+        if not categoria_cerrados:
+            categoria_cerrados = await guild.create_category(CATEGORIA_CERRADOS)
+        await canal.edit(category=categoria_cerrados, name=f"resuelto-{canal.name}")
+        for overwrite_target in list(canal.overwrites):
+            if isinstance(overwrite_target, discord.Member):
+                await canal.set_permissions(overwrite_target, send_messages=False)
+        embed = discord.Embed(
+            title="✅ Oráculo Resuelto",
+            description=f"📝 Solución: {self.resumen.value.strip()}",
+            color=discord.Color.green()
+        )
+        await canal.send(embed=embed)
+        try:
+            lines = []
+            async for msg in canal.history(limit=200, oldest_first=True):
+                ts = msg.created_at.replace(tzinfo=None).strftime("%Y-%m-%d %H:%M")
+                content = (msg.content or "").replace("\n", " ")
+                lines.append(f"[{ts}] {msg.author}: {content}")
+            if lines:
+                buf = io.BytesIO("\n".join(lines).encode("utf-8"))
+                await canal.send(file=discord.File(buf, "oraculo-transcript.txt"))
+        except Exception:
+            pass
+        guardar_log({
+            "canal": canal.name,
+            "resuelto_por": f"{miembro} ({miembro.id})",
+            "fecha_resuelto": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
+            "resumen": self.resumen.value.strip()
+        })
+        await interaction.response.send_message("✅ Oráculo marcado como resuelto.", ephemeral=True)
 
 class AddParticipantModal(discord.ui.Modal, title="Añadir participante"):
     usuario = discord.ui.TextInput(label="Usuario (mención o ID)", required=True, max_length=64)
