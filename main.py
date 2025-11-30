@@ -20,6 +20,22 @@ LICENSE_SIGNING_SECRET = os.getenv("LICENSE_SIGNING_SECRET")
 ALLOW_PLAIN_LICENSES = os.getenv("ALLOW_PLAIN_LICENSES", "0")
 LICENSES_PATH = os.getenv("LICENSES_PATH")
 
+# Establecer ACTIVE_PLAN desde entrada firmada local si existe (antes de cualquier lógica)
+try:
+    if LICENSE_KEY:
+        p0 = pathlib.Path("licenses_plans.txt")
+        if p0.exists():
+            for ln in p0.read_text(encoding="utf-8").splitlines():
+                s = ln.strip()
+                if not s or s.startswith("#"):
+                    continue
+                parts = [x.strip() for x in s.split("|")]
+                if parts and parts[0] == LICENSE_KEY and len(parts) >= 3 and parts[2]:
+                    ACTIVE_PLAN = (parts[1].lower() if len(parts) > 1 and parts[1] else "basic")
+                    break
+except Exception:
+    pass
+
 # ====== Configuración de intents ======
 intents = discord.Intents.default()
 intents.message_content = True
