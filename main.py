@@ -434,13 +434,16 @@ def _allowed_cogs_for_plan(plan: str) -> list[str]:
         "bot.cogs.comunidad.calendario",
     ]
     all_extra = []
-    cogs = list(base)
-    if plan in ("pro", "elite", "custom"):
-        cogs += pro_extra
-    if plan in ("elite", "custom"):
-        cogs += elite_extra
-    if plan == "custom":
-        cogs += all_extra
+    if os.getenv("ENABLE_ALL_COGS") == "1":
+        cogs = list(base + pro_extra + elite_extra + all_extra)
+    else:
+        cogs = list(base)
+        if plan in ("pro", "elite", "custom"):
+            cogs += pro_extra
+        if plan in ("elite", "custom"):
+            cogs += elite_extra
+        if plan == "custom":
+            cogs += all_extra
     enabled_only = os.getenv("ENABLED_COGS_ONLY", "").strip()
     disabled = os.getenv("DISABLED_COGS", "").strip()
     def normalize(names: str) -> list[str]:
@@ -457,13 +460,12 @@ def _allowed_cogs_for_plan(plan: str) -> list[str]:
             else:
                 out.append(raw)
         return out
-    if enabled_only:
+    if enabled_only and os.getenv("ENABLE_ALL_COGS") != "1":
         want = set(normalize(enabled_only))
         cogs = [m for m in cogs if m in want]
-    else:
-        block = set(normalize(disabled))
-        if block:
-            cogs = [m for m in cogs if m not in block]
+    block = set(normalize(disabled))
+    if block:
+        cogs = [m for m in cogs if m not in block]
     return cogs
 if __name__ == "__main__":
     bot.run(TOKEN)
