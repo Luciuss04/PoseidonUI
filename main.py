@@ -284,6 +284,11 @@ def enforce_license_or_trial() -> None:
     # Aceptación temprana: si existe una entrada firmada local para LICENSE_KEY, activar plan y salir
     try:
         if LICENSE_KEY:
+            ok, found = _validate_license(LICENSE_KEY)
+            if ok:
+                if not ACTIVE_PLAN:
+                    ACTIVE_PLAN = "basic"
+                return
             p = pathlib.Path("licenses_plans.txt")
             if p.exists():
                 for ln in p.read_text(encoding="utf-8").splitlines():
