@@ -198,6 +198,9 @@ class OraculoChannelView(discord.ui.View):
                     menciones.append(t.mention)
             if menciones:
                 await canal.send("🔔 Participantes: " + " ".join(menciones[:10]))
+            rol_staff = discord.utils.get(guild.roles, name=STAFF_ROLE_NAME)
+            if rol_staff:
+                await canal.send(f"🛡️ Staff: {rol_staff.mention}")
         except Exception:
             pass
         guardar_log({
