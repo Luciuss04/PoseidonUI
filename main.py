@@ -293,6 +293,8 @@ def enforce_license_or_trial() -> None:
     global LICENSE_KEY
     global ACTIVE_PLAN
     global IS_TRIAL
+    if ACTIVE_PLAN:
+        return
     if not LICENSE_KEY:
         lic_active = pathlib.Path("license_active.txt")
         if lic_active.exists():
