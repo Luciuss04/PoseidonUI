@@ -10,6 +10,7 @@ PANEL_CHANNEL_NAME = "📩-oráculo-de-ayuda"
 CATEGORIA_ABIERTOS = "Oráculos de Atenea"
 CATEGORIA_CERRADOS = "Oráculos Sellados"
 STAFF_ROLE_NAME = "Staff"
+MAX_PARTICIPANTS = int(os.getenv("ORACULO_MAX_PARTICIPANTS", "5"))
 
 FRASES_APERTURA = {
     "general": [
@@ -190,6 +191,15 @@ class OraculoChannelView(discord.ui.View):
             color=discord.Color.green()
         )
         await canal.send(embed=embed)
+        try:
+            menciones = []
+            for t, ow in canal.overwrites.items():
+                if isinstance(t, discord.Member):
+                    menciones.append(t.mention)
+            if menciones:
+                await canal.send("🔔 Participantes: " + " ".join(menciones[:10]))
+        except Exception:
+            pass
         guardar_log({
             "canal": canal.name,
             "reabierto_por": f"{miembro} ({miembro.id})",
@@ -252,6 +262,10 @@ class AddParticipantModal(discord.ui.Modal, title="Añadir participante"):
         if not miembro_obj:
             await interaction.response.send_message("⚠️ Usuario inválido. Usa mención o ID.", ephemeral=True)
             return
+        miembros_actuales = [t for t in canal.overwrites if isinstance(t, discord.Member)]
+        if len(miembros_actuales) >= MAX_PARTICIPANTS:
+            await interaction.response.send_message(f"⛔ Límite de participantes alcanzado ({MAX_PARTICIPANTS}).", ephemeral=True)
+            return
         await canal.set_permissions(miembro_obj, view_channel=True, send_messages=True, attach_files=True)
         await canal.send(f"➕ {miembro_obj.mention} añadido al Oráculo.")
         await interaction.response.send_message("✅ Participante añadido.", ephemeral=True)
@@ -286,6 +300,10 @@ async def crear_oraculo(interaction: discord.Interaction, tipo: str = "general")
         category=categoria_abiertos,
         reason=f"Oráculo abierto por {miembro}"
     )
+    try:
+        await canal.edit(topic=f"oraculo|owner={miembro.id}")
+    except Exception:
+        pass
     try:
         await canal.edit(slowmode_delay=2)
     except Exception:
