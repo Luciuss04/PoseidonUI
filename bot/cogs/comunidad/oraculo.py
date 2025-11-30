@@ -377,9 +377,24 @@ class ResolveOraculoModal(discord.ui.Modal, title="Resolver Oráculo"):
         close_def = str(self.cierre_total.value or "").strip().lower() in {"si", "sí", "yes", "true", "1"}
         nuevo_nombre = f"resuelto-{canal.name}" if not close_def else f"cerrado-{canal.name}"
         await canal.edit(category=categoria_cerrados, name=nuevo_nombre)
-        for overwrite_target in list(canal.overwrites):
-            if isinstance(overwrite_target, discord.Member):
-                await canal.set_permissions(overwrite_target, send_messages=False, view_channel=(not close_def))
+        if close_def:
+            for overwrite_target in list(canal.overwrites):
+                if isinstance(overwrite_target, discord.Member):
+                    await canal.set_permissions(overwrite_target, overwrite=None)
+            try:
+                dr = canal.overwrites_for(guild.default_role)
+                dr.view_channel = False
+                dr.send_messages = False
+                await canal.set_permissions(guild.default_role, overwrite=dr)
+            except Exception:
+                pass
+            rol_staff = discord.utils.get(guild.roles, name=STAFF_ROLE_NAME)
+            if rol_staff:
+                await canal.set_permissions(rol_staff, view_channel=True, send_messages=True)
+        else:
+            for overwrite_target in list(canal.overwrites):
+                if isinstance(overwrite_target, discord.Member):
+                    await canal.set_permissions(overwrite_target, send_messages=False, view_channel=True)
         embed = discord.Embed(
             title="✅ Oráculo Resuelto" if not close_def else "🔒 Oráculo Resuelto y Cerrado",
             description=f"📝 Solución: {self.resumen.value.strip()}",
