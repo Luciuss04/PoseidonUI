@@ -120,7 +120,39 @@ def _parse_licenses_text(text: str) -> set[str]:
         vals.add(s)
     return vals
 
-def _parse_license_plan_map(text: str) -> dict[str, tuple[str, str | None]]:
+def _parse_license_plan_map(text: str) -> dict[str, str]:
+    try:
+        import json
+        obj = json.loads(text)
+        if isinstance(obj, dict):
+            out: dict[str, str] = {}
+            for k, v in obj.items():
+                if not k:
+                    continue
+                if isinstance(v, str) and v:
+                    out[str(k).strip()] = v.strip().lower()
+                elif bool(v):
+                    out[str(k).strip()] = "basic"
+            return out
+        # list has no plan info
+    except Exception:
+        pass
+    out: dict[str, str] = {}
+    for ln in text.splitlines():
+        s = ln.strip()
+        if not s or s.startswith("#"):
+            continue
+        if "|" in s:
+            parts = [p.strip() for p in s.split("|")]
+            if parts and parts[0]:
+                plan = (parts[1].lower() if len(parts) > 1 and parts[1] else "basic")
+                out[parts[0]] = plan
+        else:
+            out[s] = "basic"
+    return out
+
+def _parse_license_plan_map_with_sig(text: str) -> dict[str, tuple[str, str | None]]:
+    # Extended parser that preserves signature when present
     try:
         import json
         obj = json.loads(text)
@@ -134,7 +166,6 @@ def _parse_license_plan_map(text: str) -> dict[str, tuple[str, str | None]]:
                 elif bool(v):
                     out[str(k).strip()] = ("basic", None)
             return out
-        # list has no plan info
     except Exception:
         pass
     out: dict[str, tuple[str, str | None]] = {}
@@ -142,14 +173,11 @@ def _parse_license_plan_map(text: str) -> dict[str, tuple[str, str | None]]:
         s = ln.strip()
         if not s or s.startswith("#"):
             continue
-        if "|" in s:
-            parts = [p.strip() for p in s.split("|")]
-            if parts and parts[0]:
-                plan = (parts[1].lower() if len(parts) > 1 and parts[1] else "basic")
-                sig = parts[2] if len(parts) > 2 and parts[2] else None
-                out[parts[0]] = (plan, sig)
-        else:
-            out[s] = ("basic", None)
+        parts = [p.strip() for p in s.split("|")]
+        if parts and parts[0]:
+            plan = (parts[1].lower() if len(parts) > 1 and parts[1] else "basic")
+            sig = parts[2] if len(parts) > 2 and parts[2] else None
+            out[parts[0]] = (plan, sig)
     return out
 
 async def _fetch_remote_licenses(url: str) -> set[str] | None:
@@ -170,7 +198,7 @@ async def _fetch_remote_plan_map(url: str) -> dict[str, tuple[str, str | None]] 
                 if r.status != 200:
                     return None
                 text = await r.text()
-                return _parse_license_plan_map(text)
+                return _parse_license_plan_map_with_sig(text)
     except Exception:
         return None
 def _verify_sig(key: str, plan: str, sig: str | None) -> bool:
@@ -220,7 +248,7 @@ def _validate_license(key: str) -> bool:
             lic_file = d / name
             if lic_file.exists():
                 txt = lic_file.read_text(encoding="utf-8")
-                mp = _parse_license_plan_map(txt)
+                mp = _parse_license_plan_map_with_sig(txt)
                 if key in mp:
                     plan, sig = mp[key]
                     if _verify_sig(key, plan, sig):
@@ -249,10 +277,12 @@ def enforce_license_or_trial() -> None:
         lic_active = pathlib.Path("license_active.txt")
         if lic_active.exists():
             LICENSE_KEY = lic_active.read_text(encoding="utf-8").strip()
-    if LICENSE_KEY and _validate_license(LICENSE_KEY):
-        if not ACTIVE_PLAN:
-            ACTIVE_PLAN = "basic"
-        return
+    if LICENSE_KEY:
+        if _validate_license(LICENSE_KEY):
+            if not ACTIVE_PLAN:
+                ACTIVE_PLAN = "basic"
+            return
+        raise SystemExit("Licencia no válida o firma requerida")
     p = pathlib.Path("trial_start.txt")
     now = int(time.time())
     if not p.exists():
