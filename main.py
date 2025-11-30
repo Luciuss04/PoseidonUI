@@ -16,6 +16,9 @@ LICENSE_KEY = os.getenv("LICENSE_KEY")
 LICENSES_URL = os.getenv("LICENSES_URL")
 ACTIVE_PLAN: str | None = None
 IS_TRIAL: bool = False
+LICENSE_SIGNING_SECRET = os.getenv("LICENSE_SIGNING_SECRET")
+ALLOW_PLAIN_LICENSES = os.getenv("ALLOW_PLAIN_LICENSES", "0")
+LICENSES_PATH = os.getenv("LICENSES_PATH")
 
 # ====== Configuración de intents ======
 intents = discord.Intents.default()
@@ -117,34 +120,36 @@ def _parse_licenses_text(text: str) -> set[str]:
         vals.add(s)
     return vals
 
-def _parse_license_plan_map(text: str) -> dict[str, str]:
+def _parse_license_plan_map(text: str) -> dict[str, tuple[str, str | None]]:
     try:
         import json
         obj = json.loads(text)
         if isinstance(obj, dict):
-            out = {}
+            out: dict[str, tuple[str, str | None]] = {}
             for k, v in obj.items():
                 if not k:
                     continue
                 if isinstance(v, str) and v:
-                    out[str(k).strip()] = v.strip().lower()
+                    out[str(k).strip()] = (v.strip().lower(), None)
                 elif bool(v):
-                    out[str(k).strip()] = "basic"
+                    out[str(k).strip()] = ("basic", None)
             return out
         # list has no plan info
     except Exception:
         pass
-    out = {}
+    out: dict[str, tuple[str, str | None]] = {}
     for ln in text.splitlines():
         s = ln.strip()
         if not s or s.startswith("#"):
             continue
         if "|" in s:
-            parts = [p.strip() for p in s.split("|", 1)]
+            parts = [p.strip() for p in s.split("|")]
             if parts and parts[0]:
-                out[parts[0]] = (parts[1].lower() if len(parts) > 1 and parts[1] else "basic")
+                plan = (parts[1].lower() if len(parts) > 1 and parts[1] else "basic")
+                sig = parts[2] if len(parts) > 2 and parts[2] else None
+                out[parts[0]] = (plan, sig)
         else:
-            out[s] = "basic"
+            out[s] = ("basic", None)
     return out
 
 async def _fetch_remote_licenses(url: str) -> set[str] | None:
@@ -158,7 +163,7 @@ async def _fetch_remote_licenses(url: str) -> set[str] | None:
     except Exception:
         return None
 
-async def _fetch_remote_plan_map(url: str) -> dict[str, str] | None:
+async def _fetch_remote_plan_map(url: str) -> dict[str, tuple[str, str | None]] | None:
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(url, timeout=10) as r:
@@ -168,13 +173,19 @@ async def _fetch_remote_plan_map(url: str) -> dict[str, str] | None:
                 return _parse_license_plan_map(text)
     except Exception:
         return None
-def _get_plan_for_key_local(key: str) -> str | None:
-    lic_file = pathlib.Path("licenses.txt")
-    if lic_file.exists():
-        txt = lic_file.read_text(encoding="utf-8")
-        mp = _parse_license_plan_map(txt)
-        return mp.get(key)
-    return None
+def _verify_sig(key: str, plan: str, sig: str | None) -> bool:
+    if not LICENSE_SIGNING_SECRET:
+        return True
+    if not sig:
+        return ALLOW_PLAIN_LICENSES == "1"
+    try:
+        import hmac, hashlib, base64
+        msg = f"{key}|{plan}".encode()
+        mac = hmac.new(LICENSE_SIGNING_SECRET.encode(), msg, hashlib.sha256).digest()
+        calc = base64.urlsafe_b64encode(mac).decode().rstrip("=")
+        return hmac.compare_digest(calc, sig)
+    except Exception:
+        return False
 
 def _validate_license(key: str) -> bool:
     if not key:
@@ -187,30 +198,45 @@ def _validate_license(key: str) -> bool:
         except Exception:
             plan_map = None
         if plan_map and key in plan_map:
-            ACTIVE_PLAN = plan_map[key]
-            return True
+            plan, sig = plan_map[key]
+            if _verify_sig(key, plan, sig):
+                ACTIVE_PLAN = plan
+                return True
         # Fall back to remote plain list
         try:
             vals = asyncio.run(_fetch_remote_licenses(LICENSES_URL))
         except Exception:
             vals = None
-        if vals and key in vals:
+        if vals and key in vals and (ALLOW_PLAIN_LICENSES == "1" or not LICENSE_SIGNING_SECRET):
             ACTIVE_PLAN = "basic"
             return True
     # Local plan map
-    plan_local = _get_plan_for_key_local(key)
-    if plan_local:
-        ACTIVE_PLAN = plan_local
-        return True
+    search_dirs = []
+    if LICENSES_PATH:
+        search_dirs.append(pathlib.Path(LICENSES_PATH))
+    search_dirs.append(pathlib.Path("."))
+    for d in search_dirs:
+        for name in ("licenses_plans.txt", "licenses.txt"):
+            lic_file = d / name
+            if lic_file.exists():
+                txt = lic_file.read_text(encoding="utf-8")
+                mp = _parse_license_plan_map(txt)
+                if key in mp:
+                    plan, sig = mp[key]
+                    if _verify_sig(key, plan, sig):
+                        ACTIVE_PLAN = plan
+                        return True
     # Local plain list
-    lic_file = pathlib.Path("licenses.txt")
-    if lic_file.exists():
-        vals = _parse_licenses_text(lic_file.read_text(encoding="utf-8"))
-        if key in vals:
-            ACTIVE_PLAN = "basic"
-            return True
+    for d in search_dirs:
+        for name in ("licenses_plans.txt", "licenses.txt"):
+            lic_file = d / name
+            if lic_file.exists():
+                vals = _parse_licenses_text(lic_file.read_text(encoding="utf-8"))
+                if key in vals and (ALLOW_PLAIN_LICENSES == "1" or not LICENSE_SIGNING_SECRET):
+                    ACTIVE_PLAN = "basic"
+                    return True
     # Regex fallback (no plan info)
-    if re.fullmatch(r"POSEIDON-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}", key):
+    if re.fullmatch(r"POSEIDON-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}", key) and (ALLOW_PLAIN_LICENSES == "1" or not LICENSE_SIGNING_SECRET):
         ACTIVE_PLAN = "basic"
         return True
     return False
@@ -250,20 +276,32 @@ def _allowed_cogs_for_plan(plan: str) -> list[str]:
     plan = (plan or "basic").lower()
     base = [
         "bot.cogs.diagnostico.status",
+        "bot.cogs.diagnostico.tools",
         "bot.cogs.moderacion.guardian",
         "bot.cogs.info.about",
+        "bot.cogs.info.ayuda",
     ]
     pro_extra = [
         "bot.cogs.comunidad.oraculo",
         "bot.cogs.comunidad.niveles",
         "bot.cogs.moderacion.crear_roles_guardian",
+        "bot.cogs.moderacion.antispam",
+        "bot.cogs.comunidad.encuestas",
+        "bot.cogs.comunidad.recordatorios",
+        "bot.cogs.comunidad.utilidades",
+        "bot.cogs.economia.monedas",
+        "bot.cogs.moderacion.herramientas",
     ]
     elite_extra = [
         "bot.cogs.economia.ofertas",
-    ]
-    all_extra = [
+        "bot.cogs.economia.sorteos",
         "bot.cogs.integraciones.lol",
+        "bot.cogs.integraciones.web",
+        "bot.cogs.economia.tienda",
+        "bot.cogs.integraciones.rss",
+        "bot.cogs.comunidad.calendario",
     ]
+    all_extra = []
     cogs = list(base)
     if plan in ("pro", "elite", "custom"):
         cogs += pro_extra
@@ -271,6 +309,29 @@ def _allowed_cogs_for_plan(plan: str) -> list[str]:
         cogs += elite_extra
     if plan == "custom":
         cogs += all_extra
+    enabled_only = os.getenv("ENABLED_COGS_ONLY", "").strip()
+    disabled = os.getenv("DISABLED_COGS", "").strip()
+    def normalize(names: str) -> list[str]:
+        if not names:
+            return []
+        out: list[str] = []
+        short_map = {}
+        for mod in base + pro_extra + elite_extra + all_extra:
+            short = mod.split(".")[-1]
+            short_map[short] = mod
+        for raw in [x.strip() for x in names.split(",") if x.strip()]:
+            if raw in short_map:
+                out.append(short_map[raw])
+            else:
+                out.append(raw)
+        return out
+    if enabled_only:
+        want = set(normalize(enabled_only))
+        cogs = [m for m in cogs if m in want]
+    else:
+        block = set(normalize(disabled))
+        if block:
+            cogs = [m for m in cogs if m not in block]
     return cogs
 if __name__ == "__main__":
     bot.run(TOKEN)
