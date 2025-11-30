@@ -215,9 +215,9 @@ def _verify_sig(key: str, plan: str, sig: str | None) -> bool:
     except Exception:
         return False
 
-def _validate_license(key: str) -> bool:
+def _validate_license(key: str) -> tuple[bool, bool]:
     if not key:
-        return False
+        return (False, False)
     global ACTIVE_PLAN
     # Remote plan map
     if LICENSES_URL:
@@ -229,7 +229,8 @@ def _validate_license(key: str) -> bool:
             plan, sig = plan_map[key]
             if _verify_sig(key, plan, sig):
                 ACTIVE_PLAN = plan
-                return True
+                return (True, True)
+            return (False, True)
         # Fall back to remote plain list
         try:
             vals = asyncio.run(_fetch_remote_licenses(LICENSES_URL))
@@ -237,7 +238,9 @@ def _validate_license(key: str) -> bool:
             vals = None
         if vals and key in vals and (ALLOW_PLAIN_LICENSES == "1" or not LICENSE_SIGNING_SECRET):
             ACTIVE_PLAN = "basic"
-            return True
+            return (True, True)
+        if vals and key in vals:
+            return (False, True)
     # Local plan map
     search_dirs = []
     if LICENSES_PATH:
@@ -253,7 +256,8 @@ def _validate_license(key: str) -> bool:
                     plan, sig = mp[key]
                     if _verify_sig(key, plan, sig):
                         ACTIVE_PLAN = plan
-                        return True
+                        return (True, True)
+                    return (False, True)
     # Local plain list
     for d in search_dirs:
         for name in ("licenses_plans.txt", "licenses.txt"):
@@ -262,12 +266,14 @@ def _validate_license(key: str) -> bool:
                 vals = _parse_licenses_text(lic_file.read_text(encoding="utf-8"))
                 if key in vals and (ALLOW_PLAIN_LICENSES == "1" or not LICENSE_SIGNING_SECRET):
                     ACTIVE_PLAN = "basic"
-                    return True
+                    return (True, True)
+                if key in vals:
+                    return (False, True)
     # Regex fallback (no plan info)
     if re.fullmatch(r"POSEIDON-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}", key) and (ALLOW_PLAIN_LICENSES == "1" or not LICENSE_SIGNING_SECRET):
         ACTIVE_PLAN = "basic"
-        return True
-    return False
+        return (True, True)
+    return (False, False)
 
 def enforce_license_or_trial() -> None:
     global LICENSE_KEY
@@ -278,11 +284,14 @@ def enforce_license_or_trial() -> None:
         if lic_active.exists():
             LICENSE_KEY = lic_active.read_text(encoding="utf-8").strip()
     if LICENSE_KEY:
-        if _validate_license(LICENSE_KEY):
+        ok, found = _validate_license(LICENSE_KEY)
+        if ok:
             if not ACTIVE_PLAN:
                 ACTIVE_PLAN = "basic"
             return
-        raise SystemExit("Licencia no válida o firma requerida")
+        if found:
+            raise SystemExit("Licencia no válida o firma requerida")
+        # not found: permitir trial
     p = pathlib.Path("trial_start.txt")
     now = int(time.time())
     if not p.exists():
