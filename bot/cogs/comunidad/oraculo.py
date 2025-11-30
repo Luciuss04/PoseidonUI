@@ -220,6 +220,7 @@ class OraculoChannelView(discord.ui.View):
         if not categoria_abiertos:
             categoria_abiertos = await guild.create_category(CATEGORIA_ABIERTOS)
         nuevo_nombre = canal.name
+        was_cerrado = nuevo_nombre.startswith("cerrado-")
         for pref in ("sellado-", "auto-", "resuelto-", "cerrado-"):
             if nuevo_nombre.startswith(pref):
                 nuevo_nombre = nuevo_nombre[len(pref):]
@@ -236,14 +237,20 @@ class OraculoChannelView(discord.ui.View):
         await canal.send(embed=embed)
         try:
             lista = []
-            for t, ow in canal.overwrites.items():
-                if isinstance(t, discord.Member):
-                    lista.append(t.mention)
+            if was_cerrado:
+                toks = _topic_tokens(canal)
+                owner = toks.get("owner")
+                if owner:
+                    lista.append(f"<@{owner}>")
+            else:
+                for t, ow in canal.overwrites.items():
+                    if isinstance(t, discord.Member):
+                        lista.append(t.mention)
             rol_staff = discord.utils.get(guild.roles, name=STAFF_ROLE_NAME)
             if rol_staff:
                 lista.append(rol_staff.mention)
             if lista:
-                await canal.send("� Participantes y Staff: " + " ".join(lista[:10]))
+                await canal.send("🔔 Participantes y Staff: " + " ".join(lista[:10]))
         except Exception:
             pass
         guardar_log({
