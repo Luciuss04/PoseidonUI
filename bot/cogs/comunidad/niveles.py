@@ -1,7 +1,10 @@
 import json
 import random
+
 from discord.ext import commands
+
 from bot.config import DATA_FILE, RANGOS
+
 
 def cargar_niveles():
     try:
@@ -13,12 +16,15 @@ def cargar_niveles():
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
 
+
 def guardar_niveles(niveles):
     with open(DATA_FILE, "w") as f:
         json.dump(niveles, f, indent=4)
 
+
 def xp_necesaria(nivel):
     return nivel * 100
+
 
 def procesar_mensaje(message, niveles):
     user_id = str(message.author.id)
@@ -38,12 +44,14 @@ def procesar_mensaje(message, niveles):
 
     return None, None
 
+
 def obtener_rango(nivel):
     rango = None
     for lvl, nombre in sorted(RANGOS.items()):
         if nivel >= lvl:
             rango = nombre
     return rango
+
 
 class NivelesCog(commands.Cog):
     def __init__(self, bot):
@@ -62,6 +70,7 @@ class NivelesCog(commands.Cog):
             await message.channel.send(
                 f"🌟 {message.author.mention} ha alcanzado el nivel **{nuevo_nivel}** ({rango}) ⚔️"
             )
+
 
 async def setup(bot):
     await bot.add_cog(NivelesCog(bot))

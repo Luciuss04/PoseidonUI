@@ -1,16 +1,18 @@
+import asyncio
 import os
 import pathlib
 import re
 import time
-import asyncio
+
 import aiohttp
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
-from bot.config import OWNER_ID
+
+from bot.config import LOG_CHANNEL_ID, OWNER_ID
 
 # ====== Cargar variables de entorno ======
-load_dotenv(override=False)
+load_dotenv(override=True)
 TOKEN = os.getenv("DISCORD_TOKEN")
 LICENSE_KEY = os.getenv("LICENSE_KEY")
 LICENSES_URL = os.getenv("LICENSES_URL")
@@ -31,7 +33,9 @@ try:
                     continue
                 parts = [x.strip() for x in s.split("|")]
                 if parts and parts[0] == LICENSE_KEY and len(parts) >= 3 and parts[2]:
-                    ACTIVE_PLAN = (parts[1].lower() if len(parts) > 1 and parts[1] else "basic")
+                    ACTIVE_PLAN = (
+                        parts[1].lower() if len(parts) > 1 and parts[1] else "basic"
+                    )
                     break
 except Exception:
     pass
@@ -41,6 +45,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.guilds = True
 intents.members = True
+
 
 # ====== Crear bot con setup_hook ======
 class PoseidonUIBot(commands.Bot):
@@ -52,12 +57,146 @@ class PoseidonUIBot(commands.Bot):
                     if not os.getenv("RIOT_API_KEY"):
                         continue
                 await m.setup(self)
-            except Exception:
+            except Exception as e:
+                print(f"Error loading cog {modname}: {e}")
                 pass
         # Sincronizar slash commands
         await self.tree.sync()
 
+
 bot = PoseidonUIBot(command_prefix="!", intents=intents)
+
+LOG_MIN_LEVEL = os.getenv("LOG_MIN_LEVEL", "info").strip().lower()
+LOG_INCLUDE = {
+    x.strip() for x in (os.getenv("LOG_INCLUDE", "").split(",")) if x.strip()
+}
+LOG_EXCLUDE = {
+    x.strip() for x in (os.getenv("LOG_EXCLUDE", "").split(",")) if x.strip()
+}
+try:
+    LOG_DEBOUNCE_SECS = max(0, int(os.getenv("LOG_DEBOUNCE_SECS", "15")))
+except Exception:
+    LOG_DEBOUNCE_SECS = 15
+_LEVEL_ORDER = {"debug": 0, "info": 1, "warn": 2, "error": 3}
+
+
+def _color_level(c: discord.Color | None) -> str:
+    try:
+        if not c:
+            return "info"
+        val = c.value
+        if val == discord.Color.red().value:
+            return "error"
+        if val == discord.Color.gold().value:
+            return "warn"
+        # green or default -> info
+        return "info"
+    except Exception:
+        return "info"
+
+
+async def bot_log(
+    content: str | None = None,
+    embed: discord.Embed | None = None,
+    guild: discord.Guild | None = None,
+):
+    try:
+        # Determine kind and level
+        kind = None
+        level = "info"
+        if embed is not None:
+            try:
+                kind = (embed.title or "").replace("LOG •", "").strip() or None
+            except Exception:
+                kind = None
+            try:
+                level = _color_level(embed.color)
+            except Exception:
+                level = "info"
+        # Apply include/exclude filters
+        if kind and kind in LOG_EXCLUDE:
+            return
+        if LOG_INCLUDE and (not kind or kind not in LOG_INCLUDE):
+            return
+        if _LEVEL_ORDER.get(level, 1) < _LEVEL_ORDER.get(LOG_MIN_LEVEL, 1):
+            return
+        # Debounce info-level logs for same kind/guild
+        try:
+            now = int(time.time())
+            key = (
+                int(getattr(guild or (embed and embed.guild), "id", 0)),
+                kind or "__general__",
+            )
+            last = getattr(bot, "_log_last", {}).get(key)
+            if (
+                level == "info"
+                and LOG_DEBOUNCE_SECS > 0
+                and last
+                and (now - last) < LOG_DEBOUNCE_SECS
+            ):
+                return
+            if not hasattr(bot, "_log_last"):
+                bot._log_last = {}
+            bot._log_last[key] = now
+        except Exception:
+            pass
+        ch = bot.get_channel(LOG_CHANNEL_ID)
+        if not isinstance(ch, discord.TextChannel) and guild:
+            ch = guild.get_channel(LOG_CHANNEL_ID) if guild else None
+        if isinstance(ch, discord.TextChannel):
+            if embed is not None:
+                await ch.send(content=content or None, embed=embed)
+            else:
+                await ch.send(content or "")
+    except Exception:
+        pass
+
+
+bot.log = bot_log
+
+
+def build_log_embed(
+    kind: str,
+    description: str,
+    user: discord.abc.User | None = None,
+    guild: discord.Guild | None = None,
+    color: discord.Color | None = None,
+    extra: dict[str, str] | None = None,
+) -> discord.Embed:
+    try:
+        e = discord.Embed(
+            title=f"LOG • {kind}",
+            description=description,
+            color=color or discord.Color.blurple(),
+        )
+        if user:
+            try:
+                e.add_field(name="Usuario", value=str(user), inline=True)
+                e.add_field(
+                    name="UsuarioID", value=str(getattr(user, "id", "")), inline=True
+                )
+            except Exception:
+                pass
+        if guild:
+            try:
+                e.add_field(name="Servidor", value=str(guild.name), inline=True)
+                e.add_field(name="ServidorID", value=str(guild.id), inline=True)
+            except Exception:
+                pass
+        if extra:
+            for k, v in extra.items():
+                e.add_field(name=k, value=v, inline=True)
+        try:
+            e.set_footer(text=time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()))
+        except Exception:
+            pass
+        return e
+    except Exception:
+        return discord.Embed(title=f"LOG • {kind}", description=description)
+
+
+bot.build_log_embed = build_log_embed
+
 
 # ====== Evento de conexión ======
 @bot.event
@@ -67,6 +206,15 @@ async def on_ready():
         plan = ACTIVE_PLAN or "basic"
         trial_txt = " (trial)" if IS_TRIAL else ""
         print(f"Plan activo: {plan}{trial_txt}")
+    except Exception:
+        pass
+    try:
+        e = discord.Embed(
+            title="Inicio",
+            description=f"Bot conectado como {bot.user}",
+            color=discord.Color.blurple(),
+        )
+        await bot_log(embed=e)
     except Exception:
         pass
     try:
@@ -81,10 +229,15 @@ async def on_ready():
         pass
     try:
         import pathlib
+
         k = LICENSE_KEY
         b = pathlib.Path("license_bindings.txt")
         if k and b.exists():
-            lines = [ln.strip() for ln in b.read_text(encoding="utf-8").splitlines() if ln.strip() and not ln.strip().startswith("#")]
+            lines = [
+                ln.strip()
+                for ln in b.read_text(encoding="utf-8").splitlines()
+                if ln.strip() and not ln.strip().startswith("#")
+            ]
             bind_gid = None
             for ln in lines:
                 parts = ln.split("|")
@@ -99,12 +252,17 @@ async def on_ready():
                 if bind_gid not in current:
                     try:
                         owner = await bot.fetch_user(OWNER_ID)
-                        await owner.send(f"⛔ El bot se inició en un servidor distinto al vinculado de la licencia {k}.")
+                        msg = (
+                            "⛔ El bot se inició en un servidor distinto al "
+                            f"vinculado de la licencia {k}."
+                        )
+                        await owner.send(msg)
                     except Exception:
                         pass
                     await bot.close()
     except Exception:
         pass
+
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -112,13 +270,94 @@ async def on_command_error(ctx, error):
         await ctx.send(f"⚠️ Ocurrió un error: {error}")
     except Exception:
         pass
+    try:
+        g = ctx.guild
+        e = discord.Embed(
+            title="Error", description=str(error), color=discord.Color.red()
+        )
+        if ctx.command:
+            e.add_field(name="Comando", value=ctx.command.qualified_name, inline=True)
+        if ctx.author:
+            e.add_field(
+                name="Autor", value=f"{ctx.author} ({ctx.author.id})", inline=True
+            )
+        await bot_log(embed=e, guild=g)
+    except Exception:
+        pass
+
+
+@bot.event
+async def on_command_completion(ctx):
+    try:
+        g = ctx.guild
+        name = ctx.command.qualified_name if ctx.command else "desconocido"
+        e = discord.Embed(
+            title="Comando completado", description=name, color=discord.Color.green()
+        )
+        e.add_field(name="Autor", value=f"{ctx.author} ({ctx.author.id})", inline=True)
+        await bot_log(embed=e, guild=g)
+    except Exception:
+        pass
+
+
+@bot.tree.error
+async def on_app_command_error(interaction: discord.Interaction, error: Exception):
+    try:
+        g = interaction.guild
+        e = discord.Embed(
+            title="Error de slash", description=str(error), color=discord.Color.red()
+        )
+        try:
+            cmd = interaction.command
+            if cmd:
+                e.add_field(name="Comando", value=cmd.qualified_name, inline=True)
+        except Exception:
+            pass
+        if interaction.user:
+            e.add_field(
+                name="Autor",
+                value=f"{interaction.user} ({interaction.user.id})",
+                inline=True,
+            )
+        await bot_log(embed=e, guild=g)
+    except Exception:
+        pass
+
+
+@bot.event
+async def on_guild_join(guild: discord.Guild):
+    try:
+        e = discord.Embed(
+            title="Servidor añadido",
+            description=f"{guild.name} ({guild.id})",
+            color=discord.Color.blurple(),
+        )
+        await bot_log(embed=e, guild=guild)
+    except Exception:
+        pass
+
+
+@bot.event
+async def on_guild_remove(guild: discord.Guild):
+    try:
+        e = discord.Embed(
+            title="Servidor eliminado",
+            description=f"{guild.name} ({guild.id})",
+            color=discord.Color.orange(),
+        )
+        await bot_log(embed=e, guild=guild)
+    except Exception:
+        pass
+
 
 if not TOKEN:
     raise SystemExit("DISCORD_TOKEN no está configurado")
 
+
 def _parse_licenses_text(text: str) -> set[str]:
     try:
         import json
+
         obj = json.loads(text)
         if isinstance(obj, list):
             return {str(x).strip() for x in obj if str(x).strip()}
@@ -136,9 +375,11 @@ def _parse_licenses_text(text: str) -> set[str]:
         vals.add(s)
     return vals
 
+
 def _parse_license_plan_map(text: str) -> dict[str, str]:
     try:
         import json
+
         obj = json.loads(text)
         if isinstance(obj, dict):
             out: dict[str, str] = {}
@@ -161,16 +402,18 @@ def _parse_license_plan_map(text: str) -> dict[str, str]:
         if "|" in s:
             parts = [p.strip() for p in s.split("|")]
             if parts and parts[0]:
-                plan = (parts[1].lower() if len(parts) > 1 and parts[1] else "basic")
+                plan = parts[1].lower() if len(parts) > 1 and parts[1] else "basic"
                 out[parts[0]] = plan
         else:
             out[s] = "basic"
     return out
 
+
 def _parse_license_plan_map_with_sig(text: str) -> dict[str, tuple[str, str | None]]:
     # Extended parser that preserves signature when present
     try:
         import json
+
         obj = json.loads(text)
         if isinstance(obj, dict):
             out: dict[str, tuple[str, str | None]] = {}
@@ -191,10 +434,11 @@ def _parse_license_plan_map_with_sig(text: str) -> dict[str, tuple[str, str | No
             continue
         parts = [p.strip() for p in s.split("|")]
         if parts and parts[0]:
-            plan = (parts[1].lower() if len(parts) > 1 and parts[1] else "basic")
+            plan = parts[1].lower() if len(parts) > 1 and parts[1] else "basic"
             sig = parts[2] if len(parts) > 2 and parts[2] else None
             out[parts[0]] = (plan, sig)
     return out
+
 
 async def _fetch_remote_licenses(url: str) -> set[str] | None:
     try:
@@ -207,6 +451,7 @@ async def _fetch_remote_licenses(url: str) -> set[str] | None:
     except Exception:
         return None
 
+
 async def _fetch_remote_plan_map(url: str) -> dict[str, tuple[str, str | None]] | None:
     try:
         async with aiohttp.ClientSession() as session:
@@ -217,6 +462,8 @@ async def _fetch_remote_plan_map(url: str) -> dict[str, tuple[str, str | None]] 
                 return _parse_license_plan_map_with_sig(text)
     except Exception:
         return None
+
+
 def _verify_sig(key: str, plan: str, sig: str | None) -> bool:
     secret = os.getenv("LICENSE_SIGNING_SECRET")
     if not secret:
@@ -228,6 +475,7 @@ def _verify_sig(key: str, plan: str, sig: str | None) -> bool:
         return True
     except Exception:
         return False
+
 
 def _validate_license(key: str) -> tuple[bool, bool]:
     if not key:
@@ -250,7 +498,11 @@ def _validate_license(key: str) -> tuple[bool, bool]:
             vals = asyncio.run(_fetch_remote_licenses(LICENSES_URL))
         except Exception:
             vals = None
-        if vals and key in vals and (ALLOW_PLAIN_LICENSES == "1" or not LICENSE_SIGNING_SECRET):
+        if (
+            vals
+            and key in vals
+            and (ALLOW_PLAIN_LICENSES == "1" or not LICENSE_SIGNING_SECRET)
+        ):
             ACTIVE_PLAN = "basic"
             return (True, True)
         if vals and key in vals:
@@ -278,16 +530,21 @@ def _validate_license(key: str) -> tuple[bool, bool]:
             lic_file = d / name
             if lic_file.exists():
                 vals = _parse_licenses_text(lic_file.read_text(encoding="utf-8"))
-                if key in vals and (ALLOW_PLAIN_LICENSES == "1" or not LICENSE_SIGNING_SECRET):
+                if key in vals and (
+                    ALLOW_PLAIN_LICENSES == "1" or not LICENSE_SIGNING_SECRET
+                ):
                     ACTIVE_PLAN = "basic"
                     return (True, True)
                 if key in vals:
                     return (False, True)
     # Regex fallback (no plan info)
-    if re.fullmatch(r"POSEIDON-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}", key) and (ALLOW_PLAIN_LICENSES == "1" or not LICENSE_SIGNING_SECRET):
+    if re.fullmatch(r"POSEIDON-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}", key) and (
+        ALLOW_PLAIN_LICENSES == "1" or not LICENSE_SIGNING_SECRET
+    ):
         ACTIVE_PLAN = "basic"
         return (True, True)
     return (False, False)
+
 
 def enforce_license_or_trial() -> None:
     global LICENSE_KEY
@@ -299,7 +556,8 @@ def enforce_license_or_trial() -> None:
         lic_active = pathlib.Path("license_active.txt")
         if lic_active.exists():
             LICENSE_KEY = lic_active.read_text(encoding="utf-8").strip()
-    # Aceptación temprana: si existe una entrada firmada local para LICENSE_KEY, activar plan y salir
+    # Aceptación temprana: si existe una entrada firmada local
+    # para LICENSE_KEY, activar plan y salir
     try:
         if LICENSE_KEY:
             ok, found = _validate_license(LICENSE_KEY)
@@ -314,8 +572,15 @@ def enforce_license_or_trial() -> None:
                     if not s or s.startswith("#"):
                         continue
                     parts = [x.strip() for x in s.split("|")]
-                    if parts and parts[0] == LICENSE_KEY and len(parts) >= 3 and parts[2]:
-                        ACTIVE_PLAN = (parts[1].lower() if len(parts) > 1 and parts[1] else "basic")
+                    if (
+                        parts
+                        and parts[0] == LICENSE_KEY
+                        and len(parts) >= 3
+                        and parts[2]
+                    ):
+                        ACTIVE_PLAN = (
+                            parts[1].lower() if len(parts) > 1 and parts[1] else "basic"
+                        )
                         return
     except Exception:
         pass
@@ -329,8 +594,15 @@ def enforce_license_or_trial() -> None:
                     if not s or s.startswith("#"):
                         continue
                     parts = [x.strip() for x in s.split("|")]
-                    if parts and parts[0] == LICENSE_KEY and len(parts) >= 3 and parts[2]:
-                        ACTIVE_PLAN = (parts[1].lower() if len(parts) > 1 and parts[1] else "basic")
+                    if (
+                        parts
+                        and parts[0] == LICENSE_KEY
+                        and len(parts) >= 3
+                        and parts[2]
+                    ):
+                        ACTIVE_PLAN = (
+                            parts[1].lower() if len(parts) > 1 and parts[1] else "basic"
+                        )
                         return
         except Exception:
             pass
@@ -340,7 +612,9 @@ def enforce_license_or_trial() -> None:
         if LICENSES_PATH:
             search_dirs.append(pathlib.Path(LICENSES_PATH))
         search_dirs.append(pathlib.Path("."))
-        if os.getenv("ALLOW_PLAIN_LICENSES", "0") != "1" and os.getenv("LICENSE_SIGNING_SECRET"):
+        if os.getenv("ALLOW_PLAIN_LICENSES", "0") != "1" and os.getenv(
+            "LICENSE_SIGNING_SECRET"
+        ):
             for d in search_dirs:
                 p = d / "licenses_plans.txt"
                 if p.exists():
@@ -351,7 +625,9 @@ def enforce_license_or_trial() -> None:
                         parts = [x.strip() for x in s.split("|")]
                         if len(parts) >= 2 and (len(parts) < 3 or not parts[2]):
                             if LICENSE_KEY:
-                                raise SystemExit("Licencia sin firma no permitida (se detectó entrada plana)")
+                                raise SystemExit(
+                                    "Licencia sin firma no permitida (se detectó entrada plana)"
+                                )
                             break
     except Exception:
         pass
@@ -377,7 +653,11 @@ def enforce_license_or_trial() -> None:
                     parts = [x.strip() for x in s.split("|")]
                     if parts and parts[0] == LICENSE_KEY:
                         if len(parts) >= 3 and parts[2]:
-                            ACTIVE_PLAN = (parts[1].lower() if len(parts) > 1 and parts[1] else "basic")
+                            ACTIVE_PLAN = (
+                                parts[1].lower()
+                                if len(parts) > 1 and parts[1]
+                                else "basic"
+                            )
                             return
                         entry_plain_found = True
         if found and entry_plain_found:
@@ -398,11 +678,15 @@ def enforce_license_or_trial() -> None:
         start = now
     days = (now - start) // 86400
     if days >= 7:
-        raise SystemExit("Período de prueba de 7 días finalizado. Usa /botinfo para comprar.")
+        raise SystemExit(
+            "Período de prueba de 7 días finalizado. Usa /botinfo para comprar."
+        )
     IS_TRIAL = True
     ACTIVE_PLAN = "basic"
 
+
 enforce_license_or_trial()
+
 
 def _allowed_cogs_for_plan(plan: str) -> list[str]:
     plan = (plan or "basic").lower()
@@ -410,8 +694,11 @@ def _allowed_cogs_for_plan(plan: str) -> list[str]:
         "bot.cogs.diagnostico.status",
         "bot.cogs.diagnostico.tools",
         "bot.cogs.moderacion.guardian",
+        "bot.cogs.moderacion.logs",
         "bot.cogs.info.about",
         "bot.cogs.info.ayuda",
+        "bot.cogs.comunidad.diversion",
+        "bot.cogs.juegos.rpg",
     ]
     pro_extra = [
         "bot.cogs.comunidad.oraculo",
@@ -423,14 +710,14 @@ def _allowed_cogs_for_plan(plan: str) -> list[str]:
         "bot.cogs.comunidad.utilidades",
         "bot.cogs.economia.monedas",
         "bot.cogs.moderacion.herramientas",
+        "bot.cogs.comunidad.streaming",
     ]
     elite_extra = [
         "bot.cogs.economia.ofertas",
         "bot.cogs.economia.sorteos",
         "bot.cogs.integraciones.lol",
         "bot.cogs.integraciones.web",
-        "bot.cogs.economia.tienda",
-        "bot.cogs.integraciones.rss",
+        "bot.cogs.economia.tienda",        "bot.cogs.integraciones.rss",
         "bot.cogs.comunidad.calendario",
     ]
     all_extra = []
@@ -442,7 +729,11 @@ def _allowed_cogs_for_plan(plan: str) -> list[str]:
     except Exception:
         CONFIG_OWNER_ID = None
     env_owner = os.getenv("OWNER_USER_ID")
-    owner_ok = CONFIG_OWNER_ID is not None and env_owner and str(CONFIG_OWNER_ID) == str(env_owner)
+    owner_ok = (
+        CONFIG_OWNER_ID is not None
+        and env_owner
+        and str(CONFIG_OWNER_ID) == str(env_owner)
+    )
     if owner_mode and enable_all and owner_file and owner_ok:
         cogs = list(base + pro_extra + elite_extra + all_extra)
     else:
@@ -455,6 +746,7 @@ def _allowed_cogs_for_plan(plan: str) -> list[str]:
             cogs += all_extra
     enabled_only = os.getenv("ENABLED_COGS_ONLY", "").strip()
     disabled = os.getenv("DISABLED_COGS", "").strip()
+
     def normalize(names: str) -> list[str]:
         if not names:
             return []
@@ -469,6 +761,7 @@ def _allowed_cogs_for_plan(plan: str) -> list[str]:
             else:
                 out.append(raw)
         return out
+
     if enabled_only and not (owner_mode and enable_all and owner_file and owner_ok):
         want = set(normalize(enabled_only))
         cogs = [m for m in cogs if m in want]
@@ -476,5 +769,14 @@ def _allowed_cogs_for_plan(plan: str) -> list[str]:
     if block:
         cogs = [m for m in cogs if m not in block]
     return cogs
+
+
 if __name__ == "__main__":
     bot.run(TOKEN)
+try:
+    if TOKEN:
+        print(f"🔑 Token cargado desde .env (longitud: {len(TOKEN)})")
+    else:
+        print("⛔ No se cargó DISCORD_TOKEN desde .env")
+except Exception:
+    pass

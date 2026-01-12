@@ -1,10 +1,11 @@
 import os
 import sys
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 import unittest
-from bot.cogs.comunidad.niveles import xp_necesaria, obtener_rango
+
+from bot.cogs.comunidad.niveles import obtener_rango, xp_necesaria
 
 
 class TestNiveles(unittest.TestCase):
@@ -18,5 +19,5 @@ class TestNiveles(unittest.TestCase):
         self.assertEqual(obtener_rango(40), "👑 Dios del Olimpo")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

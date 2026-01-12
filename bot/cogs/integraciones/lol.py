@@ -1,4 +1,5 @@
 import os
+
 import aiohttp
 import discord
 from discord.ext import commands
@@ -6,6 +7,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 RIOT_API_KEY = os.getenv("RIOT_API_KEY")
+
 
 class LoLCog(commands.Cog):
     def __init__(self, bot):
@@ -17,7 +19,11 @@ class LoLCog(commands.Cog):
             return None
         async with aiohttp.ClientSession() as session:
             try:
-                async with session.get(url, headers={"X-Riot-Token": RIOT_API_KEY}, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                async with session.get(
+                    url,
+                    headers={"X-Riot-Token": RIOT_API_KEY},
+                    timeout=aiohttp.ClientTimeout(total=10),
+                ) as resp:
                     if resp.status == 200:
                         try:
                             return await resp.json()
@@ -30,13 +36,31 @@ class LoLCog(commands.Cog):
     @commands.command()
     async def invocador(self, ctx, nombre: str):
         if not RIOT_API_KEY:
-            await ctx.send("⚠️ Falta configurar `RIOT_API_KEY` para consultar la API de Riot.")
+            await ctx.send(
+                "⚠️ Falta configurar `RIOT_API_KEY` para consultar la API de Riot."
+            )
+            try:
+                e = self.bot.build_log_embed(
+                    "Integraciones/LoL", "RIOT_API_KEY ausente", guild=ctx.guild
+                )
+                await self.bot.log(embed=e, guild=ctx.guild)
+            except Exception:
+                pass
             return
         summoner_url = f"{self.base_url}/lol/summoner/v4/summoners/by-name/{nombre}"
         data = await self.fetch(summoner_url)
 
         if not data:
             await ctx.send(f"⚠️ No se encontró al invocador **{nombre}**.")
+            try:
+                e = self.bot.build_log_embed(
+                    "Integraciones/LoL",
+                    f"Invocador no encontrado: {nombre}",
+                    guild=ctx.guild,
+                )
+                await self.bot.log(embed=e, guild=ctx.guild)
+            except Exception:
+                pass
             return
 
         nivel = data["summonerLevel"]
@@ -45,15 +69,26 @@ class LoLCog(commands.Cog):
         embed = discord.Embed(
             title=f"⚔️ Invocador: {nombre}",
             description=f"Nivel {nivel} — Guardián del Olimpo digital",
-            color=discord.Color.purple()
+            color=discord.Color.purple(),
         )
-        embed.set_thumbnail(url=f"http://ddragon.leagueoflegends.com/cdn/latest/img/profileicon/{icono}.png")
+        embed.set_thumbnail(
+            url=f"http://ddragon.leagueoflegends.com/cdn/latest/img/profileicon/{icono}.png"
+        )
         await ctx.send(embed=embed)
+        try:
+            e = self.bot.build_log_embed(
+                "Integraciones/LoL", f"Invocador consultado: {nombre}", guild=ctx.guild
+            )
+            await self.bot.log(embed=e, guild=ctx.guild)
+        except Exception:
+            pass
 
     @commands.command()
     async def ranked(self, ctx, nombre: str):
         if not RIOT_API_KEY:
-            await ctx.send("⚠️ Falta configurar `RIOT_API_KEY` para consultar la API de Riot.")
+            await ctx.send(
+                "⚠️ Falta configurar `RIOT_API_KEY` para consultar la API de Riot."
+            )
             return
         summoner_url = f"{self.base_url}/lol/summoner/v4/summoners/by-name/{nombre}"
         summoner = await self.fetch(summoner_url)
@@ -67,7 +102,9 @@ class LoLCog(commands.Cog):
         ranked_data = await self.fetch(ranked_url)
 
         if not ranked_data:
-            await ctx.send(f"⚠️ No se encontraron datos de clasificatoria para **{nombre}**.")
+            await ctx.send(
+                f"⚠️ No se encontraron datos de clasificatoria para **{nombre}**."
+            )
             return
 
         entry = ranked_data[0]
@@ -79,9 +116,10 @@ class LoLCog(commands.Cog):
         embed = discord.Embed(
             title=f"🏆 Clasificatoria de {nombre}",
             description=f"{tier} {rank}\nVictorias: {wins} ⚔️ — Derrotas: {losses} 💀",
-            color=discord.Color.gold()
+            color=discord.Color.gold(),
         )
         await ctx.send(embed=embed)
+
 
 async def setup(bot):
     await bot.add_cog(LoLCog(bot))

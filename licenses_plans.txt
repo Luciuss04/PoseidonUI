@@ -1,8 +1,3 @@
-# Formato: LICENCIA|PLAN
-# PLAN puede ser: basic, pro, elite, custom
-POSE-BASIC-1234|basic
-POSE-PRO-5678|pro
-POSE-ELITE-9999|elite
-POSE-CUSTOM-0000|custom
-# Clave sin plan explícito se considera basic
-POSE-BASIC-XXXX
+POSE-CUSTOM-9999|custom|UzN-7sHGMgrmDK8VGeG-ErWzrIecRwNOFXKyNnO7eko
+POSE-CUSTOM-7777|custom|QptYutOUclxAdy8KguGX8FiahWxVuQMLwOdSpqcFrQ0
+POSE-CUSTOM-2025|custom|ze2fC0T2QT1PumyhQ64glLEazIWTuIGNY7ztpVdOfZY

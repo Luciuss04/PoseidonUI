@@ -1,12 +1,16 @@
+import io
 import json
 import os
 import random
 import time
-import io
-from datetime import datetime, timedelta
+from datetime import datetime
+
 import discord
-from discord.ext import commands, tasks
+import os
+import time
+import asyncio
 from discord import app_commands
+from discord.ext import commands, tasks
 
 LOG_FILE = "oraculos.json"
 PANEL_CHANNEL_NAME = "📩-oráculo-de-ayuda"
@@ -24,58 +28,59 @@ FRASES_APERTURA = {
         "✨ *La sabiduría desciende sobre ti, expón tu duda con valor.*",
         "🏛️ *El Oráculo se enciende con la luz de la verdad.*",
         "⚡ *Los dioses han atendido tu invocación, habla mortal.*",
-        "🌌 *El cosmos se abre para escuchar tu voz.*"
+        "🌌 *El cosmos se abre para escuchar tu voz.*",
     ],
     "urgente": [
         "⚡ *Los dioses han atendido tu invocación con premura.*",
         "🔥 *El Oráculo arde con la urgencia de tu consulta.*",
         "🚨 *El Olimpo se estremece ante tu clamor.*",
-        "💥 *La verdad se precipita con fuerza hacia ti.*"
+        "💥 *La verdad se precipita con fuerza hacia ti.*",
     ],
     "creativo": [
         "🎨 *Las musas inspiran tu Oráculo, deja fluir tu visión.*",
         "🌌 *La imaginación se abre como un cosmos infinito.*",
         "🪄 *La magia del arte envuelve tu consulta.*",
-        "🎭 *El teatro de los dioses se abre para ti.*"
+        "🎭 *El teatro de los dioses se abre para ti.*",
     ],
     "soporte": [
         "🛠️ *Los artesanos del Olimpo afinan sus herramientas para tu causa.*",
         "⚙️ *El Oráculo se abre para reparar y guiar.*",
         "🔧 *Las manos divinas ajustan los engranajes de tu destino.*",
-        "💻 *La sabiduría técnica desciende desde los cielos.*"
+        "💻 *La sabiduría técnica desciende desde los cielos.*",
     ],
     "administrativo": [
         "📑 *Los escribas del Olimpo preparan los registros sagrados.*",
         "🏛️ *El Oráculo abre sus archivos divinos para tu gestión.*",
         "🖋️ *Las plumas doradas redactan tu petición en los pergaminos celestiales.*",
-        "⚖️ *La justicia de Atenea guía tu trámite.*"
+        "⚖️ *La justicia de Atenea guía tu trámite.*",
     ],
     "denuncia": [
         "🚨 *El Oráculo escucha tu clamor y convoca a los guardianes.*",
         "⚔️ *Los dioses se preparan para impartir justicia.*",
         "🛡️ *La verdad será protegida por el Olimpo.*",
-        "🔥 *La voz de Atenea arde contra la injusticia.*"
+        "🔥 *La voz de Atenea arde contra la injusticia.*",
     ],
     "colaboración": [
         "🤝 *Los lazos divinos se entretejen en tu consulta.*",
         "🌐 *El Oráculo abre caminos de unión y alianza.*",
         "🏛️ *Atenea convoca a los mortales a trabajar juntos.*",
-        "✨ *La cooperación se convierte en fuerza celestial.*"
+        "✨ *La cooperación se convierte en fuerza celestial.*",
     ],
     "místico": [
         "🔮 *El velo del misterio se levanta ante tu consulta.*",
         "🌌 *El cosmos susurra secretos ancestrales.*",
         "🕯️ *La luz de las velas guía tu pregunta.*",
-        "🌙 *La luna revela símbolos ocultos en tu destino.*"
-    ]
+        "🌙 *La luna revela símbolos ocultos en tu destino.*",
+    ],
 }
 
 FRASES_CIERRE = [
     "⚖️ *El Oráculo ha hablado, y su voz queda sellada en la eternidad.*",
     "🔒 *Atenea guarda silencio, tu consulta ha sido archivada.*",
     "📜 *Las palabras se desvanecen, pero la sabiduría permanece.*",
-    "🏛️ *El Olimpo cierra sus puertas hasta tu próxima invocación.*"
+    "🏛️ *El Olimpo cierra sus puertas hasta tu próxima invocación.*",
 ]
+
 
 def guardar_log(oraculo_data):
     try:
@@ -90,15 +95,14 @@ def guardar_log(oraculo_data):
     with open(LOG_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
 
+
 def normalizar_tipo(valor_label: str) -> str:
     t = valor_label.lower().strip()
     if t in FRASES_APERTURA.keys():
         return t
-    m = {
-        "colaboracion": "colaboración",
-        "mistico": "místico"
-    }
+    m = {"colaboracion": "colaboración", "mistico": "místico"}
     return m.get(t, "general")
+
 
 def color_por_tipo(tipo: str) -> discord.Color:
     tipo = tipo.lower()
@@ -117,25 +121,58 @@ def color_por_tipo(tipo: str) -> discord.Color:
     if tipo == "místico":
         return discord.Color.purple()
     return discord.Color.purple()
+
+
 def guia_por_tipo(tipo: str) -> str:
     t = tipo.lower()
     if t == "soporte":
-        return "• Indica versión y plataforma\n• Describe pasos para reproducir\n• Explica lo esperado y lo obtenido\n• Añade capturas o logs"
+        return (
+            "• Indica versión y plataforma\n"
+            "• Describe pasos para reproducir\n"
+            "• Explica lo esperado y lo obtenido\n"
+            "• Añade capturas o logs"
+        )
     if t == "urgente":
-        return "• Resume el contexto\n• Explica por qué es prioritario\n• Añade datos clave y evidencia"
+        return (
+            "• Resume el contexto\n"
+            "• Explica por qué es prioritario\n"
+            "• Añade datos clave y evidencia"
+        )
     if t == "creativo":
-        return "• Cuenta la idea\n• Define el objetivo\n• Lista recursos y referencias"
+        return (
+            "• Cuenta la idea\n"
+            "• Define el objetivo\n"
+            "• Lista recursos y referencias"
+        )
     if t == "administrativo":
-        return "• Especifica trámite\n• Incluye ID de referencia si aplica\n• Explica detalles relevantes"
+        return (
+            "• Especifica trámite\n"
+            "• Incluye ID de referencia si aplica\n"
+            "• Explica detalles relevantes"
+        )
     if t == "denuncia":
-        return "• Indica implicados\n• Aporta evidencia (links)\n• Detalla lo ocurrido"
+        return (
+            "• Indica implicados\n"
+            "• Aporta evidencia (links)\n"
+            "• Detalla lo ocurrido"
+        )
     if t == "colaboración":
-        return "• Expón tu propuesta\n• Define alcance\n• Añade notas y requisitos"
+        return (
+            "• Expón tu propuesta\n"
+            "• Define alcance\n"
+            "• Añade notas y requisitos"
+        )
     if t == "místico":
-        return "• Describe símbolos\n• Expón tu consulta\n• Añade contexto"
+        return (
+            "• Describe símbolos\n"
+            "• Expón tu consulta\n"
+            "• Añade contexto"
+        )
     return "• Expón tu consulta\n• Añade contexto\n• Adjunta material útil"
 
+
 TIPOS_ORACULO = list(FRASES_APERTURA.keys())
+
 
 def _topic_tokens(canal: discord.TextChannel) -> dict[str, str]:
     s = canal.topic or ""
@@ -152,6 +189,7 @@ def _topic_tokens(canal: discord.TextChannel) -> dict[str, str]:
             if k:
                 out[k.strip()] = v.strip()
     return out
+
 
 async def _topic_set(canal: discord.TextChannel, **updates):
     toks = _topic_tokens(canal)
@@ -170,10 +208,12 @@ async def _topic_set(canal: discord.TextChannel, **updates):
         pretty += f" • Asignado: <@{staff}>"
     spacer = "\u2003" * 40
     topic_text = f"{pretty} {spacer} || " + "|".join(tokens)
-    try:
-        await canal.edit(topic=topic_text)
-    except Exception:
-        pass
+    await _edit_channel(canal, topic=topic_text)
+
+
+async def _rename_channel(canal: discord.TextChannel, name: str):
+    await _edit_channel(canal, name=name)
+
 
 async def _update_pinned_embed_followup(canal: discord.TextChannel):
     try:
@@ -196,7 +236,7 @@ async def _update_pinned_embed_followup(canal: discord.TextChannel):
         raw_name = canal.name
         try:
             if raw_name.startswith("urgente-"):
-                raw_name = raw_name[len("urgente-"):]
+                raw_name = raw_name[len("urgente-") :]
         except Exception:
             pass
         hold = False
@@ -219,9 +259,16 @@ async def _update_pinned_embed_followup(canal: discord.TextChannel):
                     except Exception:
                         base_color = emb.color
                     nuevo_color = discord.Color.red() if urgent else base_color
-                    nuevo = discord.Embed(title=title, description=emb.description, color=nuevo_color)
-                    # Reordenar campos: colocar "Seguimiento" debajo de "Staff" y actualizar/insertar "Estado"
-                    fields = [f for f in emb.fields if f.name not in {"Seguimiento", "Estado", "Progreso"}]
+                    nuevo = discord.Embed(
+                        title=title, description=emb.description, color=nuevo_color
+                    )
+                    # Reordenar campos y actualizar/insertar "Estado"
+                    # Colocar "Seguimiento" debajo de "Staff"
+                    fields = [
+                        f
+                        for f in emb.fields
+                        if f.name not in {"Seguimiento", "Estado", "Progreso"}
+                    ]
                     seg_val = f"<#${tid}>".replace("$", "")
                     estado_val = "URGENTE" if urgent else "Normal"
                     progreso_val = "En espera" if hold else "En curso"
@@ -233,10 +280,16 @@ async def _update_pinned_embed_followup(canal: discord.TextChannel):
                     for i, f in enumerate(fields):
                         nuevo.add_field(name=f.name, value=f.value, inline=f.inline)
                         if f.name == "Tipo":
-                            nuevo.add_field(name="Estado", value=estado_val, inline=True)
-                            nuevo.add_field(name="Progreso", value=progreso_val, inline=True)
+                            nuevo.add_field(
+                                name="Estado", value=estado_val, inline=True
+                            )
+                            nuevo.add_field(
+                                name="Progreso", value=progreso_val, inline=True
+                            )
                         if staff_idx is not None and i == staff_idx:
-                            nuevo.add_field(name="Seguimiento", value=seg_val, inline=False)
+                            nuevo.add_field(
+                                name="Seguimiento", value=seg_val, inline=False
+                            )
                     if staff_idx is None:
                         nuevo.add_field(name="Seguimiento", value=seg_val, inline=False)
                     nuevo.set_footer(text=emb.footer.text if emb.footer else "")
@@ -248,6 +301,7 @@ async def _update_pinned_embed_followup(canal: discord.TextChannel):
     except Exception:
         pass
 
+
 class OraculoOpenView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
@@ -255,21 +309,40 @@ class OraculoOpenView(discord.ui.View):
     @discord.ui.select(
         placeholder="Invoca un Oráculo por tipo",
         options=[
-            discord.SelectOption(label="General", description="Consulta general", emoji="🌟"),
-            discord.SelectOption(label="Soporte", description="Asistencia técnica", emoji="🛠️"),
-            discord.SelectOption(label="Urgente", description="Atención prioritaria", emoji="⚡"),
-            discord.SelectOption(label="Creativo", description="Ideas y proyectos", emoji="🎨"),
-            discord.SelectOption(label="Administrativo", description="Gestión y trámites", emoji="📑"),
-            discord.SelectOption(label="Denuncia", description="Reportes y evidencias", emoji="🚨"),
-            discord.SelectOption(label="Colaboración", description="Propuestas y alianzas", emoji="🤝"),
-            discord.SelectOption(label="Místico", description="Simbolismo y rol", emoji="🔮")
+            discord.SelectOption(
+                label="General", description="Consulta general", emoji="🌟"
+            ),
+            discord.SelectOption(
+                label="Soporte", description="Asistencia técnica", emoji="🛠️"
+            ),
+            discord.SelectOption(
+                label="Urgente", description="Atención prioritaria", emoji="⚡"
+            ),
+            discord.SelectOption(
+                label="Creativo", description="Ideas y proyectos", emoji="🎨"
+            ),
+            discord.SelectOption(
+                label="Administrativo", description="Gestión y trámites", emoji="📑"
+            ),
+            discord.SelectOption(
+                label="Denuncia", description="Reportes y evidencias", emoji="🚨"
+            ),
+            discord.SelectOption(
+                label="Colaboración", description="Propuestas y alianzas", emoji="🤝"
+            ),
+            discord.SelectOption(
+                label="Místico", description="Simbolismo y rol", emoji="🔮"
+            ),
         ],
-        custom_id="tipo_oraculo_rapido"
+        custom_id="tipo_oraculo_rapido",
     )
-    async def seleccionar_rapido(self, interaction: discord.Interaction, select: discord.ui.Select):
+    async def seleccionar_rapido(
+        self, interaction: discord.Interaction, select: discord.ui.Select
+    ):
         tipo = normalizar_tipo(select.values[0])
         modal = QuickOraculoModal(tipo)
         await interaction.response.send_modal(modal)
+
 
 class OraculoUserView(discord.ui.View):
     def __init__(self, owner_id: int):
@@ -277,10 +350,15 @@ class OraculoUserView(discord.ui.View):
         self.owner_id = owner_id
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        if interaction.user.id == self.owner_id or interaction.user.guild_permissions.administrator:
+        if (
+            interaction.user.id == self.owner_id
+            or interaction.user.guild_permissions.administrator
+        ):
             return True
         try:
-            await interaction.response.send_message("⛔ Solo el autor del Oráculo puede usar este panel.", ephemeral=True)
+            await interaction.response.send_message(
+                "⛔ Solo el autor del Oráculo puede usar este panel.", ephemeral=True
+            )
         except Exception:
             pass
         return False
@@ -288,18 +366,36 @@ class OraculoUserView(discord.ui.View):
     @discord.ui.select(
         placeholder="Elige el tipo del Oráculo",
         options=[
-            discord.SelectOption(label="General", description="Consulta general", emoji="🌟"),
-            discord.SelectOption(label="Urgente", description="Atención prioritaria", emoji="⚡"),
-            discord.SelectOption(label="Creativo", description="Ideas y proyectos", emoji="🎨"),
-            discord.SelectOption(label="Soporte", description="Asistencia técnica", emoji="🛠️"),
-            discord.SelectOption(label="Administrativo", description="Gestión y trámites", emoji="📑"),
-            discord.SelectOption(label="Denuncia", description="Reportes y evidencias", emoji="🚨"),
-            discord.SelectOption(label="Colaboración", description="Propuestas y alianzas", emoji="🤝"),
-            discord.SelectOption(label="Místico", description="Simbolismo y rol", emoji="🔮"),
+            discord.SelectOption(
+                label="General", description="Consulta general", emoji="🌟"
+            ),
+            discord.SelectOption(
+                label="Urgente", description="Atención prioritaria", emoji="⚡"
+            ),
+            discord.SelectOption(
+                label="Creativo", description="Ideas y proyectos", emoji="🎨"
+            ),
+            discord.SelectOption(
+                label="Soporte", description="Asistencia técnica", emoji="🛠️"
+            ),
+            discord.SelectOption(
+                label="Administrativo", description="Gestión y trámites", emoji="📑"
+            ),
+            discord.SelectOption(
+                label="Denuncia", description="Reportes y evidencias", emoji="🚨"
+            ),
+            discord.SelectOption(
+                label="Colaboración", description="Propuestas y alianzas", emoji="🤝"
+            ),
+            discord.SelectOption(
+                label="Místico", description="Simbolismo y rol", emoji="🔮"
+            ),
         ],
-        custom_id="elige_motivo"
+        custom_id="elige_motivo",
     )
-    async def elegir_motivo(self, interaction: discord.Interaction, select: discord.ui.Select):
+    async def elegir_motivo(
+        self, interaction: discord.Interaction, select: discord.ui.Select
+    ):
         canal = interaction.channel
         tipo = normalizar_tipo(select.values[0])
         await _topic_set(canal, tipo=tipo)
@@ -319,17 +415,27 @@ class OraculoUserView(discord.ui.View):
                         nuevo = discord.Embed(
                             title=f"🏛️ Oráculo de Atenea ({tipo.capitalize()})",
                             description=emb.description,
-                            color=nuevo_color
+                            color=nuevo_color,
                         )
                         for f in emb.fields:
                             if f.name == "Tipo":
-                                nuevo.add_field(name="Tipo", value=tipo.capitalize(), inline=True)
+                                nuevo.add_field(
+                                    name="Tipo", value=tipo.capitalize(), inline=True
+                                )
                             elif f.name == "Estado":
-                                nuevo.add_field(name="Estado", value=("URGENTE" if urg else "Normal"), inline=True)
+                                nuevo.add_field(
+                                    name="Estado",
+                                    value=("URGENTE" if urg else "Normal"),
+                                    inline=True,
+                                )
                             elif f.name == "Guía":
-                                nuevo.add_field(name="Guía", value=guia_por_tipo(tipo), inline=False)
+                                nuevo.add_field(
+                                    name="Guía", value=guia_por_tipo(tipo), inline=False
+                                )
                             else:
-                                nuevo.add_field(name=f.name, value=f.value, inline=f.inline)
+                                nuevo.add_field(
+                                    name=f.name, value=f.value, inline=f.inline
+                                )
                         nuevo.set_footer(text=emb.footer.text if emb.footer else "")
                         try:
                             await msg.edit(embed=nuevo)
@@ -338,26 +444,51 @@ class OraculoUserView(discord.ui.View):
                         break
         except Exception:
             pass
-        await interaction.response.send_message(f"✅ Motivo actualizado a {tipo.capitalize()}.", ephemeral=True)
+        await interaction.response.send_message(
+            f"✅ Motivo actualizado a {tipo.capitalize()}.", ephemeral=True
+        )
 
     @discord.ui.select(
         placeholder="Checklist rápido por tipo",
         options=[
-            discord.SelectOption(label="General", description="Checklist breve", emoji="🌟"),
-            discord.SelectOption(label="Soporte", description="Versión, pasos, esperado, obtenido", emoji="🛠️"),
-            discord.SelectOption(label="Urgente", description="Contexto y prioridad", emoji="⚡"),
-            discord.SelectOption(label="Creativo", description="Idea, objetivo, recursos", emoji="🎨"),
-            discord.SelectOption(label="Administrativo", description="Trámite, id, detalles", emoji="📑"),
-            discord.SelectOption(label="Denuncia", description="Implicados, evidencia, detalle", emoji="🚨"),
-            discord.SelectOption(label="Colaboración", description="Propuesta y alcance", emoji="🤝"),
-            discord.SelectOption(label="Místico", description="Símbolos y consulta", emoji="🔮")
+            discord.SelectOption(
+                label="General", description="Checklist breve", emoji="🌟"
+            ),
+            discord.SelectOption(
+                label="Soporte",
+                description="Versión, pasos, esperado, obtenido",
+                emoji="🛠️",
+            ),
+            discord.SelectOption(
+                label="Urgente", description="Contexto y prioridad", emoji="⚡"
+            ),
+            discord.SelectOption(
+                label="Creativo", description="Idea, objetivo, recursos", emoji="🎨"
+            ),
+            discord.SelectOption(
+                label="Administrativo", description="Trámite, id, detalles", emoji="📑"
+            ),
+            discord.SelectOption(
+                label="Denuncia",
+                description="Implicados, evidencia, detalle",
+                emoji="🚨",
+            ),
+            discord.SelectOption(
+                label="Colaboración", description="Propuesta y alcance", emoji="🤝"
+            ),
+            discord.SelectOption(
+                label="Místico", description="Símbolos y consulta", emoji="🔮"
+            ),
         ],
-        custom_id="user_checklist"
+        custom_id="user_checklist",
     )
-    async def checklist_rapido(self, interaction: discord.Interaction, select: discord.ui.Select):
+    async def checklist_rapido(
+        self, interaction: discord.Interaction, select: discord.ui.Select
+    ):
         tipo = normalizar_tipo(select.values[0])
         modal = QuickOraculoModal(tipo)
         await interaction.response.send_modal(modal)
+
 
 class OraculoChannelView(discord.ui.View):
     def __init__(self, channel: discord.TextChannel | None = None):
@@ -366,102 +497,160 @@ class OraculoChannelView(discord.ui.View):
             return
         self._channel = channel
         try:
-            is_closed = bool(channel.category and channel.category.name == CATEGORIA_CERRADOS)
+            is_closed = bool(
+                channel.category and channel.category.name == CATEGORIA_CERRADOS
+            )
         except Exception:
             is_closed = False
         if not is_closed:
             for item in list(self.children):
                 try:
-                    if isinstance(item, discord.ui.Button) and getattr(item, "custom_id", "") == "reopen_oraculo":
+                    if (
+                        isinstance(item, discord.ui.Button)
+                        and getattr(item, "custom_id", "") == "reopen_oraculo"
+                    ):
                         self.remove_item(item)
                 except Exception:
                     pass
         else:
             for item in list(self.children):
                 try:
-                    if isinstance(item, discord.ui.Button) and getattr(item, "custom_id", "") in {"close_oraculo", "resolve_oraculo", "add_participant", "toggle_urgent", "ping_staff", "assign_self"}:
+                    if isinstance(item, discord.ui.Button) and getattr(
+                        item, "custom_id", ""
+                    ) in {
+                        "close_oraculo",
+                        "resolve_oraculo",
+                        "add_participant",
+                        "toggle_urgent",
+                        "ping_staff",
+                        "assign_self",
+                    }:
                         self.remove_item(item)
                 except Exception:
                     pass
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         guild = interaction.guild
-        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(guild.roles, name=STAFF_ROLE_NAME)
-        if interaction.user.guild_permissions.administrator or (rol_staff and rol_staff in interaction.user.roles):
+        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(
+            guild.roles, name=STAFF_ROLE_NAME
+        )
+        if interaction.user.guild_permissions.administrator or (
+            rol_staff and rol_staff in interaction.user.roles
+        ):
             return True
         try:
-            await interaction.response.send_message("⛔ Controles disponibles solo para Staff.", ephemeral=True)
+            await interaction.response.send_message(
+                "⛔ Controles disponibles solo para Staff.", ephemeral=True
+            )
         except Exception:
             pass
         return False
 
-    @discord.ui.button(label="❌ Sellar Oráculo", style=discord.ButtonStyle.danger, custom_id="close_oraculo")
-    async def cerrar_oraculo(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @discord.ui.button(
+        label="❌ Sellar Oráculo",
+        style=discord.ButtonStyle.danger,
+        custom_id="close_oraculo",
+    )
+    async def cerrar_oraculo(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
         miembro = interaction.user
-        guild = interaction.guild
-        canal = interaction.channel
 
-        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(guild.roles, name=STAFF_ROLE_NAME)
-        owner_ok = False
-        try:
-            toks = _topic_tokens(canal)
-            owner_ok = toks.get("owner") == str(miembro.id)
-        except Exception:
-            owner_ok = False
+        # Solo administradores pueden cerrar Oráculos
         if not miembro.guild_permissions.administrator:
-            await interaction.response.send_message("⛔ Solo administradores pueden sellar Oráculos.", ephemeral=True)
+            await interaction.response.send_message(
+                "⛔ Solo administradores pueden sellar Oráculos.", ephemeral=True
+            )
             return
         modal = CloseOraculoModal()
         await interaction.response.send_modal(modal)
 
-    @discord.ui.button(label="➕ Añadir participante", style=discord.ButtonStyle.secondary, custom_id="add_participant")
-    async def add_participant(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @discord.ui.button(
+        label="➕ Añadir participante",
+        style=discord.ButtonStyle.secondary,
+        custom_id="add_participant",
+    )
+    async def add_participant(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
         miembro = interaction.user
         guild = interaction.guild
-        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(guild.roles, name=STAFF_ROLE_NAME)
+        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(
+            guild.roles, name=STAFF_ROLE_NAME
+        )
         owner_ok = False
         try:
             toks = _topic_tokens(interaction.channel)
             owner_ok = toks.get("owner") == str(miembro.id)
         except Exception:
             owner_ok = False
-        if not (miembro.guild_permissions.administrator or owner_ok or (rol_staff and rol_staff in miembro.roles)):
-            await interaction.response.send_message("⛔ Solo administradores o Staff pueden añadir participantes.", ephemeral=True)
+        if not (
+            miembro.guild_permissions.administrator
+            or owner_ok
+            or (rol_staff and rol_staff in miembro.roles)
+        ):
+            await interaction.response.send_message(
+                "⛔ Solo administradores o Staff pueden añadir participantes.",
+                ephemeral=True,
+            )
             return
         await interaction.response.send_modal(AddParticipantModal())
 
-    @discord.ui.button(label="🔓 Reabrir Oráculo", style=discord.ButtonStyle.success, custom_id="reopen_oraculo")
-    async def reopen_oraculo(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @discord.ui.button(
+        label="🔓 Reabrir Oráculo",
+        style=discord.ButtonStyle.success,
+        custom_id="reopen_oraculo",
+    )
+    async def reopen_oraculo(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
         miembro = interaction.user
         guild = interaction.guild
         canal = interaction.channel
-        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(guild.roles, name=STAFF_ROLE_NAME)
+        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(
+            guild.roles, name=STAFF_ROLE_NAME
+        )
         owner_ok = False
         try:
             toks = _topic_tokens(canal)
             owner_ok = toks.get("owner") == str(miembro.id)
         except Exception:
             owner_ok = False
-        if not (miembro.guild_permissions.administrator or owner_ok or (rol_staff and rol_staff in miembro.roles)):
-            await interaction.response.send_message("⛔ Solo administradores o Staff pueden reabrir Oráculos.", ephemeral=True)
+        if not (
+            miembro.guild_permissions.administrator
+            or owner_ok
+            or (rol_staff and rol_staff in miembro.roles)
+        ):
+            await interaction.response.send_message(
+                "⛔ Solo administradores o Staff pueden reabrir Oráculos.",
+                ephemeral=True,
+            )
             return
-        categoria_abiertos = discord.utils.get(guild.categories, name=CATEGORIA_ABIERTOS)
+        categoria_abiertos = discord.utils.get(
+            guild.categories, name=CATEGORIA_ABIERTOS
+        )
         if not categoria_abiertos:
             categoria_abiertos = await guild.create_category(CATEGORIA_ABIERTOS)
         nuevo_nombre = canal.name
         was_cerrado = nuevo_nombre.startswith("cerrado-")
         for pref in ("sellado-", "auto-", "resuelto-", "cerrado-"):
             if nuevo_nombre.startswith(pref):
-                nuevo_nombre = nuevo_nombre[len(pref):]
+                nuevo_nombre = nuevo_nombre[len(pref) :]
                 break
-        await canal.edit(category=categoria_abiertos, name=nuevo_nombre)
+            await _edit_channel(canal, category=categoria_abiertos, name=nuevo_nombre)
+            try:
+                interaction.client.dispatch("oraculo_reopened", interaction.guild, canal)
+            except Exception:
+                pass
         for overwrite_target in list(canal.overwrites):
             if isinstance(overwrite_target, discord.Member):
-                await canal.set_permissions(overwrite_target, send_messages=True, view_channel=True)
+                await _set_permissions(
+                    canal, overwrite_target, send_messages=True, view_channel=True
+                )
         embed = discord.Embed(
             title="🔓 Oráculo Reabierto",
             description="El Oráculo ha sido reabierto. Puedes continuar la conversación.",
-            color=discord.Color.green()
+            color=discord.Color.green(),
         )
         await canal.send(embed=embed)
         # Controles disponibles para Staff mediante /oraculo_controles
@@ -483,40 +672,64 @@ class OraculoChannelView(discord.ui.View):
                 await canal.send("🔔 Participantes y Staff: " + " ".join(lista[:10]))
         except Exception:
             pass
-        guardar_log({
-            "canal": canal.name,
-            "reabierto_por": f"{miembro} ({miembro.id})",
-            "fecha_reapertura": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
-        })
+        guardar_log(
+            {
+                "canal": canal.name,
+                "reabierto_por": f"{miembro} ({miembro.id})",
+                "fecha_reapertura": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
+            }
+        )
         await interaction.response.send_message("✅ Oráculo reabierto.", ephemeral=True)
 
-    @discord.ui.button(label="🧭 Asignarme", style=discord.ButtonStyle.primary, custom_id="assign_self")
-    async def assign_self(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @discord.ui.button(
+        label="🧭 Asignarme", style=discord.ButtonStyle.primary, custom_id="assign_self"
+    )
+    async def assign_self(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
         miembro = interaction.user
         guild = interaction.guild
         canal = interaction.channel
-        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(guild.roles, name=STAFF_ROLE_NAME)
-        if not (miembro.guild_permissions.administrator or (rol_staff and rol_staff in miembro.roles)):
-            await interaction.response.send_message("⛔ Solo Staff o administradores pueden asignarse el Oráculo.", ephemeral=True)
+        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(
+            guild.roles, name=STAFF_ROLE_NAME
+        )
+        if not (
+            miembro.guild_permissions.administrator
+            or (rol_staff and rol_staff in miembro.roles)
+        ):
+            await interaction.response.send_message(
+                "⛔ Solo Staff o administradores pueden asignarse el Oráculo.",
+                ephemeral=True,
+            )
             return
         toks = _topic_tokens(canal)
         ya = toks.get("staff")
         if ya and ya != str(miembro.id) and not miembro.guild_permissions.administrator:
             try:
                 u = await guild.fetch_member(int(ya))
-                await interaction.response.send_message(f"⚠️ El Oráculo ya está asignado a {u.mention}.", ephemeral=True)
+                await interaction.response.send_message(
+                    f"⚠️ El Oráculo ya está asignado a {u.mention}.", ephemeral=True
+                )
             except Exception:
-                await interaction.response.send_message("⚠️ El Oráculo ya está asignado.", ephemeral=True)
+                await interaction.response.send_message(
+                    "⚠️ El Oráculo ya está asignado.", ephemeral=True
+                )
             return
         try:
             if rol_staff:
-                await canal.set_permissions(rol_staff, view_channel=True, send_messages=True, attach_files=True)
+                await _set_permissions(
+                    canal, rol_staff, view_channel=True, send_messages=True, attach_files=True
+                )
         except Exception:
             pass
         await _topic_set(canal, staff=str(miembro.id), assignedat=str(int(time.time())))
         await canal.send(f"🧭 {miembro.mention} se ha asignado este Oráculo.")
         try:
-            e = discord.Embed(title="Asignación registrada", description=f"Asignado: {miembro.mention}", color=discord.Color.green())
+            e = discord.Embed(
+                title="Asignación registrada",
+                description=f"Asignado: {miembro.mention}",
+                color=discord.Color.green(),
+            )
             await _alert_thread_post(guild, canal, embed=e)
         except Exception:
             pass
@@ -527,27 +740,39 @@ class OraculoChannelView(discord.ui.View):
             name = canal.name
             urgent = False
             if name.startswith("urgente-"):
-                name = name[len("urgente-"):]
+                name = name[len("urgente-") :]
                 urgent = True
             if name.startswith("atendido-"):
                 idx = name.find("-", len("atendido-"))
                 if idx != -1:
-                    name = name[idx+1:]
+                    name = name[idx + 1 :]
                 else:
-                    name = name[len("atendido-"):]
+                    name = name[len("atendido-") :]
             new_name = ("urgente-" if urgent else "") + f"atendido-{slug}-" + name
-            await canal.edit(name=new_name)
+            await _rename_channel(canal, new_name)
         except Exception:
             pass
-        await interaction.response.send_message("✅ Asignación registrada.", ephemeral=True)
+        await interaction.response.send_message(
+            "✅ Asignación registrada.", ephemeral=True
+        )
 
-    @discord.ui.button(label="🛡️ Llamar Staff", style=discord.ButtonStyle.primary, custom_id="ping_staff")
-    async def ping_staff(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @discord.ui.button(
+        label="🛡️ Llamar Staff",
+        style=discord.ButtonStyle.primary,
+        custom_id="ping_staff",
+    )
+    async def ping_staff(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
         canal = interaction.channel
         guild = interaction.guild
-        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(guild.roles, name=STAFF_ROLE_NAME)
+        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(
+            guild.roles, name=STAFF_ROLE_NAME
+        )
         if not rol_staff:
-            await interaction.response.send_message("⚠️ No hay rol Staff configurado.", ephemeral=True)
+            await interaction.response.send_message(
+                "⚠️ No hay rol Staff configurado.", ephemeral=True
+            )
             return
         toks = _topic_tokens(canal)
         last = 0
@@ -558,69 +783,110 @@ class OraculoChannelView(discord.ui.View):
         now = int(time.time())
         if now - last < 900:
             rem = 900 - (now - last)
-            await interaction.response.send_message(f"⏱️ Espera {rem}s antes de volver a llamar al Staff.", ephemeral=True)
+            await interaction.response.send_message(
+                f"⏱️ Espera {rem}s antes de volver a llamar al Staff.", ephemeral=True
+            )
             return
         await canal.send(f"🛡️ {rol_staff.mention}")
         await _topic_set(canal, laststaff=str(now))
-        await interaction.response.send_message("✅ Se ha notificado al Staff.", ephemeral=True)
+        await interaction.response.send_message(
+            "✅ Se ha notificado al Staff.", ephemeral=True
+        )
         try:
-            e = discord.Embed(title="Llamada al Staff", description=f"Notificado: {rol_staff.mention}", color=discord.Color.blurple())
+            e = discord.Embed(
+                title="Llamada al Staff",
+                description=f"Notificado: {rol_staff.mention}",
+                color=discord.Color.blurple(),
+            )
             await _alert_thread_post(guild, canal, embed=e)
+            try:
+                await interaction.client.log(embed=e, guild=guild)
+            except Exception:
+                pass
         except Exception:
             pass
 
-    @discord.ui.button(label="⚠️ Marcar urgente", style=discord.ButtonStyle.danger, custom_id="toggle_urgent")
-    async def toggle_urgent(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @discord.ui.button(
+        label="⚠️ Marcar urgente",
+        style=discord.ButtonStyle.danger,
+        custom_id="toggle_urgent",
+    )
+    async def toggle_urgent(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
         canal = interaction.channel
         miembro = interaction.user
         guild = interaction.guild
-        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(guild.roles, name=STAFF_ROLE_NAME)
-        owner_ok = False
-        try:
-            toks = _topic_tokens(canal)
-            owner_ok = toks.get("owner") == str(miembro.id)
-        except Exception:
-            owner_ok = False
-        if not (miembro.guild_permissions.administrator or (rol_staff and rol_staff in miembro.roles)):
-            await interaction.response.send_message("⛔ Solo administradores o Staff pueden marcar urgente.", ephemeral=True)
+        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(
+            guild.roles, name=STAFF_ROLE_NAME
+        )
+        if not (
+            miembro.guild_permissions.administrator
+            or (rol_staff and rol_staff in miembro.roles)
+        ):
+            await interaction.response.send_message(
+                "⛔ Solo administradores o Staff pueden marcar urgente.", ephemeral=True
+            )
             return
         name = canal.name
         if name.startswith("urgente-"):
-            new = name[len("urgente-"):]
+            new = name[len("urgente-") :]
         else:
             new = f"urgente-{name}"
         try:
-            await canal.edit(name=new)
-            await interaction.response.send_message("✅ Estado de urgencia actualizado.", ephemeral=True)
+            await _rename_channel(canal, new)
+            await interaction.response.send_message(
+                "✅ Estado de urgencia actualizado.", ephemeral=True
+            )
         except Exception:
-            await interaction.response.send_message("⚠️ No se pudo cambiar el nombre.", ephemeral=True)
+            await interaction.response.send_message(
+                "⚠️ No se pudo cambiar el nombre.", ephemeral=True
+            )
         try:
             await _update_pinned_embed_followup(canal)
         except Exception:
             pass
         try:
             urg = new.startswith("urgente-")
-            e = discord.Embed(title="Cambio de urgencia", description=("URGENTE" if urg else "Modo normal"), color=(discord.Color.red() if urg else discord.Color.blurple()))
+            e = discord.Embed(
+                title="Cambio de urgencia",
+                description=("URGENTE" if urg else "Modo normal"),
+                color=(discord.Color.red() if urg else discord.Color.blurple()),
+            )
             await _alert_thread_post(guild, canal, embed=e)
         except Exception:
             pass
 
-    @discord.ui.button(label="🧊 En espera", style=discord.ButtonStyle.secondary, custom_id="toggle_hold")
-    async def toggle_hold(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @discord.ui.button(
+        label="🧊 En espera",
+        style=discord.ButtonStyle.secondary,
+        custom_id="toggle_hold",
+    )
+    async def toggle_hold(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
         canal = interaction.channel
         guild = interaction.guild
-        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(guild.roles, name=STAFF_ROLE_NAME)
-        if not (interaction.user.guild_permissions.administrator or (rol_staff and rol_staff in interaction.user.roles)):
-            await interaction.response.send_message("⛔ Solo administradores o Staff pueden cambiar el estado de espera.", ephemeral=True)
+        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(
+            guild.roles, name=STAFF_ROLE_NAME
+        )
+        if not (
+            interaction.user.guild_permissions.administrator
+            or (rol_staff and rol_staff in interaction.user.roles)
+        ):
+            await interaction.response.send_message(
+                "⛔ Solo administradores o Staff pueden cambiar el estado de espera.",
+                ephemeral=True,
+            )
             return
         name = canal.name
         prefix = ""
         raw = name
         if raw.startswith("urgente-"):
             prefix = "urgente-"
-            raw = raw[len("urgente-"):]
+            raw = raw[len("urgente-") :]
         if raw.startswith("espera-"):
-            raw = raw[len("espera-"):]
+            raw = raw[len("espera-") :]
             new = prefix + raw
             progreso_txt = "En curso"
             color = discord.Color.blurple()
@@ -629,22 +895,34 @@ class OraculoChannelView(discord.ui.View):
             progreso_txt = "En espera"
             color = discord.Color.dark_blue()
         try:
-            await canal.edit(name=new)
-            await interaction.response.send_message("✅ Estado de progreso actualizado.", ephemeral=True)
+            await _rename_channel(canal, new)
+            await interaction.response.send_message(
+                "✅ Estado de progreso actualizado.", ephemeral=True
+            )
         except Exception:
-            await interaction.response.send_message("⚠️ No se pudo cambiar el nombre.", ephemeral=True)
+            await interaction.response.send_message(
+                "⚠️ No se pudo cambiar el nombre.", ephemeral=True
+            )
         try:
             await _update_pinned_embed_followup(canal)
         except Exception:
             pass
         try:
-            e = discord.Embed(title="Cambio de progreso", description=progreso_txt, color=color)
+            e = discord.Embed(
+                title="Cambio de progreso", description=progreso_txt, color=color
+            )
             await _alert_thread_post(guild, canal, embed=e)
         except Exception:
             pass
 
-    @discord.ui.button(label="�� Completar checklist", style=discord.ButtonStyle.secondary, custom_id="complete_checklist")
-    async def complete_checklist(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @discord.ui.button(
+        label="�� Completar checklist",
+        style=discord.ButtonStyle.secondary,
+        custom_id="complete_checklist",
+    )
+    async def complete_checklist(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
         tipo = "general"
         try:
             toks = _topic_tokens(interaction.channel)
@@ -655,25 +933,30 @@ class OraculoChannelView(discord.ui.View):
             pass
         await interaction.response.send_modal(QuickOraculoModal(tipo))
 
-    @discord.ui.button(label="✅ Resolver", style=discord.ButtonStyle.success, custom_id="resolve_oraculo")
-    async def resolve_oraculo(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @discord.ui.button(
+        label="✅ Resolver",
+        style=discord.ButtonStyle.success,
+        custom_id="resolve_oraculo",
+    )
+    async def resolve_oraculo(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
         miembro = interaction.user
-        guild = interaction.guild
-        canal = interaction.channel
-        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(guild.roles, name=STAFF_ROLE_NAME)
-        owner_ok = False
-        try:
-            toks = _topic_tokens(canal)
-            owner_ok = toks.get("owner") == str(miembro.id)
-        except Exception:
-            owner_ok = False
         if not miembro.guild_permissions.administrator:
-            await interaction.response.send_message("⛔ Solo administradores pueden resolver Oráculos.", ephemeral=True)
+            await interaction.response.send_message(
+                "⛔ Solo administradores pueden resolver Oráculos.", ephemeral=True
+            )
             return
         await interaction.response.send_modal(ResolveOraculoModal())
 
+
 class CloseOraculoModal(discord.ui.Modal, title="Sellar Oráculo"):
-    resumen = discord.ui.TextInput(label="Resumen del cierre", style=discord.TextStyle.paragraph, required=False, max_length=500)
+    resumen = discord.ui.TextInput(
+        label="Resumen del cierre",
+        style=discord.TextStyle.paragraph,
+        required=False,
+        max_length=500,
+    )
 
     async def on_submit(self, interaction: discord.Interaction):
         try:
@@ -684,17 +967,33 @@ class CloseOraculoModal(discord.ui.Modal, title="Sellar Oráculo"):
             guild = interaction.guild
             canal = interaction.channel
             miembro = interaction.user
-            categoria_cerrados = discord.utils.get(guild.categories, name=CATEGORIA_CERRADOS)
+            categoria_cerrados = discord.utils.get(
+                guild.categories, name=CATEGORIA_CERRADOS
+            )
             if not categoria_cerrados:
                 categoria_cerrados = await guild.create_category(CATEGORIA_CERRADOS)
             try:
-                await canal.edit(category=categoria_cerrados, name=f"sellado-{canal.name}")
+                await _edit_channel(
+                    canal,
+                    category=categoria_cerrados,
+                    name=f"sellado-{canal.name}",
+                )
+            except Exception:
+                pass
+            try:
+                await _topic_set(canal, closed_at=str(int(__import__("time").time())))
+            except Exception:
+                pass
+            try:
+                interaction.client.dispatch("oraculo_closed", interaction.guild, canal)
             except Exception:
                 pass
             try:
                 for overwrite_target in list(canal.overwrites):
                     if isinstance(overwrite_target, discord.Member):
-                        await canal.set_permissions(overwrite_target, send_messages=False)
+                        await _set_permissions(
+                            canal, overwrite_target, send_messages=False
+                        )
             except Exception:
                 pass
             frase = random.choice(FRASES_CIERRE)
@@ -704,7 +1003,7 @@ class CloseOraculoModal(discord.ui.Modal, title="Sellar Oráculo"):
             embed = discord.Embed(
                 title="⚖️ Oráculo Sellado",
                 description=desc,
-                color=discord.Color.dark_gold()
+                color=discord.Color.dark_gold(),
             )
             embed.set_footer(text="Atenea vigila desde las alturas 🏛️")
             await canal.send(embed=embed)
@@ -720,7 +1019,7 @@ class CloseOraculoModal(discord.ui.Modal, title="Sellar Oráculo"):
                                 pass
             except Exception:
                 pass
-        # Controles disponibles para Staff mediante /oraculo_controles
+            # Controles disponibles para Staff mediante /oraculo_controles
             try:
                 lines = []
                 async for msg in canal.history(limit=200, oldest_first=True):
@@ -732,59 +1031,87 @@ class CloseOraculoModal(discord.ui.Modal, title="Sellar Oráculo"):
                     await canal.send(file=discord.File(buf, "oraculo-transcript.txt"))
             except Exception:
                 pass
-            guardar_log({
-                "canal": canal.name,
-                "cerrado_por": f"{miembro} ({miembro.id})",
-                "fecha_cierre": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
-                "resumen": self.resumen.value.strip()
-            })
+            guardar_log(
+                {
+                    "canal": canal.name,
+                    "cerrado_por": f"{miembro} ({miembro.id})",
+                    "fecha_cierre": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
+                    "resumen": self.resumen.value.strip(),
+                }
+            )
             try:
-                await interaction.followup.send("✅ El Oráculo ha sido sellado correctamente.", ephemeral=True)
+                await interaction.followup.send(
+                    "✅ El Oráculo ha sido sellado correctamente.", ephemeral=True
+                )
             except Exception:
                 pass
             try:
                 txt = self.resumen.value.strip()
-                e = discord.Embed(title="Oráculo sellado", description=(txt or ""), color=discord.Color.dark_gold())
+                e = discord.Embed(
+                    title="Oráculo sellado",
+                    description=(txt or ""),
+                    color=discord.Color.dark_gold(),
+                )
                 await _alert_thread_post(guild, canal, embed=e)
             except Exception:
                 pass
         except Exception:
             try:
-                await interaction.followup.send("⚠️ No se pudo sellar el Oráculo.", ephemeral=True)
+                await interaction.followup.send(
+                    "⚠️ No se pudo sellar el Oráculo.", ephemeral=True
+                )
             except Exception:
                 pass
 
+
 class ResolveOraculoModal(discord.ui.Modal, title="Resolver Oráculo"):
     resumen = discord.ui.TextInput(label="Resumen breve", required=True, max_length=200)
-    cierre_total = discord.ui.TextInput(label="Cerrar definitivamente (sí/no)", required=False, max_length=3)
+    cierre_total = discord.ui.TextInput(
+        label="Cerrar definitivamente (sí/no)", required=False, max_length=3
+    )
 
     async def on_submit(self, interaction: discord.Interaction):
         # Responder inmediatamente para evitar el error del modal
         try:
-            await interaction.response.send_message("Procesando resolución...", ephemeral=True)
+            await interaction.response.send_message(
+                "Procesando resolución...", ephemeral=True
+            )
         except Exception:
             pass
+
         async def _do_resolver():
             try:
                 guild = interaction.guild
                 canal = interaction.channel
                 miembro = interaction.user
-                categoria_cerrados = discord.utils.get(guild.categories, name=CATEGORIA_CERRADOS)
+                categoria_cerrados = discord.utils.get(
+                    guild.categories, name=CATEGORIA_CERRADOS
+                )
                 if not categoria_cerrados:
                     try:
-                        categoria_cerrados = await guild.create_category(CATEGORIA_CERRADOS)
+                        categoria_cerrados = await guild.create_category(
+                            CATEGORIA_CERRADOS
+                        )
                     except Exception:
                         categoria_cerrados = None
-                close_def = str(self.cierre_total.value or "").strip().lower() in {"si", "sí", "yes", "true", "1"}
+                close_def = str(self.cierre_total.value or "").strip().lower() in {
+                    "si",
+                    "sí",
+                    "yes",
+                    "true",
+                    "1",
+                }
                 base_name = canal.name
-                nuevo_nombre = f"resuelto-{base_name}" if not close_def else f"cerrado-{base_name}"
+                nuevo_nombre = (
+                    f"resuelto-{base_name}" if not close_def else f"cerrado-{base_name}"
+                )
                 try:
                     if len(nuevo_nombre) > 90:
                         nuevo_nombre = nuevo_nombre[:90]
                     if categoria_cerrados:
-                        await canal.edit(category=categoria_cerrados, name=nuevo_nombre)
+                        await _edit_channel(canal, category=categoria_cerrados, name=nuevo_nombre)
                     else:
-                        await canal.edit(name=nuevo_nombre)
+                        await _rename_channel(canal, nuevo_nombre)
                 except Exception:
                     pass
                 if close_def:
@@ -792,20 +1119,26 @@ class ResolveOraculoModal(discord.ui.Modal, title="Resolver Oráculo"):
                         for overwrite_target in list(canal.overwrites):
                             if isinstance(overwrite_target, discord.Member):
                                 try:
-                                    await canal.set_permissions(overwrite_target, overwrite=None)
+                                    await _set_permissions(
+                                        canal, overwrite_target, overwrite=None
+                                    )
                                 except Exception:
                                     pass
                         try:
                             dr = canal.overwrites_for(guild.default_role)
                             dr.view_channel = False
                             dr.send_messages = False
-                            await canal.set_permissions(guild.default_role, overwrite=dr)
+                            await _set_permissions(
+                                canal, guild.default_role, overwrite=dr
+                            )
                         except Exception:
                             pass
                         rol_staff = discord.utils.get(guild.roles, name=STAFF_ROLE_NAME)
                         if rol_staff:
                             try:
-                                await canal.set_permissions(rol_staff, view_channel=True, send_messages=True)
+                                await _set_permissions(
+                                    canal, rol_staff, view_channel=True, send_messages=True
+                                )
                             except Exception:
                                 pass
                     except Exception:
@@ -815,20 +1148,40 @@ class ResolveOraculoModal(discord.ui.Modal, title="Resolver Oráculo"):
                         for overwrite_target in list(canal.overwrites):
                             if isinstance(overwrite_target, discord.Member):
                                 try:
-                                    await canal.set_permissions(overwrite_target, send_messages=False, view_channel=True)
+                                    await _set_permissions(
+                                        canal,
+                                        overwrite_target,
+                                        send_messages=False,
+                                        view_channel=True,
+                                    )
                                 except Exception:
                                     pass
                     except Exception:
                         pass
                 embed = discord.Embed(
-                    title="✅ Oráculo Resuelto" if not close_def else "🔒 Oráculo Resuelto y Cerrado",
+                    title=(
+                        "✅ Oráculo Resuelto"
+                        if not close_def
+                        else "🔒 Oráculo Resuelto y Cerrado"
+                    ),
                     description=f"📝 Solución: {self.resumen.value.strip()}",
-                    color=discord.Color.green()
+                    color=discord.Color.green(),
                 )
                 try:
                     await canal.send(embed=embed)
                 except Exception:
                     pass
+                try:
+                    interaction.client.dispatch("oraculo_resolved", guild, canal)
+                    if close_def:
+                        interaction.client.dispatch("oraculo_closed", guild, canal)
+                except Exception:
+                    pass
+                if close_def:
+                    try:
+                        await _topic_set(canal, closed_at=str(int(__import__("time").time())))
+                    except Exception:
+                        pass
                 try:
                     pins = await canal.pins()
                     for msg in pins:
@@ -845,36 +1198,52 @@ class ResolveOraculoModal(discord.ui.Modal, title="Resolver Oráculo"):
                 try:
                     lines = []
                     async for msg in canal.history(limit=200, oldest_first=True):
-                        ts = msg.created_at.replace(tzinfo=None).strftime("%Y-%m-%d %H:%M")
+                        ts = msg.created_at.replace(tzinfo=None).strftime(
+                            "%Y-%m-%d %H:%M"
+                        )
                         content = (msg.content or "").replace("\n", " ")
                         lines.append(f"[{ts}] {msg.author}: {content}")
                     if lines:
                         buf = io.BytesIO("\n".join(lines).encode("utf-8"))
-                        await canal.send(file=discord.File(buf, "oraculo-transcript.txt"))
+                        await canal.send(
+                            file=discord.File(buf, "oraculo-transcript.txt")
+                        )
                 except Exception:
                     pass
-                guardar_log({
-                    "canal": canal.name,
-                    "resuelto_por": f"{miembro} ({miembro.id})",
-                    "fecha_resuelto": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
-                    "resumen": self.resumen.value.strip()
-                })
+                guardar_log(
+                    {
+                        "canal": canal.name,
+                        "resuelto_por": f"{miembro} ({miembro.id})",
+                        "fecha_resuelto": datetime.utcnow().strftime(
+                            "%Y-%m-%d %H:%M:%S UTC"
+                        ),
+                        "resumen": self.resumen.value.strip(),
+                    }
+                )
                 try:
-                    await interaction.followup.send("✅ Oráculo marcado como resuelto.", ephemeral=True)
+                    await interaction.followup.send(
+                        "✅ Oráculo marcado como resuelto.", ephemeral=True
+                    )
                 except Exception:
                     pass
             except Exception:
                 try:
-                    await interaction.followup.send("⚠️ No se pudo resolver el Oráculo.", ephemeral=True)
+                    await interaction.followup.send(
+                        "⚠️ No se pudo resolver el Oráculo.", ephemeral=True
+                    )
                 except Exception:
                     pass
+
         try:
             await _do_resolver()
         except Exception:
             pass
 
+
 class AddParticipantModal(discord.ui.Modal, title="Añadir participante"):
-    usuario = discord.ui.TextInput(label="Usuario (mención o ID)", required=True, max_length=64)
+    usuario = discord.ui.TextInput(
+        label="Usuario (mención o ID)", required=True, max_length=64
+    )
 
     async def on_submit(self, interaction: discord.Interaction):
         guild = interaction.guild
@@ -884,6 +1253,7 @@ class AddParticipantModal(discord.ui.Modal, title="Añadir participante"):
         try:
             if val.startswith("<@") and val.endswith(">"):
                 import re
+
                 m = re.search(r"\d+", val)
                 if m:
                     uid = int(m.group(0))
@@ -893,22 +1263,46 @@ class AddParticipantModal(discord.ui.Modal, title="Añadir participante"):
             uid = None
         miembro_obj = guild.get_member(uid) if uid else None
         if not miembro_obj:
-            await interaction.response.send_message("⚠️ Usuario inválido. Usa mención o ID.", ephemeral=True)
+            await interaction.response.send_message(
+                "⚠️ Usuario inválido. Usa mención o ID.", ephemeral=True
+            )
             return
-        miembros_actuales = [t for t in canal.overwrites if isinstance(t, discord.Member)]
+        miembros_actuales = [
+            t for t in canal.overwrites if isinstance(t, discord.Member)
+        ]
         if len(miembros_actuales) >= MAX_PARTICIPANTS:
-            await interaction.response.send_message(f"⛔ Límite de participantes alcanzado ({MAX_PARTICIPANTS}).", ephemeral=True)
+            await interaction.response.send_message(
+                f"⛔ Límite de participantes alcanzado ({MAX_PARTICIPANTS}).",
+                ephemeral=True,
+            )
             return
-        await canal.set_permissions(miembro_obj, view_channel=True, send_messages=True, attach_files=True)
+        await _set_permissions(
+            canal, miembro_obj, view_channel=True, send_messages=True, attach_files=True
+        )
         await canal.send(f"➕ {miembro_obj.mention} añadido al Oráculo.")
-        await interaction.response.send_message("✅ Participante añadido.", ephemeral=True)
+        await interaction.response.send_message(
+            "✅ Participante añadido.", ephemeral=True
+        )
+
 
 class AperturaOraculoModal(discord.ui.Modal, title="Apertura del Oráculo"):
     titulo = discord.ui.TextInput(label="Título", required=False, max_length=100)
-    detalle = discord.ui.TextInput(label="Detalle", style=discord.TextStyle.paragraph, required=False, max_length=1000)
-    urgente = discord.ui.TextInput(label="Urgente (si/no)", required=False, max_length=3)
+    detalle = discord.ui.TextInput(
+        label="Detalle",
+        style=discord.TextStyle.paragraph,
+        required=False,
+        max_length=1000,
+    )
+    urgente = discord.ui.TextInput(
+        label="Urgente (si/no)", required=False, max_length=3
+    )
 
-    def __init__(self, tipo: str, participante: discord.User | None, adjuntos: list[discord.Attachment | None]):
+    def __init__(
+        self,
+        tipo: str,
+        participante: discord.User | None,
+        adjuntos: list[discord.Attachment | None],
+    ):
         super().__init__()
         self.tipo = tipo
         self.participante = participante
@@ -918,28 +1312,46 @@ class AperturaOraculoModal(discord.ui.Modal, title="Apertura del Oráculo"):
         canal = await crear_oraculo(interaction, self.tipo)
         if not canal:
             return
+        try:
+            interaction.client.dispatch("oraculo_opened", interaction.guild, canal)
+        except Exception:
+            pass
         titulo = str(self.titulo.value or "").strip()
         detalle = str(self.detalle.value or "").strip()
         urg = str(self.urgente.value or "").strip().lower()
         if urg in {"si", "sí", "yes", "true"}:
             try:
                 guild = interaction.guild
-                rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(guild.roles, name=STAFF_ROLE_NAME)
-                if interaction.user.guild_permissions.administrator or (rol_staff and rol_staff in interaction.user.roles):
+                rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(
+                    guild.roles, name=STAFF_ROLE_NAME
+                )
+                if interaction.user.guild_permissions.administrator or (
+                    rol_staff and rol_staff in interaction.user.roles
+                ):
                     name = canal.name
                     if not name.startswith("urgente-"):
-                        await canal.edit(name=f"urgente-{name}")
+                        await _rename_channel(canal, f"urgente-{name}")
             except Exception:
                 pass
         if self.participante:
             try:
-                await canal.set_permissions(self.participante, view_channel=True, send_messages=True, attach_files=True)
+                await _set_permissions(
+                    canal,
+                    self.participante,
+                    view_channel=True,
+                    send_messages=True,
+                    attach_files=True,
+                )
                 await canal.send(f"➕ {self.participante.mention} añadido al Oráculo.")
             except Exception:
                 pass
         try:
             if titulo or detalle:
-                emb = discord.Embed(title=titulo or "📜 Detalles", description=detalle or "", color=discord.Color.blurple())
+                emb = discord.Embed(
+                    title=titulo or "📜 Detalles",
+                    description=detalle or "",
+                    color=discord.Color.blurple(),
+                )
                 await canal.send(embed=emb)
         except Exception:
             pass
@@ -950,7 +1362,9 @@ class AperturaOraculoModal(discord.ui.Modal, title="Apertura del Oráculo"):
             guild = interaction.guild
             alert = _find_alert_channel(guild)
             if alert:
-                rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(guild.roles, name=STAFF_ROLE_NAME)
+                rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(
+                    guild.roles, name=STAFF_ROLE_NAME
+                )
                 tipo_norm = normalizar_tipo(self.tipo)
                 urg = False
                 try:
@@ -962,14 +1376,16 @@ class AperturaOraculoModal(discord.ui.Modal, title="Apertura del Oráculo"):
                 e = discord.Embed(
                     title=f"🛡️ Nuevo Oráculo — {tipo_norm.capitalize()}",
                     description=f"Canal: {canal.mention}",
-                    color=alert_color
+                    color=alert_color,
                 )
                 e.add_field(name="Autor", value=interaction.user.mention, inline=True)
                 if mt:
                     e.add_field(name="Motivo", value=mt[:1024], inline=False)
                 e.add_field(name="Guía", value=guia_por_tipo(tipo_norm), inline=False)
                 try:
-                    e.set_image(url="https://cdn.discordapp.com/attachments/1425781431682076682/1440115588746706984/Imagen_para_el_bot_d.png")
+                    e.set_image(
+                        url="https://cdn.discordapp.com/attachments/1425781431682076682/1440115588746706984/Imagen_para_el_bot_d.png"
+                    )
                 except Exception:
                     pass
                 files_alert = []
@@ -978,17 +1394,38 @@ class AperturaOraculoModal(discord.ui.Modal, title="Apertura del Oráculo"):
                         if a:
                             files_alert.append(await a.to_file())
                     if files_alert:
-                        names = ", ".join([getattr(a, "filename", "archivo") for a in self.adjuntos if a])
+                        names = ", ".join(
+                            [
+                                getattr(a, "filename", "archivo")
+                                for a in self.adjuntos
+                                if a
+                            ]
+                        )
                         e.add_field(name="Adjuntos", value=names, inline=False)
                 except Exception:
                     files_alert = []
-                content = rol_staff.mention if rol_staff else None
+                uid = 0
+                try:
+                    uid = int(os.getenv("ORACULO_ALERT_USER_ID", "0") or "0")
+                except Exception:
+                    uid = 0
+                content = None
+                if uid > 0:
+                    content = f"<@{uid}>"
+                elif rol_staff:
+                    content = rol_staff.mention
                 if files_alert:
                     msg = await alert.send(content=content, embed=e, files=files_alert)
                 else:
                     msg = await alert.send(content=content, embed=e)
                 try:
-                    thr = await msg.create_thread(name=f"Seguimiento • {canal.name}", auto_archive_duration=1440)
+                    await interaction.client.log(embed=e, guild=interaction.guild)
+                except Exception:
+                    pass
+                try:
+                    thr = await msg.create_thread(
+                        name=f"Seguimiento • {canal.name}", auto_archive_duration=1440
+                    )
                     await _topic_set(canal, alert_thread=str(thr.id))
                     await _update_pinned_embed_followup(canal)
                 except Exception:
@@ -1016,47 +1453,144 @@ class AperturaOraculoModal(discord.ui.Modal, title="Apertura del Oráculo"):
                 max_per = 5
                 total = len(files)
                 for i in range(0, total, max_per):
-                    chunk_files = files[i:i+max_per]
-                    chunk_names = names[i:i+max_per]
-                    title = "Nuevos adjuntos" if total <= max_per else f"Nuevos adjuntos ({i//max_per+1})"
-                    e2 = discord.Embed(title=title, description=f"Autor: {interaction.user.mention}", color=discord.Color.blurple())
-                    e2.add_field(name="Lista", value=", ".join(chunk_names)[:1024], inline=False)
-                    e2.add_field(name="Resumen", value=f"{len(chunk_files)} de {total} archivos", inline=True)
+                    chunk_files = files[i : i + max_per]
+                    chunk_names = names[i : i + max_per]
+                    title = (
+                        "Nuevos adjuntos"
+                        if total <= max_per
+                        else f"Nuevos adjuntos ({i//max_per+1})"
+                    )
+                    e2 = discord.Embed(
+                        title=title,
+                        description=f"Autor: {interaction.user.mention}",
+                        color=discord.Color.blurple(),
+                    )
+                    e2.add_field(
+                        name="Lista", value=", ".join(chunk_names)[:1024], inline=False
+                    )
+                    e2.add_field(
+                        name="Resumen",
+                        value=f"{len(chunk_files)} de {total} archivos",
+                        inline=True,
+                    )
                     await _alert_thread_post(guild, canal, embed=e2, files=chunk_files)
         except Exception:
             pass
+
 
 class QuickOraculoModal(discord.ui.Modal):
     def __init__(self, tipo: str):
         super().__init__(title=f"Oráculo rápido ({tipo.capitalize()})")
         self.tipo = tipo
         if tipo == "soporte":
-            self.add_item(discord.ui.TextInput(label="Versión", required=False, max_length=50))
-            self.add_item(discord.ui.TextInput(label="Pasos", style=discord.TextStyle.paragraph, required=False, max_length=500))
-            self.add_item(discord.ui.TextInput(label="Esperado", required=False, max_length=200))
-            self.add_item(discord.ui.TextInput(label="Obtenido", required=False, max_length=200))
+            self.add_item(
+                discord.ui.TextInput(label="Versión", required=False, max_length=50)
+            )
+            self.add_item(
+                discord.ui.TextInput(
+                    label="Pasos",
+                    style=discord.TextStyle.paragraph,
+                    required=False,
+                    max_length=500,
+                )
+            )
+            self.add_item(
+                discord.ui.TextInput(label="Esperado", required=False, max_length=200)
+            )
+            self.add_item(
+                discord.ui.TextInput(label="Obtenido", required=False, max_length=200)
+            )
         elif tipo == "creativo":
-            self.add_item(discord.ui.TextInput(label="Idea", required=False, max_length=200))
-            self.add_item(discord.ui.TextInput(label="Objetivo", required=False, max_length=200))
-            self.add_item(discord.ui.TextInput(label="Recursos", style=discord.TextStyle.paragraph, required=False, max_length=500))
+            self.add_item(
+                discord.ui.TextInput(label="Idea", required=False, max_length=200)
+            )
+            self.add_item(
+                discord.ui.TextInput(label="Objetivo", required=False, max_length=200)
+            )
+            self.add_item(
+                discord.ui.TextInput(
+                    label="Recursos",
+                    style=discord.TextStyle.paragraph,
+                    required=False,
+                    max_length=500,
+                )
+            )
         elif tipo == "administrativo":
-            self.add_item(discord.ui.TextInput(label="Trámite", required=False, max_length=100))
-            self.add_item(discord.ui.TextInput(label="ID referencia", required=False, max_length=100))
-            self.add_item(discord.ui.TextInput(label="Detalles", style=discord.TextStyle.paragraph, required=False, max_length=500))
+            self.add_item(
+                discord.ui.TextInput(label="Trámite", required=False, max_length=100)
+            )
+            self.add_item(
+                discord.ui.TextInput(
+                    label="ID referencia", required=False, max_length=100
+                )
+            )
+            self.add_item(
+                discord.ui.TextInput(
+                    label="Detalles",
+                    style=discord.TextStyle.paragraph,
+                    required=False,
+                    max_length=500,
+                )
+            )
         elif tipo == "denuncia":
-            self.add_item(discord.ui.TextInput(label="Implicados", required=False, max_length=200))
-            self.add_item(discord.ui.TextInput(label="Evidencia (links)", style=discord.TextStyle.paragraph, required=False, max_length=500))
-            self.add_item(discord.ui.TextInput(label="Detalle", style=discord.TextStyle.paragraph, required=False, max_length=500))
+            self.add_item(
+                discord.ui.TextInput(label="Implicados", required=False, max_length=200)
+            )
+            self.add_item(
+                discord.ui.TextInput(
+                    label="Evidencia (links)",
+                    style=discord.TextStyle.paragraph,
+                    required=False,
+                    max_length=500,
+                )
+            )
+            self.add_item(
+                discord.ui.TextInput(
+                    label="Detalle",
+                    style=discord.TextStyle.paragraph,
+                    required=False,
+                    max_length=500,
+                )
+            )
         elif tipo == "colaboración":
-            self.add_item(discord.ui.TextInput(label="Propuesta", required=False, max_length=200))
-            self.add_item(discord.ui.TextInput(label="Alcance", required=False, max_length=200))
-            self.add_item(discord.ui.TextInput(label="Notas", style=discord.TextStyle.paragraph, required=False, max_length=500))
+            self.add_item(
+                discord.ui.TextInput(label="Propuesta", required=False, max_length=200)
+            )
+            self.add_item(
+                discord.ui.TextInput(label="Alcance", required=False, max_length=200)
+            )
+            self.add_item(
+                discord.ui.TextInput(
+                    label="Notas",
+                    style=discord.TextStyle.paragraph,
+                    required=False,
+                    max_length=500,
+                )
+            )
         elif tipo == "místico":
-            self.add_item(discord.ui.TextInput(label="Símbolos", required=False, max_length=200))
-            self.add_item(discord.ui.TextInput(label="Consulta", style=discord.TextStyle.paragraph, required=False, max_length=500))
+            self.add_item(
+                discord.ui.TextInput(label="Símbolos", required=False, max_length=200)
+            )
+            self.add_item(
+                discord.ui.TextInput(
+                    label="Consulta",
+                    style=discord.TextStyle.paragraph,
+                    required=False,
+                    max_length=500,
+                )
+            )
         else:
-            self.add_item(discord.ui.TextInput(label="Pregunta", required=False, max_length=200))
-            self.add_item(discord.ui.TextInput(label="Contexto", style=discord.TextStyle.paragraph, required=False, max_length=500))
+            self.add_item(
+                discord.ui.TextInput(label="Pregunta", required=False, max_length=200)
+            )
+            self.add_item(
+                discord.ui.TextInput(
+                    label="Contexto",
+                    style=discord.TextStyle.paragraph,
+                    required=False,
+                    max_length=500,
+                )
+            )
 
     async def on_submit(self, interaction: discord.Interaction):
         try:
@@ -1079,7 +1613,9 @@ class QuickOraculoModal(discord.ui.Modal):
         try:
             campos = []
             for comp in self.children:
-                if isinstance(comp, discord.ui.TextInput) and (comp.label and comp.value):
+                if isinstance(comp, discord.ui.TextInput) and (
+                    comp.label and comp.value
+                ):
                     campos.append((comp.label, comp.value))
             datos = {k: v for k, v in campos}
             urg = False
@@ -1108,7 +1644,10 @@ class QuickOraculoModal(discord.ui.Modal):
                         faltan.append("Pregunta")
             if faltan:
                 try:
-                    await interaction.followup.send("⚠️ Faltan campos obligatorios: " + ", ".join(faltan), ephemeral=True)
+                    await interaction.followup.send(
+                        "⚠️ Faltan campos obligatorios: " + ", ".join(faltan),
+                        ephemeral=True,
+                    )
                 except Exception:
                     pass
                 return
@@ -1154,13 +1693,19 @@ class QuickOraculoModal(discord.ui.Modal):
             # Aviso para Staff si se acaba de crear el Oráculo
             try:
                 if creado_nuevo:
-                    mt = "\n".join([f"{lbl}: {val}" for lbl, val in campos]) if campos else ""
+                    mt = (
+                        "\n".join([f"{lbl}: {val}" for lbl, val in campos])
+                        if campos
+                        else ""
+                    )
                     if mt:
                         await _topic_set(canal, motivo=mt[:1024])
                     guild = interaction.guild
                     alert = _find_alert_channel(guild)
                     if alert:
-                        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(guild.roles, name=STAFF_ROLE_NAME)
+                        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(
+                            guild.roles, name=STAFF_ROLE_NAME
+                        )
                         tipo_norm = normalizar_tipo(self.tipo)
                         urg2 = False
                         try:
@@ -1172,20 +1717,44 @@ class QuickOraculoModal(discord.ui.Modal):
                         ee = discord.Embed(
                             title=f"🛡️ Nuevo Oráculo — {tipo_norm.capitalize()}",
                             description=f"Canal: {canal.mention}",
-                            color=alert_color2
+                            color=alert_color2,
                         )
-                        ee.add_field(name="Autor", value=interaction.user.mention, inline=True)
+                        ee.add_field(
+                            name="Autor", value=interaction.user.mention, inline=True
+                        )
                         if mt:
                             ee.add_field(name="Motivo", value=mt[:1024], inline=False)
-                        ee.add_field(name="Guía", value=guia_por_tipo(tipo_norm), inline=False)
+                        ee.add_field(
+                            name="Guía", value=guia_por_tipo(tipo_norm), inline=False
+                        )
                         try:
-                            ee.set_image(url="https://cdn.discordapp.com/attachments/1425781431682076682/1440115588746706984/Imagen_para_el_bot_d.png")
+                            ee.set_image(
+                                url="https://cdn.discordapp.com/attachments/1425781431682076682/1440115588746706984/Imagen_para_el_bot_d.png"
+                            )
                         except Exception:
                             pass
-                        content = rol_staff.mention if rol_staff else None
+                        uid = 0
+                        try:
+                            uid = int(os.getenv("ORACULO_ALERT_USER_ID", "0") or "0")
+                        except Exception:
+                            uid = 0
+                        content = None
+                        if uid > 0:
+                            content = f"<@{uid}>"
+                        elif rol_staff:
+                            content = rol_staff.mention
                         msg = await alert.send(content=content, embed=ee)
                         try:
-                            thr = await msg.create_thread(name=f"Seguimiento • {canal.name}", auto_archive_duration=1440)
+                            await interaction.client.log(
+                                embed=ee, guild=interaction.guild
+                            )
+                        except Exception:
+                            pass
+                        try:
+                            thr = await msg.create_thread(
+                                name=f"Seguimiento • {canal.name}",
+                                auto_archive_duration=1440,
+                            )
                             await _topic_set(canal, alert_thread=str(thr.id))
                             await _update_pinned_embed_followup(canal)
                         except Exception:
@@ -1193,14 +1762,19 @@ class QuickOraculoModal(discord.ui.Modal):
             except Exception:
                 pass
             try:
-                await interaction.followup.send("✅ Checklist publicado/actualizado.", ephemeral=True)
+                await interaction.followup.send(
+                    "✅ Checklist publicado/actualizado.", ephemeral=True
+                )
             except Exception:
                 pass
         except Exception:
             try:
-                await interaction.followup.send("⚠️ No se pudo publicar el checklist.", ephemeral=True)
+                await interaction.followup.send(
+                    "⚠️ No se pudo publicar el checklist.", ephemeral=True
+                )
             except Exception:
                 pass
+
 
 async def crear_oraculo(interaction: discord.Interaction, tipo: str = "general"):
     guild = interaction.guild
@@ -1212,25 +1786,37 @@ async def crear_oraculo(interaction: discord.Interaction, tipo: str = "general")
 
     nombre_base = miembro.name.lower().replace(" ", "-")
     nombre_canal = f"oraculo-{nombre_base}"
-    existentes = [c for c in categoria_abiertos.text_channels if c.name.startswith(nombre_canal)]
+    existentes = [
+        c for c in categoria_abiertos.text_channels if c.name.startswith(nombre_canal)
+    ]
     if existentes:
-        await interaction.response.send_message(f"ℹ️ Ya tienes un Oráculo abierto: {existentes[0].mention}", ephemeral=True)
+        await interaction.response.send_message(
+            f"ℹ️ Ya tienes un Oráculo abierto: {existentes[0].mention}", ephemeral=True
+        )
         return
 
     overwrites = {
         guild.default_role: discord.PermissionOverwrite(view_channel=False),
-        miembro: discord.PermissionOverwrite(view_channel=True, send_messages=True, attach_files=True),
-        guild.me: discord.PermissionOverwrite(view_channel=True, send_messages=True, manage_channels=True)
+        miembro: discord.PermissionOverwrite(
+            view_channel=True, send_messages=True, attach_files=True
+        ),
+        guild.me: discord.PermissionOverwrite(
+            view_channel=True, send_messages=True, manage_channels=True
+        ),
     }
-    rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(guild.roles, name=STAFF_ROLE_NAME)
+    rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(
+        guild.roles, name=STAFF_ROLE_NAME
+    )
     if rol_staff:
-        overwrites[rol_staff] = discord.PermissionOverwrite(view_channel=True, send_messages=True)
+        overwrites[rol_staff] = discord.PermissionOverwrite(
+            view_channel=True, send_messages=True
+        )
 
     canal = await guild.create_text_channel(
         nombre_canal,
         overwrites=overwrites,
         category=categoria_abiertos,
-        reason=f"Oráculo abierto por {miembro}"
+        reason=f"Oráculo abierto por {miembro}",
     )
     await _topic_set(canal, owner=miembro.id, tipo=normalizar_tipo(tipo))
     try:
@@ -1251,11 +1837,15 @@ async def crear_oraculo(interaction: discord.Interaction, tipo: str = "general")
             "╚══════════════════════════════╝\n\n"
             "📜 Expón tu consulta con claridad para que la sabiduría descienda."
         ),
-        color=color
+        color=color,
     )
     embed.set_footer(text="Que la sabiduría guíe tu camino ✨")
     embed.add_field(name="Tipo", value=tipo_norm.capitalize(), inline=True)
-    embed.add_field(name="Apertura", value=datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"), inline=True)
+    embed.add_field(
+        name="Apertura",
+        value=datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"),
+        inline=True,
+    )
     embed.add_field(name="Estado", value="Normal", inline=True)
     embed.add_field(name="Progreso", value="En curso", inline=True)
     if rol_staff:
@@ -1265,29 +1855,36 @@ async def crear_oraculo(interaction: discord.Interaction, tipo: str = "general")
     content = f"{miembro.mention}"
     if rol_staff:
         content += f" {rol_staff.mention}"
-    msg = await canal.send(content=content + ", tu Oráculo ha sido abierto.", embed=embed)
+    msg = await canal.send(
+        content=content + ", tu Oráculo ha sido abierto.", embed=embed
+    )
     try:
         await msg.pin()
     except Exception:
         pass
 
-    
-
     try:
         if not interaction.response.is_done():
-            await interaction.response.send_message(f"✅ Tu Oráculo ha sido abierto: {canal.mention}", ephemeral=True)
+            await interaction.response.send_message(
+                f"✅ Tu Oráculo ha sido abierto: {canal.mention}", ephemeral=True
+            )
         else:
-            await interaction.followup.send(f"✅ Tu Oráculo ha sido abierto: {canal.mention}", ephemeral=True)
+            await interaction.followup.send(
+                f"✅ Tu Oráculo ha sido abierto: {canal.mention}", ephemeral=True
+            )
     except Exception:
         pass
 
-    guardar_log({
-        "canal": canal.name,
-        "tipo": tipo_norm,
-        "abierto_por": f"{miembro} ({miembro.id})",
-        "fecha_apertura": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
-    })
+    guardar_log(
+        {
+            "canal": canal.name,
+            "tipo": tipo_norm,
+            "abierto_por": f"{miembro} ({miembro.id})",
+            "fecha_apertura": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
+        }
+    )
     return canal
+
 
 class OraculoPanel(commands.Cog):
     def __init__(self, bot):
@@ -1327,11 +1924,15 @@ class OraculoPanel(commands.Cog):
                             "Pulsa el selector para abrir un Oráculo según tu necesidad.\n"
                             "╚══════════════════════════════╝\n\n"
                             "Tipos disponibles:\n"
-                            "🌟 General\n⚡ Urgente\n🎨 Creativo\n🛠️ Soporte\n📑 Administrativo\n🚨 Denuncia\n🤝 Colaboración\n🔮 Místico"
+                            "🌟 General\n⚡ Urgente\n🎨 Creativo\n"
+                            "🛠️ Soporte\n📑 Administrativo\n🚨 Denuncia\n"
+                            "🤝 Colaboración\n🔮 Místico"
                         ),
-                        color=discord.Color.gold()
+                        color=discord.Color.gold(),
                     )
-                    embed.set_image(url="https://cdn.discordapp.com/attachments/1425781431682076682/1440115588746706984/Imagen_para_el_bot_d.png")
+                    embed.set_image(
+                        url="https://cdn.discordapp.com/attachments/1425781431682076682/1440115588746706984/Imagen_para_el_bot_d.png"
+                    )
                     embed.set_footer(text="Atenea UI — sabiduría y guía")
                     msg = await canal.send(embed=embed, view=OraculoOpenView())
                     try:
@@ -1339,12 +1940,16 @@ class OraculoPanel(commands.Cog):
                     except Exception:
                         pass
 
-    @app_commands.command(name="oraculos_abiertos", description="Lista Oráculos abiertos")
+    @app_commands.command(
+        name="oraculos_abiertos", description="Lista Oráculos abiertos"
+    )
     async def oraculos_abiertos(self, interaction: discord.Interaction):
         g = interaction.guild
         categoria_abiertos = discord.utils.get(g.categories, name=CATEGORIA_ABIERTOS)
         if not categoria_abiertos or not categoria_abiertos.text_channels:
-            await interaction.response.send_message("No hay Oráculos abiertos.", ephemeral=True)
+            await interaction.response.send_message(
+                "No hay Oráculos abiertos.", ephemeral=True
+            )
             return
         items = []
         for c in categoria_abiertos.text_channels:
@@ -1354,48 +1959,71 @@ class OraculoPanel(commands.Cog):
             items.append(f"{c.mention} — {om}")
         await interaction.response.send_message("\n".join(items), ephemeral=True)
 
-    @app_commands.command(name="oraculo_transferir", description="Transfiere el Oráculo a un Staff")
-    async def oraculo_transferir(self, interaction: discord.Interaction, staff: discord.User):
+    @app_commands.command(
+        name="oraculo_transferir", description="Transfiere el Oráculo a un Staff"
+    )
+    async def oraculo_transferir(
+        self, interaction: discord.Interaction, staff: discord.User
+    ):
         canal = interaction.channel
         guild = interaction.guild
-        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(guild.roles, name=STAFF_ROLE_NAME)
-        if not (interaction.user.guild_permissions.administrator or (rol_staff and rol_staff in interaction.user.roles)):
-            await interaction.response.send_message("⛔ Solo administradores o Staff.", ephemeral=True)
+        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(
+            guild.roles, name=STAFF_ROLE_NAME
+        )
+        if not (
+            interaction.user.guild_permissions.administrator
+            or (rol_staff and rol_staff in interaction.user.roles)
+        ):
+            await interaction.response.send_message(
+                "⛔ Solo administradores o Staff.", ephemeral=True
+            )
             return
         try:
             miembro = guild.get_member(staff.id) or await guild.fetch_member(staff.id)
         except Exception:
             miembro = None
         if not miembro:
-            await interaction.response.send_message("⚠️ Usuario inválido.", ephemeral=True)
+            await interaction.response.send_message(
+                "⚠️ Usuario inválido.", ephemeral=True
+            )
             return
         try:
-            await canal.set_permissions(miembro, view_channel=True, send_messages=True, attach_files=True)
+            await _set_permissions(
+                canal, miembro, view_channel=True, send_messages=True, attach_files=True
+            )
         except Exception:
             pass
         try:
-            raw = (miembro.display_name or miembro.name or "staff").lower().replace(" ", "-")
+            raw = (
+                (miembro.display_name or miembro.name or "staff")
+                .lower()
+                .replace(" ", "-")
+            )
             slug = "".join([c for c in raw if c.isalnum() or c == "-"])
             name = canal.name
             urgent = False
             if name.startswith("urgente-"):
-                name = name[len("urgente-"):]
+                name = name[len("urgente-") :]
                 urgent = True
             if name.startswith("atendido-"):
                 idx = name.find("-", len("atendido-"))
                 if idx != -1:
-                    name = name[idx+1:]
+                    name = name[idx + 1 :]
                 else:
-                    name = name[len("atendido-"):]
+                    name = name[len("atendido-") :]
             new_name = ("urgente-" if urgent else "") + f"atendido-{slug}-" + name
-            await canal.edit(name=new_name)
+            await _rename_channel(canal, new_name)
         except Exception:
             pass
         await _topic_set(canal, staff=str(miembro.id), assignedat=str(int(time.time())))
         await canal.send(f"🧭 {miembro.mention} ha tomado este Oráculo.")
-        await interaction.response.send_message("✅ Transferencia realizada.", ephemeral=True)
+        await interaction.response.send_message(
+            "✅ Transferencia realizada.", ephemeral=True
+        )
 
-    @app_commands.command(name="oraculo_exportar", description="Exporta transcript del Oráculo")
+    @app_commands.command(
+        name="oraculo_exportar", description="Exporta transcript del Oráculo"
+    )
     async def oraculo_exportar(self, interaction: discord.Interaction):
         canal = interaction.channel
         lines = []
@@ -1407,45 +2035,96 @@ class OraculoPanel(commands.Cog):
         except Exception:
             pass
         if not lines:
-            await interaction.response.send_message("⚠️ No hay mensajes.", ephemeral=True)
+            await interaction.response.send_message(
+                "⚠️ No hay mensajes.", ephemeral=True
+            )
             return
         buf = io.BytesIO("\n".join(lines).encode("utf-8"))
         await canal.send(file=discord.File(buf, "oraculo-transcript.txt"))
-        await interaction.response.send_message("✅ Transcript exportado al canal.", ephemeral=True)
+        await interaction.response.send_message(
+            "✅ Transcript exportado al canal.", ephemeral=True
+        )
 
-    @app_commands.command(name="oraculo_slowmode", description="Ajusta slowmode del Oráculo")
+    @app_commands.command(
+        name="oraculo_slowmode", description="Ajusta slowmode del Oráculo"
+    )
     async def oraculo_slowmode(self, interaction: discord.Interaction, segundos: int):
         canal = interaction.channel
         guild = interaction.guild
-        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(guild.roles, name=STAFF_ROLE_NAME)
-        if not (interaction.user.guild_permissions.administrator or (rol_staff and rol_staff in interaction.user.roles)):
-            await interaction.response.send_message("⛔ Solo administradores o Staff.", ephemeral=True)
+        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(
+            guild.roles, name=STAFF_ROLE_NAME
+        )
+        if not (
+            interaction.user.guild_permissions.administrator
+            or (rol_staff and rol_staff in interaction.user.roles)
+        ):
+            await interaction.response.send_message(
+                "⛔ Solo administradores o Staff.", ephemeral=True
+            )
             return
         if segundos < 0 or segundos > 21600:
-            await interaction.response.send_message("⚠️ Segundos inválidos (0-21600).", ephemeral=True)
+            await interaction.response.send_message(
+                "⚠️ Segundos inválidos (0-21600).", ephemeral=True
+            )
             return
         try:
             await canal.edit(slowmode_delay=segundos)
-            await interaction.response.send_message(f"⏱️ Slowmode: {segundos}s.", ephemeral=True)
+            await interaction.response.send_message(
+                f"⏱️ Slowmode: {segundos}s.", ephemeral=True
+            )
         except Exception:
-            await interaction.response.send_message("⚠️ No se pudo aplicar slowmode.", ephemeral=True)
+            await interaction.response.send_message(
+                "⚠️ No se pudo aplicar slowmode.", ephemeral=True
+            )
 
     @app_commands.command(name="oraculo_help", description="Guía de uso del Oráculo")
     async def oraculo_help(self, interaction: discord.Interaction):
-        e = discord.Embed(title="🏛️ Guía del Oráculo", description="Consejos para abrir y gestionar tu Oráculo", color=discord.Color.gold())
-        e.add_field(name="Apertura", value="Usa /oraculo_abrir y completa el formulario. Puedes adjuntar archivos.", inline=False)
-        e.add_field(name="Participantes", value="Añade colaboradores desde el botón o el formulario.", inline=False)
-        e.add_field(name="Urgente", value="Admins o Staff pueden marcar urgente.", inline=False)
-        e.add_field(name="Asignación", value="Staff puede asignarse o transferir desde comandos.", inline=False)
-        e.add_field(name="Transcript", value="Exporta el historial con /oraculo_exportar.", inline=False)
+        e = discord.Embed(
+            title="🏛️ Guía del Oráculo",
+            description="Consejos para abrir y gestionar tu Oráculo",
+            color=discord.Color.gold(),
+        )
+        e.add_field(
+            name="Apertura",
+            value="Usa /oraculo_abrir y completa el formulario. Puedes adjuntar archivos.",
+            inline=False,
+        )
+        e.add_field(
+            name="Participantes",
+            value="Añade colaboradores desde el botón o el formulario.",
+            inline=False,
+        )
+        e.add_field(
+            name="Urgente", value="Admins o Staff pueden marcar urgente.", inline=False
+        )
+        e.add_field(
+            name="Asignación",
+            value="Staff puede asignarse o transferir desde comandos.",
+            inline=False,
+        )
+        e.add_field(
+            name="Transcript",
+            value="Exporta el historial con /oraculo_exportar.",
+            inline=False,
+        )
         await interaction.response.send_message(embed=e, ephemeral=True)
 
-    @app_commands.command(name="oraculo_controles", description="Muestra controles de Oráculo (solo Staff)")
+    @app_commands.command(
+        name="oraculo_controles",
+        description="Muestra controles de Oráculo (solo Staff)",
+    )
     async def oraculo_controles(self, interaction: discord.Interaction):
         g = interaction.guild
-        rol_staff = g.get_role(STAFF_ROLE_ID) or discord.utils.get(g.roles, name=STAFF_ROLE_NAME)
-        if not (interaction.user.guild_permissions.administrator or (rol_staff and rol_staff in interaction.user.roles)):
-            await interaction.response.send_message("⛔ Solo Staff o administradores.", ephemeral=True)
+        rol_staff = g.get_role(STAFF_ROLE_ID) or discord.utils.get(
+            g.roles, name=STAFF_ROLE_NAME
+        )
+        if not (
+            interaction.user.guild_permissions.administrator
+            or (rol_staff and rol_staff in interaction.user.roles)
+        ):
+            await interaction.response.send_message(
+                "⛔ Solo Staff o administradores.", ephemeral=True
+            )
             return
         canal = interaction.channel
         try:
@@ -1469,9 +2148,11 @@ class OraculoPanel(commands.Cog):
                 "╚══════════════════════════════╝\n\n"
                 "Usa este panel para gestionar asignación, urgencia y checklist."
             ),
-            color=color_por_tipo(tipo)
+            color=color_por_tipo(tipo),
         )
-        e.add_field(name="Tipo", value=("URGENTE" if urg else tipo.capitalize()), inline=True)
+        e.add_field(
+            name="Tipo", value=("URGENTE" if urg else tipo.capitalize()), inline=True
+        )
         if owner:
             e.add_field(name="Autor", value=f"<@{owner}>", inline=True)
         if staff_id:
@@ -1480,11 +2161,15 @@ class OraculoPanel(commands.Cog):
             e.add_field(name="Motivo", value=motivo, inline=False)
         e.add_field(name="Guía", value=guia_por_tipo(tipo), inline=False)
         try:
-            e.set_thumbnail(url="https://cdn.discordapp.com/attachments/1425781431682076682/1440115588746706984/Imagen_para_el_bot_d.png")
+            e.set_thumbnail(
+                url="https://cdn.discordapp.com/attachments/1425781431682076682/1440115588746706984/Imagen_para_el_bot_d.png"
+            )
         except Exception:
             pass
         e.set_footer(text="Atenea UI — sabiduría y guía")
-        await interaction.response.send_message(embed=e, view=OraculoChannelView(canal), ephemeral=True)
+        await interaction.response.send_message(
+            embed=e, view=OraculoChannelView(canal), ephemeral=True
+        )
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -1513,23 +2198,52 @@ class OraculoPanel(commands.Cog):
                 max_per = 5
                 total = len(files)
                 for i in range(0, total, max_per):
-                    chunk_files = files[i:i+max_per]
-                    chunk_names = names[i:i+max_per]
-                    title = "Nuevos adjuntos" if total <= max_per else f"Nuevos adjuntos ({i//max_per+1})"
-                    e = discord.Embed(title=title, description=f"Autor: {message.author.mention}", color=discord.Color.blurple())
-                    e.add_field(name="Lista", value=", ".join(chunk_names)[:1024], inline=False)
-                    e.add_field(name="Resumen", value=f"{len(chunk_files)} de {total} archivos", inline=True)
+                    chunk_files = files[i : i + max_per]
+                    chunk_names = names[i : i + max_per]
+                    title = (
+                        "Nuevos adjuntos"
+                        if total <= max_per
+                        else f"Nuevos adjuntos ({i//max_per+1})"
+                    )
+                    e = discord.Embed(
+                        title=title,
+                        description=f"Autor: {message.author.mention}",
+                        color=discord.Color.blurple(),
+                    )
+                    e.add_field(
+                        name="Lista", value=", ".join(chunk_names)[:1024], inline=False
+                    )
+                    e.add_field(
+                        name="Resumen",
+                        value=f"{len(chunk_files)} de {total} archivos",
+                        inline=True,
+                    )
                     try:
-                        e.add_field(name="Mensaje", value=f"[Ir al mensaje]({message.jump_url})", inline=False)
+                        e.add_field(
+                            name="Mensaje",
+                            value=f"[Ir al mensaje]({message.jump_url})",
+                            inline=False,
+                        )
                     except Exception:
                         pass
-                    await _alert_thread_post(message.guild, canal, embed=e, files=chunk_files)
+                    await _alert_thread_post(
+                        message.guild, canal, embed=e, files=chunk_files
+                    )
         except Exception:
             pass
 
-    @app_commands.command(name="oraculo_abrir", description="Abre un Oráculo con opciones")
+    @app_commands.command(
+        name="oraculo_abrir", description="Abre un Oráculo con opciones"
+    )
     @app_commands.describe(tipo="Tipo de Oráculo")
-    async def oraculo_abrir(self, interaction: discord.Interaction, tipo: str, participante: discord.User | None = None, adjunto1: discord.Attachment | None = None, adjunto2: discord.Attachment | None = None):
+    async def oraculo_abrir(
+        self,
+        interaction: discord.Interaction,
+        tipo: str,
+        participante: discord.User | None = None,
+        adjunto1: discord.Attachment | None = None,
+        adjunto2: discord.Attachment | None = None,
+    ):
         t = normalizar_tipo(tipo)
         modal = AperturaOraculoModal(t, participante, [adjunto1, adjunto2])
         await interaction.response.send_modal(modal)
@@ -1545,18 +2259,26 @@ class OraculoPanel(commands.Cog):
                 break
         return out
 
-    @app_commands.command(name="oraculo_panel_refrescar", description="Republica el panel del Oráculo")
+    @app_commands.command(
+        name="oraculo_panel_refrescar", description="Republica el panel del Oráculo"
+    )
     async def oraculo_panel_refrescar(self, interaction: discord.Interaction):
         if not interaction.user.guild_permissions.administrator:
-            await interaction.response.send_message("⛔ Solo administradores.", ephemeral=True)
+            await interaction.response.send_message(
+                "⛔ Solo administradores.", ephemeral=True
+            )
             return
         g = interaction.guild
         canal = discord.utils.get(g.text_channels, name=PANEL_CHANNEL_NAME)
         if not canal:
             try:
-                canal = await g.create_text_channel(PANEL_CHANNEL_NAME, reason="Panel del Oráculo")
+                canal = await g.create_text_channel(
+                    PANEL_CHANNEL_NAME, reason="Panel del Oráculo"
+                )
             except Exception:
-                await interaction.response.send_message("⚠️ No se pudo crear el canal del panel.", ephemeral=True)
+                await interaction.response.send_message(
+                    "⚠️ No se pudo crear el canal del panel.", ephemeral=True
+                )
                 return
         try:
             pins = await canal.pins()
@@ -1586,11 +2308,15 @@ class OraculoPanel(commands.Cog):
                 "Pulsa el selector para abrir un Oráculo según tu necesidad.\n"
                 "╚══════════════════════════════╝\n\n"
                 "Tipos disponibles:\n"
-                "🌟 General\n⚡ Urgente\n🎨 Creativo\n🛠️ Soporte\n📑 Administrativo\n🚨 Denuncia\n🤝 Colaboración\n🔮 Místico"
+                "🌟 General\n⚡ Urgente\n🎨 Creativo\n"
+                "🛠️ Soporte\n📑 Administrativo\n🚨 Denuncia\n"
+                "🤝 Colaboración\n🔮 Místico"
             ),
-            color=discord.Color.gold()
+            color=discord.Color.gold(),
         )
-        embed.set_image(url="https://cdn.discordapp.com/attachments/1425781431682076682/1440115588746706984/Imagen_para_el_bot_d.png")
+        embed.set_image(
+            url="https://cdn.discordapp.com/attachments/1425781431682076682/1440115588746706984/Imagen_para_el_bot_d.png"
+        )
         embed.set_footer(text="Atenea UI — sabiduría y guía")
         try:
             msg = await canal.send(embed=embed, view=OraculoOpenView())
@@ -1598,9 +2324,14 @@ class OraculoPanel(commands.Cog):
                 await msg.pin()
             except Exception:
                 pass
-            await interaction.response.send_message("✅ Panel del Oráculo actualizado.", ephemeral=True)
+            await interaction.response.send_message(
+                "✅ Panel del Oráculo actualizado.", ephemeral=True
+            )
         except Exception:
-            await interaction.response.send_message("⚠️ No se pudo publicar el panel.", ephemeral=True)
+            await interaction.response.send_message(
+                "⚠️ No se pudo publicar el panel.", ephemeral=True
+            )
+
 
 class AutoArchivador(commands.Cog):
     def __init__(self, bot):
@@ -1610,8 +2341,12 @@ class AutoArchivador(commands.Cog):
     @tasks.loop(hours=24)
     async def archivar_oraculos(self):
         for guild in self.bot.guilds:
-            categoria_abiertos = discord.utils.get(guild.categories, name=CATEGORIA_ABIERTOS)
-            categoria_cerrados = discord.utils.get(guild.categories, name=CATEGORIA_CERRADOS)
+            categoria_abiertos = discord.utils.get(
+                guild.categories, name=CATEGORIA_ABIERTOS
+            )
+            categoria_cerrados = discord.utils.get(
+                guild.categories, name=CATEGORIA_CERRADOS
+            )
             if not (categoria_abiertos and categoria_cerrados):
                 continue
 
@@ -1623,12 +2358,17 @@ class AutoArchivador(commands.Cog):
                     continue
                 delta = datetime.utcnow() - last_msg.created_at.replace(tzinfo=None)
                 if delta.days >= 7:
-                    await canal.edit(category=categoria_cerrados, name=f"auto-{canal.name}")
-                    await canal.send("📜 Este Oráculo ha sido archivado automáticamente por inactividad.")
+                    await canal.edit(
+                        category=categoria_cerrados, name=f"auto-{canal.name}"
+                    )
+                    await canal.send(
+                        "📜 Este Oráculo ha sido archivado automáticamente por inactividad."
+                    )
 
     @archivar_oraculos.before_loop
     async def before_archivar(self):
         await self.bot.wait_until_ready()
+
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(OraculoPanel(bot))
@@ -1638,6 +2378,8 @@ async def setup(bot: commands.Bot):
         bot.add_view(OraculoChannelView())
     except Exception:
         pass
+
+
 def _find_alert_channel(guild: discord.Guild) -> discord.TextChannel | None:
     ch_id = guild.get_channel(ALERT_CHANNEL_ID)
     if isinstance(ch_id, discord.TextChannel):
@@ -1651,7 +2393,14 @@ def _find_alert_channel(guild: discord.Guild) -> discord.TextChannel | None:
             return ch
     return None
 
-async def _alert_thread_post(guild: discord.Guild, canal: discord.TextChannel, content: str | None = None, embed: discord.Embed | None = None, files: list[discord.File] | None = None):
+
+async def _alert_thread_post(
+    guild: discord.Guild,
+    canal: discord.TextChannel,
+    content: str | None = None,
+    embed: discord.Embed | None = None,
+    files: list[discord.File] | None = None,
+):
     try:
         toks = _topic_tokens(canal)
         tid = toks.get("alert_thread")
@@ -1668,7 +2417,9 @@ async def _alert_thread_post(guild: discord.Guild, canal: discord.TextChannel, c
             base = f"Seguimiento del Oráculo: {canal.mention}"
             msg = await alert.send(base)
             try:
-                thr = await msg.create_thread(name=f"Seguimiento • {canal.name}", auto_archive_duration=1440)
+                thr = await msg.create_thread(
+                    name=f"Seguimiento • {canal.name}", auto_archive_duration=1440
+                )
                 await _topic_set(canal, alert_thread=str(thr.id))
                 thread = thr
             except Exception:
@@ -1678,5 +2429,105 @@ async def _alert_thread_post(guild: discord.Guild, canal: discord.TextChannel, c
                 await thread.send(content=content, embed=embed, files=files)
             else:
                 await thread.send(content=content, embed=embed)
+    except Exception:
+        pass
+async def _edit_channel(canal: discord.TextChannel, *, name: str | None = None, topic: str | None = None, category: discord.CategoryChannel | None = None):
+    try:
+        try:
+            cooldown = max(0, int(os.getenv("ORACULO_CHANNEL_EDIT_COOLDOWN", "600")))
+        except Exception:
+            cooldown = 600
+        if not hasattr(_edit_channel, "_last"):
+            _edit_channel._last = {}
+        if not hasattr(_edit_channel, "_pending"):
+            _edit_channel._pending = {}
+        if not hasattr(_edit_channel, "_scheduled"):
+            _edit_channel._scheduled = {}
+        last = _edit_channel._last.get(canal.id, 0)
+        now = time.time()
+        upd = {}
+        if name is not None:
+            upd["name"] = name[:90]
+        if topic is not None:
+            upd["topic"] = topic
+        if category is not None:
+            upd["category"] = category
+        if now - last < cooldown:
+            pend = dict(_edit_channel._pending.get(canal.id) or {})
+            pend.update({k: v for k, v in upd.items() if v is not None})
+            _edit_channel._pending[canal.id] = pend
+            if not _edit_channel._scheduled.get(canal.id):
+                delay = max(1, int(cooldown - (now - last)))
+                _edit_channel._scheduled[canal.id] = True
+                async def _defer():
+                    await asyncio.sleep(delay)
+                    _edit_channel._scheduled[canal.id] = False
+                    data = dict(_edit_channel._pending.pop(canal.id, {}) or {})
+                    if data:
+                        try:
+                            await canal.edit(**data)
+                            _edit_channel._last[canal.id] = time.time()
+                        except Exception:
+                            pass
+                asyncio.create_task(_defer())
+            return
+        # immediate apply; merge any pending
+        pend_now = dict(_edit_channel._pending.pop(canal.id, {}) or {})
+        if pend_now:
+            upd.update(pend_now)
+        if upd:
+            try:
+                await canal.edit(**upd)
+                _edit_channel._last[canal.id] = now
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+async def _set_permissions(canal: discord.TextChannel, target, overwrite: discord.PermissionOverwrite | None = None, **kwargs):
+    try:
+        try:
+            cooldown = max(0, int(os.getenv("ORACULO_PERM_EDIT_COOLDOWN", "300")))
+        except Exception:
+            cooldown = 300
+        key = (canal.id, getattr(target, "id", 0))
+        if not hasattr(_set_permissions, "_last"):
+            _set_permissions._last = {}
+        if not hasattr(_set_permissions, "_pending"):
+            _set_permissions._pending = {}
+        if not hasattr(_set_permissions, "_scheduled"):
+            _set_permissions._scheduled = {}
+        last = _set_permissions._last.get(key, 0)
+        now = time.time()
+        desired = overwrite
+        if desired is None and kwargs:
+            try:
+                desired = discord.PermissionOverwrite(**kwargs)
+            except Exception:
+                desired = None
+        if now - last < cooldown:
+            _set_permissions._pending[key] = desired
+            if not _set_permissions._scheduled.get(key):
+                delay = max(1, int(cooldown - (now - last)))
+                _set_permissions._scheduled[key] = True
+                async def _defer():
+                    await asyncio.sleep(delay)
+                    _set_permissions._scheduled[key] = False
+                    ov = _set_permissions._pending.pop(key, None)
+                    try:
+                        await canal.set_permissions(target, overwrite=ov)
+                        _set_permissions._last[key] = time.time()
+                    except Exception:
+                        pass
+                asyncio.create_task(_defer())
+            return
+        pend = _set_permissions._pending.pop(key, None)
+        if pend is not None:
+            desired = pend
+        try:
+            await canal.set_permissions(target, overwrite=desired)
+            _set_permissions._last[key] = now
+        except Exception:
+            pass
     except Exception:
         pass
