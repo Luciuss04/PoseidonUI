@@ -77,7 +77,7 @@ set "DISCORD_TOKEN="
 for /f "usebackq tokens=1,* delims==" %%A in (".env") do (
   if /I "%%A"=="DISCORD_TOKEN" set "DISCORD_TOKEN=%%B"
 )
-python main.py
+python app.py
 if errorlevel 1 (
     echo Error al iniciar el bot. Revisa DISCORD_TOKEN en .env y los intents.
 )

@@ -1,8 +1,12 @@
 import asyncio
 import os
+import sys
 import pathlib
 import re
 import time
+
+# Asegurar que el directorio actual está en el path de Python
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import aiohttp
 import discord
@@ -205,7 +209,10 @@ async def on_ready():
     try:
         plan = ACTIVE_PLAN or "basic"
         trial_txt = " (trial)" if IS_TRIAL else ""
-        print(f"Plan activo: {plan}{trial_txt}")
+        if os.getenv("POSEIDON_OWNER_MODE") == "1":
+             print(f"Plan activo: ⚡ MODO DUEÑO (GOD MODE) - Todo desbloqueado")
+        else:
+             print(f"Plan activo: {plan}{trial_txt}")
     except Exception:
         pass
     try:
@@ -550,6 +557,17 @@ def enforce_license_or_trial() -> None:
     global LICENSE_KEY
     global ACTIVE_PLAN
     global IS_TRIAL
+
+    # ====== Owner Mode Override ======
+    # Si las variables de entorno para Owner Mode están activas, saltar comprobación de licencia
+    owner_mode = os.getenv("POSEIDON_OWNER_MODE") == "1"
+    enable_all = os.getenv("ENABLE_ALL_COGS") == "1"
+    if owner_mode and enable_all:
+        ACTIVE_PLAN = "elite"  # Desbloquear todo
+        IS_TRIAL = False
+        return
+    # =================================
+
     if ACTIVE_PLAN:
         return
     if not LICENSE_KEY:
@@ -713,13 +731,17 @@ def _allowed_cogs_for_plan(plan: str) -> list[str]:
         "bot.cogs.comunidad.streaming",
     ]
     elite_extra = [
-        "bot.cogs.economia.ofertas",
-        "bot.cogs.economia.sorteos",
-        "bot.cogs.integraciones.lol",
-        "bot.cogs.integraciones.web",
-        "bot.cogs.economia.tienda",        "bot.cogs.integraciones.rss",
-        "bot.cogs.comunidad.calendario",
-    ]
+            "bot.cogs.economia.ofertas",
+            "bot.cogs.economia.sorteos",
+            "bot.cogs.integraciones.lol",
+            "bot.cogs.integraciones.web",
+            "bot.cogs.economia.tienda",
+            "bot.cogs.integraciones.rss",
+            "bot.cogs.comunidad.calendario",
+            "bot.cogs.juegos.mascotas",
+            "bot.cogs.comunidad.clanes",
+            "bot.cogs.comunidad.matrimonio",
+        ]
     all_extra = []
     owner_mode = os.getenv("POSEIDON_OWNER_MODE") == "1"
     enable_all = os.getenv("ENABLE_ALL_COGS") == "1"
@@ -734,7 +756,7 @@ def _allowed_cogs_for_plan(plan: str) -> list[str]:
         and env_owner
         and str(CONFIG_OWNER_ID) == str(env_owner)
     )
-    if owner_mode and enable_all and owner_file and owner_ok:
+    if owner_mode and enable_all and owner_ok:
         cogs = list(base + pro_extra + elite_extra + all_extra)
     else:
         cogs = list(base)
@@ -762,7 +784,7 @@ def _allowed_cogs_for_plan(plan: str) -> list[str]:
                 out.append(raw)
         return out
 
-    if enabled_only and not (owner_mode and enable_all and owner_file and owner_ok):
+    if enabled_only and not (owner_mode and enable_all and owner_ok):
         want = set(normalize(enabled_only))
         cogs = [m for m in cogs if m in want]
     block = set(normalize(disabled))
