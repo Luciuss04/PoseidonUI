@@ -117,7 +117,7 @@ class AyudaInfo(commands.Cog):
     @app_commands.command(name="planes", description="Planes y funcionalidades actualizados")
     async def planes(self, interaction: discord.Interaction):
         embed = discord.Embed(
-            title="💎 Planes de Suscripción Atenea",
+            title="💎 Planes de Suscripción PoseidonUI",
             description="Elige el poder que necesita tu servidor. ¡Mejora tu comunidad hoy mismo!",
             color=Theme.get_color(interaction.guild.id, 'primary')
         )
