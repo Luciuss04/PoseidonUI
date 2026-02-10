@@ -29,3 +29,12 @@ assets/generated/
 *.xcf
 .owner_mode
 cookies.txt
+
+# Office files
+*.pptx
+*.ppt
+*.doc
+*.docx
+*.xls
+*.xlsx
+*.pdf
