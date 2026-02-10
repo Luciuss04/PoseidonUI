@@ -118,7 +118,7 @@
                     <li><i class="fa-solid fa-check"></i> Música Estándar</li>
                     <li><i class="fa-solid fa-check"></i> Minijuegos (Ahorcado/RPG)</li>
                 </ul>
-                <a href="https://discord.gg/Kaf728xRFA" class="btn-outline">Elegir</a>
+                <a href="#" onclick="selectPlan('Básico'); return false;" class="btn-outline">Elegir</a>
             </div>
 
             <!-- Pro Plan -->
@@ -132,7 +132,7 @@
                     <li><i class="fa-solid fa-check"></i> Oráculo (IA Básica)</li>
                     <li><i class="fa-solid fa-check"></i> Confesiones y Trivia</li>
                 </ul>
-                <a href="https://discord.gg/Kaf728xRFA" class="btn-outline">Elegir</a>
+                <a href="#" onclick="selectPlan('Pro'); return false;" class="btn-outline">Elegir</a>
             </div>
 
             <!-- Elite Plan -->
@@ -147,7 +147,7 @@
                     <li><i class="fa-solid fa-check"></i> Economía Avanzada (Bolsa/Casino)</li>
                     <li><i class="fa-solid fa-check"></i> Integraciones (LoL/RSS)</li>
                 </ul>
-                <a href="https://discord.gg/Kaf728xRFA" class="cta-btn">Obtener Poder</a>
+                <a href="#" onclick="selectPlan('Élite'); return false;" class="cta-btn">Obtener Poder</a>
             </div>
 
             <!-- Custom Plan -->
@@ -160,7 +160,7 @@
                     <li><i class="fa-solid fa-check"></i> Funciones a Medida</li>
                     <li><i class="fa-solid fa-check"></i> Soporte Prioritario 24/7</li>
                 </ul>
-                <a href="https://discord.gg/Kaf728xRFA" class="btn-outline">Contactar</a>
+                <a href="#" onclick="selectPlan('Custom'); return false;" class="btn-outline">Contactar</a>
             </div>
         </div>
     </section>
@@ -212,5 +212,19 @@
         </div>
     </footer>
 
+    <script>
+        function selectPlan(plan) {
+            const userId = "443479189597716480";
+            const text = `Hola, estoy interesado en adquirir el plan ${plan} de PoseidonUI.`;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Mensaje copiado al portapapeles:\n\n" + text + "\n\nRedirigiendo al chat privado...");
+                window.open(`https://discord.com/users/${userId}`, "_blank");
+            }).catch(err => {
+                console.error('Error al copiar:', err);
+                window.open(`https://discord.com/users/${userId}`, "_blank");
+            });
+        }
+    </script>
 </body>
 </html>
