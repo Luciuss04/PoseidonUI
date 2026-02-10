@@ -1,147 +1,139 @@
-# PoseidonUI — Bot de Discord listo para servidores gaming y comunidad
+# 🔱 PoseidonUI — Gestión Avanzada para Comunidades de Discord
 
 [![CI](https://github.com/Luciuss04/PoseidonUI/actions/workflows/ci.yml/badge.svg)](https://github.com/Luciuss04/PoseidonUI/actions/workflows/ci.yml)
-
+[![Website](https://img.shields.io/badge/Website-PoseidonUI-0077be)](https://luciuss04.github.io/PoseidonUI/)
+[![Discord](https://img.shields.io/discord/443479189597716480?color=5865F2&label=Soporte)](https://discord.gg/Kaf728xRFA)
 
 ![Banner](banner.png)
 
+**PoseidonUI** es la solución definitiva para servidores de Discord que buscan profesionalismo, entretenimiento y gestión automatizada. Desde sistemas de economía complejos hasta batallas de mascotas estratégicas, todo bajo una interfaz moderna y temática mitológica.
 
-## Valor
-- Automatiza soporte con canales de Oráculo y cierre guiado.
-- Verificación con botón y roles temporales rituales.
-- Sistema de niveles y rangos temáticos por actividad.
-- Integración LoL: datos de invocador y clasificatoria.
-- Threads diarios con 30+ ofertas destacadas de juegos.
-- Panel de estado del bot y salud del sistema.
+🔗 **[Ver Documentación y Planes Web](https://luciuss04.github.io/PoseidonUI/)**
 
-## Características
-- `⚡ Oráculo` — panel de ayuda con apertura/cierre de canales.
-- `🛡 Guardian` — verificación con botón y Juicio Divino con roles temporales.
-- `🌟 Niveles` — XP por mensajes y rangos míticos.
-- `🏷 Ofertas` — thread diario con ofertas (CheapShark).
-- `📊 Status/Tools` — `/status`, `/ping`, `/uptime`, `/comandos`.
-- `ℹ️ Info` — `/botinfo`, `/demo`, `/ayuda`, `/planes`, `/precio`.
-- `🧠 Comunidad` — encuestas (`/encuesta`), recordatorios (`/recordatorio`), utilidades (`/sugerencia`, `/anuncio`, `/evento`, `tags`, canales temporales).
-- `💰 Economía` — monedas (`/balance`, `/daily`, `/work`, `/dar`, `/quitar`, `/top`), sorteos (`/sorteo`).
-- `🛍 Tienda` — `/tienda_add`, `/tienda_list`, `/comprar`, `/inventario`, `/regalar`, `/tienda_clear`.
-- `🧰 Moderación` — anti‑spam automático, `/clear`, `/slowmode`, `/mute`, `/unmute`, `/lock`, `/unlock`, `/warn`.
-- `🌐 Integraciones` — LoL (`RIOT_API_KEY`), web (`/wiki`, `/crypto`, `/hn`, `/quote`, `/ip`, `/cat`, `/dog`), RSS (`/rss`).
+---
 
-## Requisitos
-- Python 3.11+
-- Dependencias: ver `requirements.txt`.
-- Permisos de Intents: `message_content`, `guilds`, `members`.
+## 🚀 Características Principales
 
-## Instalación rápida
-1. Clona el repo.
-2. Entra a `BotDiscord4.0/` y ejecuta `start.bat` (Windows) para crear `venv` e instalar dependencias.
-3. Copia `.env.example` a `.env` y completa:
-   - `DISCORD_TOKEN`
-   - `RIOT_API_KEY` (opcional, para LoL)
-   - `CANAL_OFERTAS_ID` (opcional, para publicaciones diarias)
-   - `LICENSE_KEY` (tu clave de licencia)
-   - `LICENSES_PATH` (ruta privada local de licencias, p.ej. `C:\\PoseidonLicenses`)
-   - `LICENSE_SIGNING_SECRET` (secreto para firmar licencias HMAC)
-   - `ALLOW_PLAIN_LICENSES=0/1` (recomendado `0`)
-4. Arranca el bot: `python main.py` o `start.bat`.
+### 🐾 Sistema de Mascotas v2.1 (Batallas Estratégicas)
+- **Colección:** 10 tipos de mascotas (Dragón, Fénix, Alien, Dinosaurio, etc.) con evoluciones visuales.
+- **Combate:** Sistema de batalla por turnos con interfaz gráfica (BattleView).
+- **Estrategia:** Tabla de elementos (Fuego > Agua > Eléctrico > Tierra > Fuego) y habilidades especiales.
+- **Exploración:** Eventos aleatorios (tesoros, peligros, encuentros) para ganar XP y objetos.
 
-## Comandos
-- Prefijo `!`:
-  - `!oferta`, `!ofertas` — embeds de ofertas.
-- Slash `/`:
-  - `/botinfo` — ficha del bot.
-  - `/demo` — tarjetas de presentación en un thread.
-  - `/status` — panel de estado (admins/staff).
-  - `/juicio` — rol temporal ritual.
-  - `/crear_roles_guardian` — crea roles del Guardian.
-  - `/ofertas` — 30+ ofertas en thread.
+### 💰 Economía Global v5.0
+- **Bolsa de Valores:** Mercado dinámico de acciones que fluctúa en tiempo real.
+- **Trabajos Progresivos:** Sistema de experiencia laboral con ascensos y mejores salarios.
+- **Casino:** Ruleta, Slots y Blackjack para apostar monedas.
+- **Tienda:** Compra de objetos, mejoras para mascotas y roles.
 
-## Configuración
-- Intents: habilita `Message Content Intent` en el portal de Discord Developer.
-- Roles/canales: ajusta nombres en `guardian.py` y `config.py` si tu servidor usa otros nombres.
-- Publicación de ofertas: define `CANAL_OFERTAS_ID` para el canal donde se crean threads diarios.
-- Licencias: el bot valida `LICENSE_KEY` contra `licenses_plans.txt` en `LICENSES_PATH`.
-  - Formato soportado: `KEY|PLAN|SIG` donde `SIG=HMAC_SHA256_base64url(KEY|PLAN)`.
-  - Planes: `basic`, `pro`, `elite`, `custom`.
-  - Con `ALLOW_PLAIN_LICENSES=0`, solo se aceptan claves firmadas.
+### 🛡️ Moderación y Seguridad (AutoMod)
+- **Guardian:** Sistema de verificación con captcha/botón y roles temporales.
+- **Auto-Moderación:** Filtros configurables para malas palabras, mayúsculas excesivas y spam.
+- **Logs Avanzados:** Registro detallado de acciones en canales configurables.
+- **Comandos:** `/clear`, `/mute`, `/warn`, `/lock`, `/slowmode`.
 
-## Seguridad
-- No subas `.env`. Está ignorado por `.gitignore`.
-- No subas licencias; usa `LICENSES_PATH` privado fuera del repo.
-- Datos generados (`niveles.json`, `oraculos.json`) están ignorados.
+### 🎵 Música Pro
+- **Calidad de Estudio:** Soporte para filtros de audio (Bassboost, Nightcore, 8D, Vaporwave).
+- **Fuentes:** YouTube, SoundCloud, Spotify (via yt-dlp).
+- **Lyrics:** Integración con Genius para mostrar letras en tiempo real.
+- **Estabilidad:** Optimizado para evitar microcortes en hosting Linux (Teramont).
 
-## Calidad
-- Tests: `python -m unittest discover -s BotDiscord4.0/tests -v`.
-- CI: compilación y tests automáticos en cada push.
+### 🏛️ Comunidad y Social
+- **Clanes (Olimpos):** Crea tu propio clan, banco compartido y guerras de clanes.
+- **Matrimonios:** Sistema de bodas con anillos, hijos y árbol genealógico.
+- **Confesiones:** Sistema de confesiones anónimas con moderación previa.
+- **Juegos:** Trivia competitiva, Ahorcado visual, Conecta 4.
+- **Oráculo:** Sistema de tickets/soporte con transcripciones automáticas.
 
-## Demo rápida
-- Ejecuta `/botinfo` y `/demo` en un canal; verás tarjetas con cada módulo y el banner, ideal para enseñar el producto.
+---
 
-## Ejemplos de uso
-- Encuestas: `/encuesta "¿Qué juego?" "LoL;Valorant;CS2"` y cierra con el botón para ver resultados.
-- Sorteos: `/sorteo "Nitro 1 mes" 10` y los usuarios se apuntan con el botón.
-- Tienda: `/tienda_add "Nitro" 999`, `/tienda_list`, `/comprar "Nitro"`, `/inventario`.
-- RSS: `/rss "https://hnrss.org/frontpage"` muestra los últimos 5 enlaces.
-- Recordatorios: `/recordatorio 30 "Reunión"` envía un DM en 30 min.
-- Moderación: `/clear 50`, `/slowmode 10`, `/mute @usuario 15`, `/unlock`.
-- Integraciones web: `/wiki python`, `/crypto bitcoin`, `/hn`, `/quote`, `/ip 8.8.8.8`.
-- Diagnóstico: `/ping`, `/uptime`, `/comandos`.
-- Info: `/ayuda`, `/planes`, `/precio`.
+## 💎 Planes y Licencias
 
-### Mini demo — Ayuda y Planes
+El bot funciona con un sistema de licencias validado criptográficamente.
+
+| Plan | Precio | Incluye | Ideal para |
+| :--- | :--- | :--- | :--- |
+| **Básico** | 19€ | Moderación, Música, Minijuegos, Guardian | Servidores pequeños |
+| **Pro** | 39€ | Todo Básico + Niveles, Economía, Oráculo, Confesiones | Comunidades activas |
+| **Élite** | 69€ | Todo Pro + Mascotas v2, Clanes, Bolsa, Integraciones | Gaming / eSports |
+| **Custom** | 99€+ | Marca Blanca (Tu Bot), Funciones a medida, Soporte 24/7 | Marcas y Empresas |
+
+> ℹ️ **Nota:** Consulta los detalles completos en nuestra [página web](https://luciuss04.github.io/PoseidonUI/).
+
+---
+
+## 🛠️ Instalación y Despliegue
+
+### Requisitos Previos
+- Python 3.11 o superior.
+- FFmpeg (para música).
+- Clave de licencia válida (archivo `licenses_plans.txt` o variable de entorno).
+
+### Despliegue Local / VPS
+1. **Clonar repositorio:**
+   ```bash
+   git clone https://github.com/Luciuss04/PoseidonUI.git
+   cd PoseidonUI/BotDiscord4.0
+   ```
+
+2. **Configurar entorno:**
+   Copia `.env.example` a `.env` y rellena las variables:
+   ```ini
+   DISCORD_TOKEN=tu_token_aqui
+   LICENSE_KEY=tu_clave_de_licencia
+   # ... otras variables
+   ```
+
+3. **Instalar dependencias:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Iniciar:**
+   ```bash
+   python main.py
+   # O usa start.bat en Windows
+   ```
+
+### Despliegue en Teramont (Pterodactyl)
+1. Subir el contenido de la carpeta `BotDiscord4.0` a la raíz del servidor.
+2. Configurar el **Punto de Entrada** (Startup File) como `app.py`.
+3. Subir el archivo `.env` manualmente o configurar las variables en el panel.
+4. Asegurarse de que `ffmpeg` está disponible o configurado en el bot.
+
+---
+
+## 📂 Estructura del Proyecto
+
 ```text
-/ayuda
-🧾 Comandos: status, ping, uptime, ayuda, planes, precio, guardian, juicio, crear_roles_guardian, oraculo, niveles, encuestas, recordatorios, utilidades, monedas, sorteos, tienda, rss, web, lol...
-
-/planes
-Básico: status, guardian, about, info
-Pro: oraculo, niveles, crear_roles_guardian, encuestas, recordatorios, antispam, herramientas, monedas
-Élite: ofertas, sorteos, tienda, integraciones web, rss, lol
-Custom: todo lo anterior
+PoseidonUI/
+├── BotDiscord4.0/          # Núcleo del Bot
+│   ├── bot/
+│   │   ├── cogs/           # Módulos (Comandos)
+│   │   │   ├── comunidad/  # Clanes, Oráculo, Social
+│   │   │   ├── economia/   # Bolsa, Tienda, Trabajos
+│   │   │   ├── info/       # Ayuda, Ping, Planes
+│   │   │   ├── mascotas/   # Sistema de Batallas y Mascotas
+│   │   │   ├── moderacion/ # AutoMod, Guardian
+│   │   │   ├── musica/     # Reproductor y Filtros
+│   │   │   └── util/       # Utilidades varias
+│   │   └── ...
+│   ├── data/               # Persistencia (JSONs, ignorados en git)
+│   ├── app.py              # Entrypoint para Hosting
+│   └── main.py             # Entrypoint Local
+└── docs/                   # Website / Documentación (GitHub Pages)
 ```
 
-## Galería
-> Capturas reales del bot en temas claro y oscuro.
+---
 
-| Función | Claro | Oscuro |
-| --- | --- | --- |
-| Encuestas | ![Encuesta](assets/encuesta.png) | ![Encuesta (oscura)](assets/encuesta_dark.png) |
-| Sorteos | ![Sorteo](assets/sorteo.png) | ![Sorteo (oscuro)](assets/sorteo_dark.png) |
-| Tienda | ![Tienda](assets/tienda.png) | ![Tienda (oscuro)](assets/tienda_dark.png) |
-| RSS | ![RSS](assets/rss.png) | ![RSS (oscuro)](assets/rss_dark.png) |
-| Moderación | ![Moderación](assets/moderacion.png) | ![Moderación (oscuro)](assets/moderacion_dark.png) |
-| Ayuda | ![Ayuda](assets/ayuda.png) | ![Ayuda (oscuro)](assets/ayuda_dark.png) |
-| Planes | ![Planes](assets/planes.png) | ![Planes (oscuro)](assets/planes_dark.png) |
+## 🤝 Soporte y Contacto
 
-### Cómo añadir media
-- Personaliza la galería reemplazando los archivos en `assets/`.
-- Usa `.png` o `.gif` 16:9 y mantén nombres consistentes para claro/oscuro.
-- Tras hacer push, GitHub mostrará las imágenes automáticamente.
+¿Necesitas ayuda o quieres adquirir una licencia?
 
-## Soporte
-- Contáctanos para personalización: branding, features extra, integraciones.
+- **Discord:** [Únete a nuestro servidor](https://discord.gg/Kaf728xRFA)
+- **Web:** [luciuss04.github.io/PoseidonUI](https://luciuss04.github.io/PoseidonUI/)
+- **Email:** soporte@poseidonui.com
 
-## Precios
-- Básico — 19€: instalación, `status/tools`, `guardian`, `about`, `info`.
-- Pro — 39€: incluye Básico + `oráculo`, `niveles`, `crear_roles_guardian`, `encuestas`, `recordatorios`, `antispam`, `herramientas`, `monedas`.
-- Élite — 69€: incluye Pro + `ofertas`, `sorteos`, `tienda`, `integraciones web`, `RSS`, `LoL` (requiere `RIOT_API_KEY`).
-- Personalizado — desde 99€: branding, nuevas features, integraciones específicas.
+---
 
-Contacta por Issues o discord para cerrar compra y entrega.
-
-## Planes
-| Plan | Incluye | Ideal para |
-| --- | --- | --- |
-| Básico (19€) | Botinfo, Demo, Status, Guardian, instalación | Servidores pequeños |
-| Pro (39€) | Básico + Oráculo, Niveles, ajuste de roles/canales | Comunidad activa |
-| Élite (69€) | Pro + Ofertas diarias, LoL (RIOT_API_KEY) | Gaming / eSports |
-| Personalizado (99€+) | Branding, nuevas features, integraciones | Marca propia |
-
-[Comprar / Solicitar](https://github.com/Luciuss04/PoseidonUI/issues/new?title=Compra%20PoseidonUI&body=Plan:%20B%C3%A1sico/Pro/%C3%89lite/Personalizado)
-
-## FAQ
-- ¿Necesito habilitar intents? Sí: `message_content`, `guilds`, `members`.
-- ¿Se sube `.env`? No, está ignorado. Usa `.env.example` como guía.
-- ¿Cómo activo ofertas diarias? Define `CANAL_OFERTAS_ID` con el ID del canal.
-- ¿Qué necesito para LoL? `RIOT_API_KEY` válido en `.env`.
-- ¿Dónde veo una demo? Ejecuta `/botinfo` y `/demo` en tu servidor.
+© 2026 PoseidonUI. Todos los derechos reservados.
