@@ -132,7 +132,7 @@ PoseidonUI/
 
 - **Discord:** [Únete a nuestro servidor](https://discord.gg/Kaf728xRFA)
 - **Web:** [luciuss04.github.io/PoseidonUI](https://luciuss04.github.io/PoseidonUI/)
-- **Email:** soporte@poseidonui.com
+- **Email:** luciuss0444@gmail.com
 
 ---
 
