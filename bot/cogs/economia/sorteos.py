@@ -4,6 +4,7 @@ import random
 import discord
 from discord import app_commands
 from discord.ext import commands
+from bot.themes import Theme
 
 
 class SorteoView(discord.ui.View):
@@ -53,8 +54,9 @@ class Sorteos(commands.Cog):
         embed = discord.Embed(
             title="🎁 Sorteo activo",
             description=f"Premio: **{premio}**\nDuración: {minutos} min",
-            color=discord.Color.green(),
+            color=Theme.get_color(interaction.guild.id, 'success'),
         )
+        embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
         view = SorteoView()
         await interaction.response.send_message(embed=embed, view=view)
         try:
@@ -78,8 +80,9 @@ class Sorteos(commands.Cog):
         embed_fin = discord.Embed(
             title="🏆 Sorteo finalizado",
             description=f"Ganador: **{ganador.mention}**\nPremio: **{premio}**",
-            color=discord.Color.gold(),
+            color=Theme.get_color(interaction.guild.id, 'primary'),
         )
+        embed_fin.set_footer(text=Theme.get_footer_text(interaction.guild.id))
         await msg.edit(embed=embed_fin, view=None)
         try:
             await ganador.send(f"🏆 ¡Has ganado el sorteo! Premio: {premio}")
@@ -91,7 +94,7 @@ class Sorteos(commands.Cog):
                 f"Sorteo finalizado: {premio}",
                 guild=interaction.guild,
                 extra={"Ganador": f"{ganador} ({ganador.id})"},
-                color=discord.Color.gold(),
+                color=Theme.get_color(interaction.guild.id, 'primary'),
             )
             await self.bot.log(embed=e, guild=interaction.guild)
         except Exception:

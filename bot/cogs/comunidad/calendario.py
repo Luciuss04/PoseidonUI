@@ -1,6 +1,7 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
+from bot.themes import Theme
 
 
 class Calendario(commands.Cog):
@@ -35,8 +36,15 @@ class Calendario(commands.Cog):
         if not self.events:
             await interaction.response.send_message("📅 Sin eventos.")
             return
-        lines = [f"• {k}: {v[0]} ({v[1]} {v[2]})" for k, v in self.events.items()]
-        await interaction.response.send_message("\n".join(lines))
+        lines = [f"• **{k}**: {v[0]} ({v[1]} {v[2]})" for k, v in self.events.items()]
+        
+        embed = discord.Embed(
+            title="📅 Calendario de Eventos",
+            description="\n".join(lines),
+            color=Theme.get_color(interaction.guild.id, 'primary')
+        )
+        embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
+        await interaction.response.send_message(embed=embed)
 
 
 async def setup(bot):

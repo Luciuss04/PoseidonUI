@@ -8,6 +8,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
+from bot.themes import Theme
 
 load_dotenv()
 CANAL_OFERTAS_ID = os.getenv("CANAL_OFERTAS_ID")
@@ -131,8 +132,9 @@ class Ofertas(commands.Cog):
             resumen = discord.Embed(
                 title=f"✨ Ofertas del día — {fecha}",
                 description="Selección curada de 30 ofertas destacadas",
-                color=discord.Color.blurple(),
+                color=Theme.get_color(interaction.guild.id, 'primary'),
             )
+            resumen.set_footer(text=Theme.get_footer_text(interaction.guild.id))
             if dist:
                 resumen.add_field(
                     name="Tiendas",
@@ -173,7 +175,7 @@ class Ofertas(commands.Cog):
             pass
 
         for idx, j in enumerate(juegos[:30], start=1):
-            await thread.send(embed=self.crear_embed(j, idx))
+            await thread.send(embed=self.crear_embed(j, idx, interaction.guild.id))
 
         asyncio.create_task(self.cerrar_thread(thread, horas=24))
         await interaction.followup.send(
@@ -229,8 +231,9 @@ class Ofertas(commands.Cog):
             resumen = discord.Embed(
                 title=f"✨ Ofertas del día — {fecha}",
                 description="Selección curada de 30 ofertas destacadas",
-                color=discord.Color.blurple(),
+                color=Theme.get_color(canal.guild.id, 'primary'),
             )
+            resumen.set_footer(text=Theme.get_footer_text(canal.guild.id))
             if dist:
                 resumen.add_field(
                     name="Tiendas",
@@ -261,7 +264,7 @@ class Ofertas(commands.Cog):
             pass
 
         for idx, j in enumerate(juegos[:30], start=1):
-            await thread.send(embed=self.crear_embed(j, idx))
+            await thread.send(embed=self.crear_embed(j, idx, canal.guild.id))
 
         asyncio.create_task(self.cerrar_thread(thread, horas=24))
 
@@ -289,7 +292,7 @@ class Ofertas(commands.Cog):
 
         return filtrados
 
-    def crear_embed(self, j, idx, compact: bool = False):
+    def crear_embed(self, j, idx, guild_id: int, compact: bool = False):
         title = j.get("title")
         store_id = str(j.get("storeID"))
         store = j.get("storeName") or STORE_MAP.get(store_id, "Desconocido")
@@ -301,16 +304,16 @@ class Ofertas(commands.Cog):
 
         if cut >= 75:
             emoji = "🔥"
-            color = discord.Color.orange()
+            color = Theme.get_color(guild_id, 'warning')
         elif cut >= 60:
             emoji = "💎"
-            color = discord.Color.green()
+            color = Theme.get_color(guild_id, 'success')
         elif cut >= 45:
             emoji = "⭐"
-            color = discord.Color.blue()
+            color = Theme.get_color(guild_id, 'primary')
         else:
             emoji = "🌙"
-            color = discord.Color.dark_gray()
+            color = Theme.get_color(guild_id, 'secondary')
 
         numeros = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"]
         contador = "".join(numeros[int(d)] for d in str(idx))
@@ -346,7 +349,7 @@ class Ofertas(commands.Cog):
                 embed.set_thumbnail(url=thumb)
             if cut >= 75:
                 embed.add_field(name="Destacado", value="TOP oferta", inline=False)
-        embed.set_footer(text=f"CheapShark • {store}")
+        embed.set_footer(text=Theme.get_footer_text(guild_id))
         return embed
 
     @ofertas.autocomplete("tienda")

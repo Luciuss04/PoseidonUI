@@ -2,7 +2,8 @@ import os
 import time
 import discord
 from discord.ext import commands
-from bot.config import OWNER_ID
+from bot.themes import Theme
+
 
 class Streaming(commands.Cog):
     def __init__(self, bot):
@@ -13,7 +14,7 @@ class Streaming(commands.Cog):
     @commands.Cog.listener()
     async def on_presence_update(self, before: discord.Member, after: discord.Member):
         # Determine target user ID
-        target_id = int(os.getenv("STREAMING_USER_ID", OWNER_ID))
+        target_id = int(os.getenv("STREAMING_USER_ID", "0"))
         
         if after.id != target_id:
             return
@@ -67,10 +68,11 @@ class Streaming(commands.Cog):
                 embed = discord.Embed(
                     title=f"🔴 ¡{after.display_name} está en directo!",
                     description=f"**{title}**\n\n🔗 [Ver en {platform_name}]({url})",
-                    color=discord.Color.purple()
+                    color=Theme.get_color(after.guild.id, 'secondary')
                 )
                 if after.avatar:
                     embed.set_thumbnail(url=after.avatar.url)
+                embed.set_footer(text=Theme.get_footer_text(after.guild.id))
                 
                 msg_content = f"¡Corred insensatos! 🏃‍♂️💨 {url}"
                 role_id = os.getenv("STREAMING_PING_ROLE_ID", "1425818449732436059")

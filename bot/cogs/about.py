@@ -1,9 +1,7 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
-
-from bot.config import OWNER_ID
-
+from bot.themes import Theme
 
 class About(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -22,7 +20,7 @@ class About(commands.Cog):
             "\n📊 Status: panel de diagnóstico y salud"
         )
         embed = discord.Embed(
-            title="PoseidonUI", description=features, color=discord.Color.blurple()
+            title="PoseidonUI", description=features, color=Theme.get_color(interaction.guild.id, 'primary')
         )
         banner_url = "https://raw.githubusercontent.com/Luciuss04/PoseidonUI/main/BotDiscord4.0/banner.png"
         embed.set_image(url=banner_url)
@@ -33,7 +31,7 @@ class About(commands.Cog):
             inline=False,
         )
         embed.add_field(name="Contacto", value="Discord: Luciuss04", inline=True)
-        embed.set_footer(text="Configura .env y ejecuta start.bat")
+        embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
         await interaction.response.send_message(embed=embed, view=BuyView(self.bot))
 
     @app_commands.command(name="activar", description="Activar licencia de PoseidonUI")
@@ -84,17 +82,7 @@ class About(commands.Cog):
             await interaction.response.send_message(
                 "❌ Esta licencia ya está activa en otro servidor.", ephemeral=True
             )
-            try:
-                owner = await self.bot.fetch_user(OWNER_ID)
-                msg = (
-                    "⚠️ Intento de activar licencia ya usada\n"
-                    f"Usuario: {interaction.user} ({interaction.user.id})\n"
-                    f"Servidor: {guild_name} ({guild_id})\n"
-                    f"Licencia: {key}"
-                )
-                await owner.send(msg)
-            except Exception:
-                pass
+            # Log removed for owner privacy
             return
 
         pathlib.Path("license_active.txt").write_text(key, encoding="utf-8")
@@ -106,7 +94,7 @@ class About(commands.Cog):
             "✅ Licencia activada y vinculada (permanente).", ephemeral=True
         )
         try:
-            owner = await self.bot.fetch_user(OWNER_ID)
+            # Owner notification removed
             when = datetime.utcnow().isoformat()
             msg = (
                 "🔑 Activación\n"
@@ -116,7 +104,6 @@ class About(commands.Cog):
                 f"Fecha: {when}\n"
                 "Estado: PERMANENTE"
             )
-            await owner.send(msg)
             pathlib.Path("activations.log").open("a", encoding="utf-8").write(
                 msg + "\n"
             )

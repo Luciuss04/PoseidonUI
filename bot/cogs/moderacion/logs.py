@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 import datetime
+from bot.themes import Theme
 
 class LogsModeracion(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -28,12 +29,12 @@ class LogsModeracion(commands.Cog):
         embed = discord.Embed(
             title="✏️ Mensaje Editado",
             description=f"**Autor:** {before.author.mention} ({before.author.id})\n**Canal:** {before.channel.mention}",
-            color=discord.Color.orange(),
+            color=Theme.get_color(before.guild.id, 'warning'),
             timestamp=datetime.datetime.utcnow()
         )
         embed.add_field(name="Antes", value=before.content[:1020] or "[Contenido multimedia/vacío]", inline=False)
         embed.add_field(name="Después", value=after.content[:1020] or "[Contenido multimedia/vacío]", inline=False)
-        embed.set_footer(text=f"ID Mensaje: {before.id}")
+        embed.set_footer(text=Theme.get_footer_text(before.guild.id) + f" • ID: {before.id}")
         
         await channel.send(embed=embed)
 
@@ -49,14 +50,14 @@ class LogsModeracion(commands.Cog):
         embed = discord.Embed(
             title="🗑️ Mensaje Borrado",
             description=f"**Autor:** {message.author.mention} ({message.author.id})\n**Canal:** {message.channel.mention}",
-            color=discord.Color.red(),
+            color=Theme.get_color(message.guild.id, 'error'),
             timestamp=datetime.datetime.utcnow()
         )
         embed.add_field(name="Contenido", value=message.content[:1020] or "[Contenido multimedia/vacío]", inline=False)
         if message.attachments:
             embed.add_field(name="Adjuntos", value=f"{len(message.attachments)} archivos", inline=True)
             
-        embed.set_footer(text=f"ID Mensaje: {message.id}")
+        embed.set_footer(text=Theme.get_footer_text(message.guild.id) + f" • ID: {message.id}")
         
         await channel.send(embed=embed)
 
@@ -75,7 +76,7 @@ class LogsModeracion(commands.Cog):
                 embed = discord.Embed(
                     title="🎭 Roles Actualizados",
                     description=f"**Usuario:** {after.mention} ({after.id})",
-                    color=discord.Color.blue(),
+                    color=Theme.get_color(before.guild.id, 'primary'),
                     timestamp=datetime.datetime.utcnow()
                 )
                 if added:
@@ -83,6 +84,7 @@ class LogsModeracion(commands.Cog):
                 if removed:
                     embed.add_field(name="Roles Quitados", value=", ".join([r.mention for r in removed]), inline=False)
                 
+                embed.set_footer(text=Theme.get_footer_text(before.guild.id))
                 await channel.send(embed=embed)
 
         # Cambio de nick
@@ -90,11 +92,12 @@ class LogsModeracion(commands.Cog):
             embed = discord.Embed(
                 title="🏷️ Apodo Cambiado",
                 description=f"**Usuario:** {after.mention} ({after.id})",
-                color=discord.Color.blue(),
+                color=Theme.get_color(before.guild.id, 'primary'),
                 timestamp=datetime.datetime.utcnow()
             )
             embed.add_field(name="Antes", value=before.nick or "[Original]", inline=True)
             embed.add_field(name="Ahora", value=after.nick or "[Original]", inline=True)
+            embed.set_footer(text=Theme.get_footer_text(before.guild.id))
             await channel.send(embed=embed)
 
 async def setup(bot: commands.Bot):

@@ -6,11 +6,10 @@ import time
 from datetime import datetime
 
 import discord
-import os
-import time
 import asyncio
 from discord import app_commands
 from discord.ext import commands, tasks
+from bot.themes import Theme
 
 LOG_FILE = "oraculos.json"
 PANEL_CHANNEL_NAME = "📩-oráculo-de-ayuda"
@@ -104,23 +103,23 @@ def normalizar_tipo(valor_label: str) -> str:
     return m.get(t, "general")
 
 
-def color_por_tipo(tipo: str) -> discord.Color:
+def color_por_tipo(tipo: str, guild_id: int = None) -> discord.Color:
     tipo = tipo.lower()
     if tipo == "urgente":
-        return discord.Color.red()
+        return Theme.get_color(guild_id, 'error')
     if tipo == "creativo":
-        return discord.Color.blue()
+        return Theme.get_color(guild_id, 'primary')
     if tipo == "soporte":
-        return discord.Color.teal()
+        return Theme.get_color(guild_id, 'success')
     if tipo == "administrativo":
-        return discord.Color.gold()
+        return Theme.get_color(guild_id, 'warning')
     if tipo == "denuncia":
-        return discord.Color.dark_red()
+        return Theme.get_color(guild_id, 'error')
     if tipo == "colaboración":
-        return discord.Color.green()
+        return Theme.get_color(guild_id, 'success')
     if tipo == "místico":
-        return discord.Color.purple()
-    return discord.Color.purple()
+        return Theme.get_color(guild_id, 'secondary')
+    return Theme.get_color(guild_id, 'secondary')
 
 
 def guia_por_tipo(tipo: str) -> str:
@@ -255,10 +254,10 @@ async def _update_pinned_embed_followup(canal: discord.TextChannel):
                     if (not urgent) and title.startswith("⚠️ "):
                         title = title[3:]
                     try:
-                        base_color = color_por_tipo(tipo_norm)
+                        base_color = color_por_tipo(tipo_norm, canal.guild.id)
                     except Exception:
                         base_color = emb.color
-                    nuevo_color = discord.Color.red() if urgent else base_color
+                    nuevo_color = Theme.get_color(canal.guild.id, 'error') if urgent else base_color
                     nuevo = discord.Embed(
                         title=title, description=emb.description, color=nuevo_color
                     )
@@ -292,7 +291,7 @@ async def _update_pinned_embed_followup(canal: discord.TextChannel):
                             )
                     if staff_idx is None:
                         nuevo.add_field(name="Seguimiento", value=seg_val, inline=False)
-                    nuevo.set_footer(text=emb.footer.text if emb.footer else "")
+                    nuevo.set_footer(text=Theme.get_footer_text(canal.guild.id))
                     try:
                         await msg.edit(embed=nuevo)
                     except Exception:
@@ -410,8 +409,8 @@ class OraculoUserView(discord.ui.View):
                             urg = interaction.channel.name.startswith("urgente-")
                         except Exception:
                             urg = False
-                        base_color = color_por_tipo(tipo)
-                        nuevo_color = discord.Color.red() if urg else base_color
+                        base_color = color_por_tipo(tipo, interaction.guild.id)
+                        nuevo_color = Theme.get_color(interaction.guild.id, 'error') if urg else base_color
                         nuevo = discord.Embed(
                             title=f"🏛️ Oráculo de Atenea ({tipo.capitalize()})",
                             description=emb.description,
@@ -436,7 +435,7 @@ class OraculoUserView(discord.ui.View):
                                 nuevo.add_field(
                                     name=f.name, value=f.value, inline=f.inline
                                 )
-                        nuevo.set_footer(text=emb.footer.text if emb.footer else "")
+                        nuevo.set_footer(text=Theme.get_footer_text(interaction.guild.id))
                         try:
                             await msg.edit(embed=nuevo)
                         except Exception:
@@ -650,7 +649,7 @@ class OraculoChannelView(discord.ui.View):
         embed = discord.Embed(
             title="🔓 Oráculo Reabierto",
             description="El Oráculo ha sido reabierto. Puedes continuar la conversación.",
-            color=discord.Color.green(),
+            color=Theme.get_color(guild.id, 'success'),
         )
         await canal.send(embed=embed)
         # Controles disponibles para Staff mediante /oraculo_controles
@@ -728,7 +727,7 @@ class OraculoChannelView(discord.ui.View):
             e = discord.Embed(
                 title="Asignación registrada",
                 description=f"Asignado: {miembro.mention}",
-                color=discord.Color.green(),
+                color=Theme.get_color(guild.id, 'success'),
             )
             await _alert_thread_post(guild, canal, embed=e)
         except Exception:
@@ -796,7 +795,7 @@ class OraculoChannelView(discord.ui.View):
             e = discord.Embed(
                 title="Llamada al Staff",
                 description=f"Notificado: {rol_staff.mention}",
-                color=discord.Color.blurple(),
+                color=Theme.get_color(guild.id, 'primary'),
             )
             await _alert_thread_post(guild, canal, embed=e)
             try:
@@ -851,7 +850,7 @@ class OraculoChannelView(discord.ui.View):
             e = discord.Embed(
                 title="Cambio de urgencia",
                 description=("URGENTE" if urg else "Modo normal"),
-                color=(discord.Color.red() if urg else discord.Color.blurple()),
+                color=(Theme.get_color(guild.id, 'error') if urg else Theme.get_color(guild.id, 'primary')),
             )
             await _alert_thread_post(guild, canal, embed=e)
         except Exception:
@@ -889,11 +888,11 @@ class OraculoChannelView(discord.ui.View):
             raw = raw[len("espera-") :]
             new = prefix + raw
             progreso_txt = "En curso"
-            color = discord.Color.blurple()
+            color = Theme.get_color(guild.id, 'primary')
         else:
             new = prefix + "espera-" + raw
             progreso_txt = "En espera"
-            color = discord.Color.dark_blue()
+            color = Theme.get_color(guild.id, 'secondary')
         try:
             await _rename_channel(canal, new)
             await interaction.response.send_message(
@@ -1003,9 +1002,9 @@ class CloseOraculoModal(discord.ui.Modal, title="Sellar Oráculo"):
             embed = discord.Embed(
                 title="⚖️ Oráculo Sellado",
                 description=desc,
-                color=discord.Color.dark_gold(),
+                color=Theme.get_color(guild.id, 'warning'),
             )
-            embed.set_footer(text="Atenea vigila desde las alturas 🏛️")
+            embed.set_footer(text=Theme.get_footer_text(guild.id))
             await canal.send(embed=embed)
             try:
                 pins = await canal.pins()
@@ -1050,7 +1049,7 @@ class CloseOraculoModal(discord.ui.Modal, title="Sellar Oráculo"):
                 e = discord.Embed(
                     title="Oráculo sellado",
                     description=(txt or ""),
-                    color=discord.Color.dark_gold(),
+                    color=Theme.get_color(guild.id, 'warning'),
                 )
                 await _alert_thread_post(guild, canal, embed=e)
             except Exception:
@@ -1165,7 +1164,7 @@ class ResolveOraculoModal(discord.ui.Modal, title="Resolver Oráculo"):
                         else "🔒 Oráculo Resuelto y Cerrado"
                     ),
                     description=f"📝 Solución: {self.resumen.value.strip()}",
-                    color=discord.Color.green(),
+                    color=Theme.get_color(guild.id, 'success'),
                 )
                 try:
                     await canal.send(embed=embed)
@@ -1350,7 +1349,7 @@ class AperturaOraculoModal(discord.ui.Modal, title="Apertura del Oráculo"):
                 emb = discord.Embed(
                     title=titulo or "📜 Detalles",
                     description=detalle or "",
-                    color=discord.Color.blurple(),
+                    color=Theme.get_color(interaction.guild.id, 'primary'),
                 )
                 await canal.send(embed=emb)
         except Exception:
@@ -1372,7 +1371,7 @@ class AperturaOraculoModal(discord.ui.Modal, title="Apertura del Oráculo"):
                 except Exception:
                     urg = False
                 base_color = color_por_tipo(tipo_norm)
-                alert_color = discord.Color.red() if urg else base_color
+                alert_color = Theme.get_color(guild.id, 'error') if urg else base_color
                 e = discord.Embed(
                     title=f"🛡️ Nuevo Oráculo — {tipo_norm.capitalize()}",
                     description=f"Canal: {canal.mention}",
@@ -1463,7 +1462,7 @@ class AperturaOraculoModal(discord.ui.Modal, title="Apertura del Oráculo"):
                     e2 = discord.Embed(
                         title=title,
                         description=f"Autor: {interaction.user.mention}",
-                        color=discord.Color.blurple(),
+                        color=Theme.get_color(guild.id, 'primary'),
                     )
                     e2.add_field(
                         name="Lista", value=", ".join(chunk_names)[:1024], inline=False
@@ -1652,12 +1651,12 @@ class QuickOraculoModal(discord.ui.Modal):
                     pass
                 return
             if campos:
-                e = discord.Embed(title="Checklist", color=discord.Color.blurple())
+                e = discord.Embed(title="Checklist", color=Theme.get_color(interaction.guild.id, 'primary'))
                 if urg:
                     e.add_field(name="Estado", value="URGENTE", inline=True)
                 for label, val in campos:
                     e.add_field(name=label, value=val[:1024], inline=False)
-                e.set_footer(text="Añade capturas o archivos en este canal")
+                e.set_footer(text=f"{Theme.get_footer_text(interaction.guild.id)} • Añade capturas o archivos en este canal")
                 last = None
                 try:
                     async for m in canal.history(limit=30, oldest_first=False):
@@ -1713,7 +1712,7 @@ class QuickOraculoModal(discord.ui.Modal):
                         except Exception:
                             urg2 = False
                         base_color2 = color_por_tipo(tipo_norm)
-                        alert_color2 = discord.Color.red() if urg2 else base_color2
+                        alert_color2 = Theme.get_color(guild.id, 'error') if urg2 else base_color2
                         ee = discord.Embed(
                             title=f"🛡️ Nuevo Oráculo — {tipo_norm.capitalize()}",
                             description=f"Canal: {canal.mention}",
@@ -1839,7 +1838,7 @@ async def crear_oraculo(interaction: discord.Interaction, tipo: str = "general")
         ),
         color=color,
     )
-    embed.set_footer(text="Que la sabiduría guíe tu camino ✨")
+    embed.set_footer(text=Theme.get_footer_text(guild.id))
     embed.add_field(name="Tipo", value=tipo_norm.capitalize(), inline=True)
     embed.add_field(
         name="Apertura",
@@ -1928,12 +1927,12 @@ class OraculoPanel(commands.Cog):
                             "🛠️ Soporte\n📑 Administrativo\n🚨 Denuncia\n"
                             "🤝 Colaboración\n🔮 Místico"
                         ),
-                        color=discord.Color.gold(),
+                        color=Theme.get_color(guild.id, 'secondary'),
                     )
                     embed.set_image(
                         url="https://cdn.discordapp.com/attachments/1425781431682076682/1440115588746706984/Imagen_para_el_bot_d.png"
                     )
-                    embed.set_footer(text="Atenea UI — sabiduría y guía")
+                    embed.set_footer(text=Theme.get_footer_text(g.id))
                     msg = await canal.send(embed=embed, view=OraculoOpenView())
                     try:
                         await msg.pin()
@@ -2082,7 +2081,7 @@ class OraculoPanel(commands.Cog):
         e = discord.Embed(
             title="🏛️ Guía del Oráculo",
             description="Consejos para abrir y gestionar tu Oráculo",
-            color=discord.Color.gold(),
+            color=Theme.get_color(interaction.guild.id, 'secondary'),
         )
         e.add_field(
             name="Apertura",
@@ -2166,7 +2165,7 @@ class OraculoPanel(commands.Cog):
             )
         except Exception:
             pass
-        e.set_footer(text="Atenea UI — sabiduría y guía")
+        e.set_footer(text=Theme.get_footer_text(interaction.guild.id))
         await interaction.response.send_message(
             embed=e, view=OraculoChannelView(canal), ephemeral=True
         )
@@ -2208,7 +2207,7 @@ class OraculoPanel(commands.Cog):
                     e = discord.Embed(
                         title=title,
                         description=f"Autor: {message.author.mention}",
-                        color=discord.Color.blurple(),
+                        color=Theme.get_color(message.guild.id, 'primary'),
                     )
                     e.add_field(
                         name="Lista", value=", ".join(chunk_names)[:1024], inline=False
@@ -2312,12 +2311,12 @@ class OraculoPanel(commands.Cog):
                 "🛠️ Soporte\n📑 Administrativo\n🚨 Denuncia\n"
                 "🤝 Colaboración\n🔮 Místico"
             ),
-            color=discord.Color.gold(),
+            color=Theme.get_color(g.id, 'secondary'),
         )
         embed.set_image(
             url="https://cdn.discordapp.com/attachments/1425781431682076682/1440115588746706984/Imagen_para_el_bot_d.png"
         )
-        embed.set_footer(text="Atenea UI — sabiduría y guía")
+        embed.set_footer(text=Theme.get_footer_text(g.id))
         try:
             msg = await canal.send(embed=embed, view=OraculoOpenView())
             try:

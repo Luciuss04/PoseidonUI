@@ -3,6 +3,7 @@ from discord import app_commands
 from discord.ext import commands
 import random
 import asyncio
+from bot.themes import Theme
 
 # --- Constantes y "Sprites" (Emojis) ---
 SPRITE_PLAYER = "🧙‍♂️"
@@ -152,7 +153,7 @@ class RPGButton(discord.ui.Button):
             msg_content = "⚔️ ¡Un enemigo salvaje apareció!"
             view.update_buttons()
         
-        embed = create_rpg_embed(view.game, msg_content)
+        embed = create_rpg_embed(view.game, msg_content, interaction.guild.id)
         await interaction.response.edit_message(embed=embed, view=view)
 
 class RPGActionButton(discord.ui.Button):
@@ -222,15 +223,16 @@ class RPGActionButton(discord.ui.Button):
                     view.clear_items()
                     msg_content += "\n💀 **¡Has muerto!**"
 
-        embed = create_rpg_embed(game, msg_content)
+        embed = create_rpg_embed(game, msg_content, interaction.guild.id)
         await interaction.response.edit_message(embed=embed, view=view)
 
-def create_rpg_embed(game, status_msg=""):
+def create_rpg_embed(game, status_msg="", guild_id=None):
     if game.state == "GAME_OVER":
-        embed = discord.Embed(title="💀 GAME OVER", description=status_msg, color=discord.Color.red())
+        embed = discord.Embed(title="💀 GAME OVER", description=status_msg, color=Theme.get_color(guild_id, 'error'))
+        embed.set_footer(text=Theme.get_footer_text(guild_id))
         return embed
 
-    embed = discord.Embed(title="🗺️ Poseidon RPG", color=discord.Color.green())
+    embed = discord.Embed(title="🗺️ Poseidon RPG", color=Theme.get_color(guild_id, 'primary'))
     
     if game.state == "EXPLORING":
         map_str = game.render_map()
@@ -240,7 +242,7 @@ def create_rpg_embed(game, status_msg=""):
     elif game.state == "COMBAT":
         enemy = game.current_enemy
         embed.title = "⚔️ ¡En Combate!"
-        embed.color = discord.Color.red()
+        embed.color = Theme.get_color(guild_id, 'error')
         # Sprite visual del enemigo (usando imagen real o emoji grande)
         if enemy.get("sprite"):
             embed.set_thumbnail(url=enemy["sprite"])
@@ -250,6 +252,7 @@ def create_rpg_embed(game, status_msg=""):
         embed.add_field(name="Tu Héroe", value=f"❤️ HP: {game.hp}/{game.max_hp}", inline=True)
         embed.add_field(name="Enemigo", value=f"❤️ HP: {enemy['hp']}/{enemy['max_hp']}", inline=True)
 
+    embed.set_footer(text=Theme.get_footer_text(guild_id))
     return embed
 
 class RPG(commands.Cog):
@@ -264,7 +267,7 @@ class RPG(commands.Cog):
         self.games[interaction.user.id] = game
         
         view = RPGView(game, interaction.user.id)
-        embed = create_rpg_embed(game, "¡Bienvenido al mundo de Poseidon! Usa los botones para moverte.")
+        embed = create_rpg_embed(game, "¡Bienvenido al mundo de Poseidon! Usa los botones para moverte.", interaction.guild.id)
         
         await interaction.response.send_message(embed=embed, view=view)
 

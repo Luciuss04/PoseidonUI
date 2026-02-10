@@ -60,17 +60,7 @@ if errorlevel 1 (
     echo Error: .env no contiene DISCORD_TOKEN. Aborting.
     goto END
 )
-REM Crear marcador de modo dueño si no existe (local, ignorado por Git)
-if not exist ".owner_mode" (
-    echo.> ".owner_mode"
-)
-REM Comprobar coherencia de OWNER_USER_ID (.env) con OWNER_ID (bot/config.py)
-set "OWNER_USER_ID="
-for /f "usebackq tokens=1,* delims==" %%A in (".env") do (
-  if /I "%%A"=="OWNER_USER_ID" set "OWNER_USER_ID=%%B"
-)
-for /f "tokens=3" %%I in ('findstr /R /C:"^[ ]*OWNER_ID[ ]*=" "bot\config.py"') do set "CONFIG_OWNER_ID=%%I"
-if not "%OWNER_USER_ID%"=="" if not "%CONFIG_OWNER_ID%"=="" if "%OWNER_USER_ID%" NEQ "%CONFIG_OWNER_ID%" echo Aviso: OWNER_USER_ID en .env ("%OWNER_USER_ID%") no coincide con OWNER_ID del codigo ("%CONFIG_OWNER_ID%").
+
 echo Iniciando el bot...
 REM Priorizar valores de .env sobre variables del sistema
 set "DISCORD_TOKEN="
@@ -129,15 +119,12 @@ if not exist ".env" (
   goto TEST_DONE
 )
 set "HAS_TOKEN="
-set "HAS_OWNER="
 set "HAS_RIOT="
 for /f "usebackq tokens=1,* delims==" %%A in (".env") do (
   if /I "%%A"=="DISCORD_TOKEN" set "HAS_TOKEN=%%B"
-  if /I "%%A"=="OWNER_USER_ID" set "HAS_OWNER=%%B"
   if /I "%%A"=="RIOT_API_KEY" set "HAS_RIOT=%%B"
 )
 if "%HAS_TOKEN%"=="" echo Aviso: falta DISCORD_TOKEN en .env
-if "%HAS_OWNER%"=="" echo Aviso: falta OWNER_USER_ID en .env
 if "%HAS_RIOT%"=="" echo Aviso: falta RIOT_API_KEY en .env
 :
 TEST_DONE

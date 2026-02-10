@@ -1,6 +1,7 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
+from bot.themes import Theme
 
 
 class UtilidadesComunidad(commands.Cog):
@@ -8,7 +9,10 @@ class UtilidadesComunidad(commands.Cog):
         self.bot = bot
         self.tags: dict[str, str] = {}
 
-    @app_commands.command(
+    # Grupo de comandos de utilidad para ahorrar espacio global
+    util_group = app_commands.Group(name="utilidad", description="Herramientas de utilidad varias")
+
+    @util_group.command(
         name="sugerencia", description="Envía una sugerencia al equipo"
     )
     async def sugerencia(self, interaction: discord.Interaction, texto: str):
@@ -20,10 +24,10 @@ class UtilidadesComunidad(commands.Cog):
         embed = discord.Embed(
             title="💡 Nueva Sugerencia", 
             description=texto, 
-            color=discord.Color.gold()
+            color=Theme.get_color(interaction.guild.id, 'primary')
         )
         embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
-        embed.set_footer(text=f"ID: {interaction.user.id}")
+        embed.set_footer(text=f"ID: {interaction.user.id} | {Theme.get_footer_text(interaction.guild.id)}")
         
         if channel != interaction.channel:
             msg = await channel.send(embed=embed)
@@ -38,23 +42,24 @@ class UtilidadesComunidad(commands.Cog):
             await message.add_reaction("✅")
             await message.add_reaction("❌")
 
-    @app_commands.command(name="avatar", description="Muestra el avatar de un usuario")
+    @util_group.command(name="avatar", description="Muestra el avatar de un usuario")
     async def avatar(self, interaction: discord.Interaction, usuario: discord.User = None):
         usuario = usuario or interaction.user
         embed = discord.Embed(title=f"Avatar de {usuario.display_name}", color=usuario.color)
         embed.set_image(url=usuario.display_avatar.url)
         await interaction.response.send_message(embed=embed)
 
-    @app_commands.command(name="anuncio", description="Publica un anuncio en el canal")
+    @util_group.command(name="anuncio", description="Publica un anuncio en el canal")
     async def anuncio(
         self, interaction: discord.Interaction, titulo: str, contenido: str
     ):
         embed = discord.Embed(
-            title=f"📣 {titulo}", description=contenido, color=discord.Color.gold()
+            title=f"📣 {titulo}", description=contenido, color=Theme.get_color(interaction.guild.id, 'primary')
         )
+        embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
         await interaction.response.send_message(embed=embed)
 
-    @app_commands.command(name="evento", description="Crea un evento")
+    @util_group.command(name="evento", description="Crea un evento")
     async def evento(
         self,
         interaction: discord.Interaction,
@@ -69,11 +74,12 @@ class UtilidadesComunidad(commands.Cog):
         embed = discord.Embed(
             title=f"📅 Evento: {titulo}",
             description=desc,
-            color=discord.Color.blurple(),
+            color=Theme.get_color(interaction.guild.id, 'primary'),
         )
+        embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
         await interaction.response.send_message(embed=embed)
 
-    @app_commands.command(name="tag", description="Muestra un tag guardado")
+    @util_group.command(name="tag", description="Muestra un tag guardado")
     async def tag(self, interaction: discord.Interaction, nombre: str):
         val = self.tags.get(nombre.lower())
         if not val:
@@ -83,14 +89,14 @@ class UtilidadesComunidad(commands.Cog):
             return
         await interaction.response.send_message(val)
 
-    @app_commands.command(name="tag_set", description="Define o actualiza un tag")
+    @util_group.command(name="tag_set", description="Define o actualiza un tag")
     async def tag_set(
         self, interaction: discord.Interaction, nombre: str, contenido: str
     ):
         self.tags[nombre.lower()] = contenido
         await interaction.response.send_message("✅ Tag guardado.", ephemeral=True)
 
-    @app_commands.command(name="canal_temp", description="Crea un canal temporal")
+    @util_group.command(name="canal_temp", description="Crea un canal temporal")
     async def canal_temp(self, interaction: discord.Interaction, nombre: str):
         guild = interaction.guild
         if not guild:
@@ -111,7 +117,7 @@ class UtilidadesComunidad(commands.Cog):
         except Exception:
             pass
 
-    @app_commands.command(name="userinfo", description="Información detallada de un usuario")
+    @util_group.command(name="userinfo", description="Información detallada de un usuario")
     async def userinfo(self, interaction: discord.Interaction, usuario: discord.Member = None):
         usuario = usuario or interaction.user
         roles = [r.mention for r in usuario.roles if r.name != "@everyone"]
@@ -128,14 +134,14 @@ class UtilidadesComunidad(commands.Cog):
         
         await interaction.response.send_message(embed=embed)
 
-    @app_commands.command(name="serverinfo", description="Información del servidor")
+    @util_group.command(name="serverinfo", description="Información del servidor")
     async def serverinfo(self, interaction: discord.Interaction):
         guild = interaction.guild
         if not guild:
             await interaction.response.send_message("Solo en servidores.", ephemeral=True)
             return
 
-        embed = discord.Embed(title=f"🏰 {guild.name}", color=discord.Color.blurple())
+        embed = discord.Embed(title=f"🏰 {guild.name}", color=Theme.get_color(interaction.guild.id, 'primary'))
         if guild.icon:
             embed.set_thumbnail(url=guild.icon.url)
         
@@ -144,10 +150,11 @@ class UtilidadesComunidad(commands.Cog):
         embed.add_field(name="👥 Miembros", value=guild.member_count, inline=True)
         embed.add_field(name="📅 Creación", value=guild.created_at.strftime("%d/%m/%Y"), inline=True)
         embed.add_field(name="💬 Canales", value=f"Texto: {len(guild.text_channels)} | Voz: {len(guild.voice_channels)}", inline=False)
+        embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
         
         await interaction.response.send_message(embed=embed)
 
-    @app_commands.command(name="8ball", description="Pregúntale al oráculo mágico")
+    @util_group.command(name="8ball", description="Pregúntale al oráculo mágico")
     async def eightball(self, interaction: discord.Interaction, pregunta: str):
         import random
         respuestas = [
@@ -156,12 +163,13 @@ class UtilidadesComunidad(commands.Cog):
             "No cuentes con ello.", "Mi respuesta es no.", "Mis fuentes dicen que no.", "Muy dudoso."
         ]
         respuesta = random.choice(respuestas)
-        color = discord.Color.green() if "Sí" in respuesta or "cierto" in respuesta else (
-            discord.Color.red() if "no" in respuesta or "dudoso" in respuesta else discord.Color.gold()
+        color = Theme.get_color(interaction.guild.id, 'success') if "Sí" in respuesta or "cierto" in respuesta else (
+            Theme.get_color(interaction.guild.id, 'error') if "no" in respuesta or "dudoso" in respuesta else Theme.get_color(interaction.guild.id, 'warning')
         )
         embed = discord.Embed(title="🎱 Oráculo Mágico", color=color)
         embed.add_field(name="❓ Pregunta", value=pregunta, inline=False)
         embed.add_field(name="🔮 Respuesta", value=respuesta, inline=False)
+        embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
         await interaction.response.send_message(embed=embed)
 
 

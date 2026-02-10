@@ -1,6 +1,7 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
+from bot.themes import Theme
 
 MAX_OPTIONS = 5
 
@@ -55,8 +56,9 @@ class EncuestaView(discord.ui.View):
             embed = discord.Embed(
                 title="📊 Resultados de la encuesta",
                 description=resumen,
-                color=discord.Color.gold(),
+                color=Theme.get_color(interaction.guild.id, 'primary'),
             )
+            embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
             await interaction.message.edit(view=None)
             await interaction.response.send_message(embed=embed)
 
@@ -82,8 +84,9 @@ class Encuestas(commands.Cog):
             )
             return
         embed = discord.Embed(
-            title="📊 Encuesta", description=pregunta, color=discord.Color.blurple()
+            title="📊 Encuesta", description=pregunta, color=Theme.get_color(interaction.guild.id, 'primary')
         )
+        embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
         view = EncuestaView(interaction.user.id, opts)
         await interaction.response.send_message(embed=embed, view=view)
 

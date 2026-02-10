@@ -4,6 +4,8 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+from bot.themes import Theme
+
 JUICIO_ROLES = {
     "⚡ Favor divino": "Bendecido",
     "🗡️ Prueba del destino": "Probado",
@@ -12,7 +14,7 @@ JUICIO_ROLES = {
     "🌌 Visión del Oráculo": "Visionario",
     "🛡️ Bendición de Atenea": "Protegido",
     "🌪️ Viento de cambio": "Transformado",
-    "🌊 Purificación": "Purificado",
+    "✨ Purificación": "Purificado",
 }
 
 
@@ -54,7 +56,7 @@ class CrearRolesGuardian(commands.Cog):
         embed = discord.Embed(
             title="🛡️ Roles del Guardian",
             description="Los roles rituales han sido revisados.",
-            color=discord.Color.blurple(),
+            color=Theme.get_color(interaction.guild.id, 'primary'),
         )
         if creados:
             embed.add_field(
@@ -65,6 +67,7 @@ class CrearRolesGuardian(commands.Cog):
                 name="ℹ️ Ya existentes", value=", ".join(ya_existentes), inline=False
             )
 
+        embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
         await interaction.response.send_message(embed=embed)
 
 

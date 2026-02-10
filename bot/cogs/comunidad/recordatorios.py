@@ -3,6 +3,7 @@ import asyncio
 import discord
 from discord import app_commands
 from discord.ext import commands
+from bot.themes import Theme
 
 
 class Recordatorios(commands.Cog):
@@ -26,7 +27,13 @@ class Recordatorios(commands.Cog):
         )
         await asyncio.sleep(minutos * 60)
         try:
-            await interaction.user.send(f"⏰ Recordatorio: {texto}")
+            embed = discord.Embed(
+                title="⏰ Recordatorio",
+                description=texto,
+                color=Theme.get_color(interaction.guild.id, 'primary')
+            )
+            embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
+            await interaction.user.send(embed=embed)
         except Exception:
             pass
 

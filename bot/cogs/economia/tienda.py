@@ -1,15 +1,33 @@
+import json
+import os
 from typing import List
 
 import discord
 from discord import app_commands
 from discord.ext import commands
-
+from bot.themes import Theme
 
 class Tienda(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.file_path = "shop.json"
         self.items: dict[str, int] = {}
-        self.inv: dict[int, list[str]] = {}
+        self.inv: dict[str, list[str]] = {} # Keys as str(user_id) for JSON
+        self._load_tienda()
+
+    def _load_tienda(self):
+        if os.path.exists(self.file_path):
+            try:
+                with open(self.file_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    self.items = data.get("items", {})
+                    self.inv = data.get("inventory", {})
+            except Exception:
+                pass
+    
+    def _save_tienda(self):
+        with open(self.file_path, "w", encoding="utf-8") as f:
+            json.dump({"items": self.items, "inventory": self.inv}, f, indent=4, ensure_ascii=False)
 
     def _get_monedas(self):
         try:
@@ -49,6 +67,7 @@ class Tienda(commands.Cog):
             )
             return
         self.items[nombre.lower()] = precio
+        self._save_tienda()
         await interaction.response.send_message(f"✅ Añadido {nombre} por {precio}.")
         try:
             e = interaction.client.build_log_embed(
@@ -71,10 +90,11 @@ class Tienda(commands.Cog):
         embed = discord.Embed(
             title="🛍️ Tienda",
             description="Catálogo disponible",
-            color=discord.Color.blurple(),
+            color=Theme.get_color(interaction.guild.id, 'primary'),
         )
         for n, p in self.items.items():
             embed.add_field(name=n, value=f"{p} monedas", inline=True)
+        embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
         await interaction.response.send_message(embed=embed)
         try:
             e = interaction.client.build_log_embed(
@@ -99,6 +119,7 @@ class Tienda(commands.Cog):
         if self.items.pop(nombre.lower(), None) is None:
             await interaction.response.send_message("⚠️ No existe.", ephemeral=True)
             return
+        self._save_tienda()
         await interaction.response.send_message("✅ Eliminado.")
         try:
             e = interaction.client.build_log_embed(
@@ -120,19 +141,20 @@ class Tienda(commands.Cog):
                 "⚠️ No existe el artículo.", ephemeral=True
             )
             return
-        uid = interaction.user.id
-        saldo = self._saldo(uid)
+        uid = str(interaction.user.id)
+        saldo = self._saldo(interaction.user.id)
         if saldo < precio:
             await interaction.response.send_message(
                 f"⚠️ Saldo insuficiente. Tienes {saldo}, cuesta {precio}.",
                 ephemeral=True,
             )
             return
-        inv = self.inv.setdefault(interaction.user.id, [])
+        inv = self.inv.setdefault(uid, [])
         inv.append(key)
-        self._sumar(uid, -precio)
+        self._sumar(interaction.user.id, -precio)
+        self._save_tienda()
         await interaction.response.send_message(
-            f"🛒 Compraste {nombre} por {precio}. Saldo restante: {self._saldo(uid)}"
+            f"🛒 Compraste {nombre} por {precio}. Saldo restante: {self._saldo(interaction.user.id)}"
         )
         try:
             e = interaction.client.build_log_embed(
@@ -150,7 +172,7 @@ class Tienda(commands.Cog):
     async def inventario(
         self, interaction: discord.Interaction, usuario: discord.User | None = None
     ):
-        uid = (usuario or interaction.user).id
+        uid = str((usuario or interaction.user).id)
         inv = self.inv.get(uid, [])
         if not inv:
             await interaction.response.send_message("📦 Vacío.")
@@ -159,10 +181,11 @@ class Tienda(commands.Cog):
         embed = discord.Embed(
             title="📦 Inventario",
             description=f"Artículos de {target}",
-            color=discord.Color.green(),
+            color=Theme.get_color(interaction.guild.id, 'secondary'),
         )
         for it in inv:
             embed.add_field(name=it, value="Poseído", inline=True)
+        embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
         await interaction.response.send_message(embed=embed)
         try:
             e = interaction.client.build_log_embed(
@@ -259,7 +282,7 @@ class Tienda(commands.Cog):
     async def auto_regalar(
         self, interaction: discord.Interaction, current: str
     ) -> List[app_commands.Choice[str]]:
-        uid = interaction.user.id
+        uid = str(interaction.user.id)
         inv = self.inv.get(uid, [])
         cur = (current or "").lower().strip()
         out = []
@@ -516,10 +539,12 @@ class TiendaView(discord.ui.View):
             t = await interaction.channel.create_thread(
                 name="🛍️ Tienda", type=discord.ChannelType.public_thread
             )
+            embed = discord.Embed(
+                title="🛍️ Tienda", description="Usa el selector para comprar", color=Theme.get_color(interaction.guild.id, 'secondary')
+            )
+            embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
             await t.send(
-                embed=discord.Embed(
-                    title="🛍️ Tienda", description="Usa el selector para comprar"
-                ),
+                embed=embed,
                 view=TiendaView(self.tienda),
             )
             await interaction.response.send_message(
@@ -609,7 +634,7 @@ class TiendaView(discord.ui.View):
             e = discord.Embed(
                 title="🛍️ Tienda",
                 description="Usa el selector para comprar",
-                color=discord.Color.blurple(),
+                color=Theme.get_color(interaction.guild.id, 'primary'),
             )
             for n, p in self.tienda.items.items():
                 e.add_field(name=n, value=f"{p} monedas", inline=True)
@@ -634,7 +659,7 @@ class TiendaView(discord.ui.View):
         e = discord.Embed(
             title="🛍️ Tienda",
             description="Usa el selector para comprar",
-            color=discord.Color.blurple(),
+            color=Theme.get_color(interaction.guild.id, 'primary'),
         )
         for n, p in self.items.items():
             e.add_field(name=n, value=f"{p} monedas", inline=True)

@@ -1,0 +1,188 @@
+================================================================================
+          POSEIDON BOT - MANUAL DE NOVEDADES (ACTUALIZACIÓN MASIVA)
+================================================================================
+
+Este documento detalla las nuevas funcionalidades avanzadas añadidas al bot. 
+Estas características están diseñadas para aumentar drásticamente la retención 
+y actividad de los usuarios en tu servidor.
+
+--------------------------------------------------------------------------------
+1. SISTEMA DE MASCOTAS v2.0 (La Gran Expansión)
+--------------------------------------------------------------------------------
+El sistema de mascotas ha sido completamente reescrito para ser un "minijuego dentro del bot".
+Ya no son solo imágenes estáticas; ahora tienen vida, necesidades y evoluciones.
+
+[NUEVAS ESPECIES Y EVOLUCIONES]
+Se han añadido 5 nuevas especies, sumando un total de 10. Todas evolucionan al Nivel 10.
+
+| Mascota Base (Nvl 1-9) | Evolución (Nvl 10+)       | Descripción Épica                   |
+|------------------------|---------------------------|-------------------------------------|
+| 🐶 Perro               | 🐺 Lobo Místico           | Guardián espiritual.                |
+| 🐱 Gato                | 🦁 León Solar             | Brilla con luz propia.              |
+| 🐲 Dragón              | 🐉 Bahamut                | El rey de los dragones.             |
+| 🤖 Robot               | 🦾 Mecha Prime            | Tecnología suprema.                 |
+| 🐹 Hámster             | 🐗 Bestia Divina          | Imparable fuerza de la naturaleza.  |
+| 👽 Alien (NUEVO)       | 🛸 Invasor Cósmico        | Conquistador de mundos.             |
+| 👻 Fantasma (NUEVO)    | 💀 Espectro Real          | El terror nocturno.                 |
+| 🦖 Dinosaurio (NUEVO)  | 🦕 T-Rex Titán            | El depredador definitivo.           |
+| 🦄 Unicornio (NUEVO)   | 🌈 Alicornio Sagrado      | Luz de esperanza y magia.           |
+| 💧 Slime (NUEVO)       | 👑 Rey Slime              | El más grande de todos.             |
+
+[CUIDADOS VITALES]
+Las mascotas ahora tienen 3 barras de estado que bajan con el tiempo (cada hora):
+- 🍖 Hambre: Si llega a 0, la mascota MUERE (se borra para siempre).
+- ❤️ Felicidad: Si llega a 0, la mascota SE ESCAPA de casa.
+- ⚡ Energía: Necesaria para entrenar y explorar.
+
+[NUEVA TIENDA DE MASCOTAS] (/mascota tienda)
+Nuevos objetos para ayudar a los dueños:
+- ☕ Café: Recupera Energía (+30) para seguir jugando.
+- 🎾 Pelota: Juguete económico para subir Felicidad (+20).
+- 🧪 Poción de XP: ¡Otorga +100 XP instantáneos! (Ideal para evolucionar rápido).
+- 💉 Medicina: Cura total de salud y energía.
+
+[EXPLORACIÓN AVANZADA] (/mascota explorar)
+Enviar a tu mascota de aventura ahora tiene resultados variados:
+- 💎 TESORO: Encuentra un cofre con muchas monedas.
+- 📜 PERGAMINO: Gana una gran cantidad de experiencia.
+- 🍎 SUPERVIVENCIA: Encuentra comida gratis.
+- 🐻 PELIGRO: Puede encontrarse con animales salvajes y volver asustada.
+
+--------------------------------------------------------------------------------
+2. ECONOMÍA AVANZADA v5.0 (Wall Street & Carrera)
+--------------------------------------------------------------------------------
+Se ha transformado la economía simple en un sistema financiero dinámico.
+
+[MERCADO DE VALORES / BOLSA] (/bolsa)
+Los usuarios pueden invertir sus monedas en acciones de empresas ficticias.
+- Las empresas: Poseidon Inc., Néctar Sagrado, Minas de Oro, Fragua de Hefesto.
+- Precios Dinámicos: Cada vez que se consulta el mercado, los precios fluctúan.
+- Volatilidad: Pueden ocurrir "Crashes" (bajadas bruscas) o "Booms" (subidas masivas).
+- Estrategia: Comprar barato y vender caro para multiplicar la fortuna.
+
+[CARRERA LABORAL] (/work)
+Trabajar ya no da siempre lo mismo.
+- Niveles de Oficio: Cuanto más trabajas, más experiencia laboral ganas.
+- Aumentos de Sueldo: Cada nivel de oficio otorga un +10% PERMANENTE a las ganancias.
+- Progresión: De "Aprendiz" a "Magnate".
+
+--------------------------------------------------------------------------------
+3. COMANDO DE AYUDA MEJORADO (/ayuda)
+--------------------------------------------------------------------------------
+- Categorías Limpias: Se han separado los juegos de la comunidad para facilitar la navegación.
+- Descripciones Claras: Cada categoría explica exactamente qué ofrece.
+- Sin Comandos Muertos: Se ha limpiado la lista para mostrar solo lo que realmente funciona.
+
+--------------------------------------------------------------------------------
+4. SISTEMA DE MÚSICA DE ALTA CALIDAD 🎵 (NUEVO)
+--------------------------------------------------------------------------------
+Ahora Poseidon también es tu DJ personal. ¡Convierte tu servidor en una fiesta!
+
+[COMANDOS]
+- /play [nombre/url]: Reproduce una canción de YouTube o añade a la cola.
+- /stop: Detiene la música y desconecta al bot.
+- /skip: Salta a la siguiente canción de la cola.
+- /queue: Muestra la lista de canciones pendientes.
+- /pause y /resume: Control total sobre la reproducción.
+
+[CARACTERÍSTICAS]
+- Alta Calidad de Audio: Configuración optimizada para evitar lag.
+- Cola Inteligente: Añade tantas canciones como quieras.
+- Búsqueda Automática: No necesitas el link exacto, solo escribe el nombre.
+
+--------------------------------------------------------------------------------
+5. ACTUALIZACIÓN v4.2 - ESTABILIDAD Y RENDIMIENTO
+--------------------------------------------------------------------------------
+Esta actualización se centra en la robustez técnica y la compatibilidad con servidores externos (Teramont/Linux).
+
+[MEJORAS EN MÚSICA]
+- ✅ Compatibilidad Total con Linux: Implementada carga manual de librerías Opus.
+- ✅ Audio Fluido: Nuevas opciones de FFMPEG para eliminar micro-cortes y lag.
+- ✅ Conexión Robusta: Sistema de re-conexión automática y timeouts ajustados.
+- ✅ Anti-Bloqueo: Solucionado el problema donde el bot se quedaba "Pensando..." infinitamente.
+- ✅ Búsqueda Optimizada: Extracción de metadatos ultra-rápida para evitar errores de gateway.
+
+[MEJORAS GENERALES]
+- 🔧 Corrección en /ayuda: Interfaz limpia y funcional sin errores de "Interacción fallida".
+- 🛡️ Estabilidad: Manejo de errores mejorado en todos los comandos principales.
+
+--------------------------------------------------------------------------------
+6. ACTUALIZACIÓN v5.1 - BATALLAS ESTRATÉGICAS Y AUDIO PRO (NUEVO)
+--------------------------------------------------------------------------------
+¡La actualización solicitada ya está aquí! Hemos llevado las mascotas y la música al siguiente nivel.
+
+[BATALLAS DE MASCOTAS 2.1 - ESTRATEGIA TOTAL]
+El antiguo sistema de azar ha sido eliminado. ¡Ahora TÚ controlas la pelea!
+- 🎮 Combate Interactivo: Usa botones para Atacar, usar Especial o Curarte.
+- ⚔️ Sistema de Turnos: Piensa tu estrategia, gestiona tu Energía y Vida (HP).
+- 🔥 Tabla Elemental: Cada tipo de mascota tiene debilidades y fortalezas:
+  (Fuego > Agua > Eléctrico > Tierra > Fuego | Luz <-> Oscuridad)
+- 📊 Interfaz Visual: Barras de vida dinámicas y logs de combate detallados.
+
+[MÚSICA PRO - AUDIO STUDIO]
+Tu bot ahora es una mesa de mezclas profesional.
+- 🎛️ Filtros de Audio (/filtro): Aplica efectos en tiempo real como:
+  * Bassboost (Graves explosivos)
+  * Nightcore (Rápido y agudo)
+  * Vaporwave (Lento y estético)
+  * 8D (Sonido envolvente 360º)
+- 🎤 Letras (/lyrics): ¿No te sabes la canción? Busca la letra al instante con un clic.
+
+--------------------------------------------------------------------------------
+7. NUEVOS JUEGOS INTERACTIVOS (Trivia & Ahorcado)
+--------------------------------------------------------------------------------
+¡Más diversión para tu comunidad! Se han añadido dos clásicos renovados.
+
+[TRIVIA] (/trivia)
+Pon a prueba tu cultura general.
+- 🧠 Preguntas Rápidas: Tienes 15 segundos para responder.
+- 🏆 Ranking Global: Compite por ser el más listo del servidor (/ranking_trivia).
+- 💰 Recompensas: Gana monedas por cada respuesta correcta.
+
+[AHORCADO] (/ahorcado)
+El clásico juego de adivinar palabras, ahora moderno.
+- 🎨 Interfaz Gráfica: Visualiza el dibujo ASCII del ahorcado paso a paso.
+- 🔤 Interacción Fácil: Usa botones para adivinar letras o arriesgarte con la palabra completa.
+- 📚 Categorías Variadas: Animales, Países, Tecnología, Comida y más.
+
+--------------------------------------------------------------------------------
+8. FUNCIONES SOCIALES AVANZADAS (Confesiones & Matrimonios)
+--------------------------------------------------------------------------------
+Fomenta la interacción social y el "salseo" en tu comunidad.
+
+[CONFESIONES ANÓNIMAS] (/confesion)
+¡Deja que tus usuarios se expresen libremente!
+- 🕵️ Anonimato Total: El bot publica el mensaje, nadie sabrá quién fue.
+- ⚙️ Configurable: Usa /set_confesiones #canal para elegir dónde salen.
+- 🔢 Contador: Cada confesión tiene un número único (#1, #2...).
+
+[SISTEMA DE MATRIMONIOS] (/love)
+Crea lazos entre usuarios con un sistema completo de rol.
+- 💍 Boda y Divorcio: Propón matrimonio y cásate.
+- 💰 Economía Conjunta: Cuenta bancaria compartida entre la pareja.
+- 👶 Familia: Adopta hijos (NPCs) y haz crecer la familia.
+- 💖 Interacciones: Besar, Abrazar o tener una Cita para ganar Puntos de Amor.
+- 🔮 Ship: Calcula el % de compatibilidad con otro usuario.
+
+--------------------------------------------------------------------------------
+9. AUTO-MODERACIÓN AVANZADA (Seguridad)
+--------------------------------------------------------------------------------
+Mantén tu servidor limpio y seguro automáticamente.
+
+[FILTROS INTELIGENTES]
+- 🤬 Anti-Groserías: Elimina mensajes con lenguaje inapropiado (configurable).
+- 🔠 Anti-Mayúsculas: Evita el "GRITO" excesivo en el chat (si supera el 70% del mensaje).
+- 🛡️ Comandos de Admin:
+  * /automod_status: Revisa qué filtros están activos.
+  * /automod_toggle: Activa o desactiva filtros al instante.
+  * /automod_addword y /automod_delword: Gestiona tu propia lista negra de palabras.
+
+--------------------------------------------------------------------------------
+NOTAS PARA EL ADMINISTRADOR
+--------------------------------------------------------------------------------
+- Los datos de economía se guardan en 'economy.json' y 'stocks.json'.
+- Los datos de mascotas se guardan en 'mascotas.json'.
+- Se recomienda hacer copias de seguridad de estos archivos regularmente.
+- REQUISITO PARA MÚSICA: El servidor donde se aloje el bot debe tener FFMPEG instalado.
+
+¡Disfruta de la nueva versión de Poseidon Bot!

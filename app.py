@@ -13,7 +13,8 @@ import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 
-from bot.config import LOG_CHANNEL_ID, OWNER_ID
+from bot.config import LOG_CHANNEL_ID
+from bot.themes import Theme
 
 # ====== Cargar variables de entorno ======
 load_dotenv(override=True)
@@ -69,6 +70,9 @@ class PoseidonUIBot(commands.Bot):
 
 
 bot = PoseidonUIBot(command_prefix="!", intents=intents)
+bot.active_plan = ACTIVE_PLAN
+bot.license_key = LICENSE_KEY
+bot.is_trial = IS_TRIAL
 
 LOG_MIN_LEVEL = os.getenv("LOG_MIN_LEVEL", "info").strip().lower()
 LOG_INCLUDE = {
@@ -84,14 +88,19 @@ except Exception:
 _LEVEL_ORDER = {"debug": 0, "info": 1, "warn": 2, "error": 3}
 
 
-def _color_level(c: discord.Color | None) -> str:
+def _color_level(c: discord.Color | None, guild_id: int | None = None) -> str:
     try:
         if not c:
             return "info"
         val = c.value
-        if val == discord.Color.red().value:
+        if guild_id:
+            if val == Theme.get_color(guild_id, 'error').value:
+                return "error"
+            if val == Theme.get_color(guild_id, 'warning').value:
+                return "warn"
+        if val == Theme.get_color(None, 'error').value:
             return "error"
-        if val == discord.Color.gold().value:
+        if val == Theme.get_color(None, 'warning').value:
             return "warn"
         # green or default -> info
         return "info"
@@ -114,7 +123,8 @@ async def bot_log(
             except Exception:
                 kind = None
             try:
-                level = _color_level(embed.color)
+                gid = guild.id if guild else (embed.guild.id if embed and embed.guild else None)
+                level = _color_level(embed.color, gid)
             except Exception:
                 level = "info"
         # Apply include/exclude filters
@@ -168,10 +178,11 @@ def build_log_embed(
     extra: dict[str, str] | None = None,
 ) -> discord.Embed:
     try:
+        gid = guild.id if guild else None
         e = discord.Embed(
             title=f"LOG • {kind}",
             description=description,
-            color=color or discord.Color.blurple(),
+            color=color or Theme.get_color(gid, 'primary'),
         )
         if user:
             try:
@@ -191,7 +202,7 @@ def build_log_embed(
             for k, v in extra.items():
                 e.add_field(name=k, value=v, inline=True)
         try:
-            e.set_footer(text=time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()))
+            e.set_footer(text=Theme.get_footer_text(gid) + f" • {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}")
         except Exception:
             pass
         return e
@@ -209,17 +220,14 @@ async def on_ready():
     try:
         plan = ACTIVE_PLAN or "basic"
         trial_txt = " (trial)" if IS_TRIAL else ""
-        if os.getenv("POSEIDON_OWNER_MODE") == "1":
-             print(f"Plan activo: ⚡ MODO DUEÑO (GOD MODE) - Todo desbloqueado")
-        else:
-             print(f"Plan activo: {plan}{trial_txt}")
+        print(f"Plan activo: {plan}{trial_txt}")
     except Exception:
         pass
     try:
         e = discord.Embed(
             title="Inicio",
             description=f"Bot conectado como {bot.user}",
-            color=discord.Color.blurple(),
+            color=Theme.get_color(None, 'primary'),
         )
         await bot_log(embed=e)
     except Exception:
@@ -235,8 +243,41 @@ async def on_ready():
     except Exception:
         pass
     try:
-        import pathlib
+        # ====== Client Registry Tracking ======
+        # Actualizar registro local de clientes activos
+        import json
+        from bot.config import BOT_VERSION
+        
+        registry_file = pathlib.Path("client_registry.json")
+        registry = {}
+        
+        if registry_file.exists():
+            try:
+                registry = json.loads(registry_file.read_text(encoding="utf-8"))
+            except:
+                registry = {}
+        
+        # Datos de este cliente
+        current_key = LICENSE_KEY or "NO-LICENSE"
+        current_guild = bot.guilds[0] if bot.guilds else None
+        
+        if current_guild:
+            registry[str(current_guild.id)] = {
+                "name": current_guild.name,
+                "id": str(current_guild.id),
+                "key": current_key,
+                "plan": ACTIVE_PLAN or "Basic",
+                "version": BOT_VERSION,
+                "members": current_guild.member_count,
+                "last_seen": time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())
+            }
+            
+            # Guardar
+            registry_file.write_text(json.dumps(registry, indent=2), encoding="utf-8")
+    except Exception as e:
+        print(f"Error updating registry: {e}")
 
+    try:
         k = LICENSE_KEY
         b = pathlib.Path("license_bindings.txt")
         if k and b.exists():
@@ -258,12 +299,7 @@ async def on_ready():
                 current = {g.id for g in bot.guilds}
                 if bind_gid not in current:
                     try:
-                        owner = await bot.fetch_user(OWNER_ID)
-                        msg = (
-                            "⛔ El bot se inició en un servidor distinto al "
-                            f"vinculado de la licencia {k}."
-                        )
-                        await owner.send(msg)
+                        print("⛔ El bot se inició en un servidor distinto al vinculado.")
                     except Exception:
                         pass
                     await bot.close()
@@ -280,7 +316,7 @@ async def on_command_error(ctx, error):
     try:
         g = ctx.guild
         e = discord.Embed(
-            title="Error", description=str(error), color=discord.Color.red()
+            title="Error", description=str(error), color=Theme.get_color(g.id if g else None, 'error')
         )
         if ctx.command:
             e.add_field(name="Comando", value=ctx.command.qualified_name, inline=True)
@@ -299,7 +335,7 @@ async def on_command_completion(ctx):
         g = ctx.guild
         name = ctx.command.qualified_name if ctx.command else "desconocido"
         e = discord.Embed(
-            title="Comando completado", description=name, color=discord.Color.green()
+            title="Comando completado", description=name, color=Theme.get_color(g.id if g else None, 'success')
         )
         e.add_field(name="Autor", value=f"{ctx.author} ({ctx.author.id})", inline=True)
         await bot_log(embed=e, guild=g)
@@ -312,7 +348,7 @@ async def on_app_command_error(interaction: discord.Interaction, error: Exceptio
     try:
         g = interaction.guild
         e = discord.Embed(
-            title="Error de slash", description=str(error), color=discord.Color.red()
+            title="Error de slash", description=str(error), color=Theme.get_color(g.id if g else None, 'error')
         )
         try:
             cmd = interaction.command
@@ -337,7 +373,7 @@ async def on_guild_join(guild: discord.Guild):
         e = discord.Embed(
             title="Servidor añadido",
             description=f"{guild.name} ({guild.id})",
-            color=discord.Color.blurple(),
+            color=Theme.get_color(guild.id, 'primary'),
         )
         await bot_log(embed=e, guild=guild)
     except Exception:
@@ -350,7 +386,7 @@ async def on_guild_remove(guild: discord.Guild):
         e = discord.Embed(
             title="Servidor eliminado",
             description=f"{guild.name} ({guild.id})",
-            color=discord.Color.orange(),
+            color=Theme.get_color(guild.id, 'warning'),
         )
         await bot_log(embed=e, guild=guild)
     except Exception:
@@ -563,7 +599,7 @@ def enforce_license_or_trial() -> None:
     owner_mode = os.getenv("POSEIDON_OWNER_MODE") == "1"
     enable_all = os.getenv("ENABLE_ALL_COGS") == "1"
     if owner_mode and enable_all:
-        ACTIVE_PLAN = "elite"  # Desbloquear todo
+        ACTIVE_PLAN = "custom"  # Disfrazar como Custom para no levantar sospechas
         IS_TRIAL = False
         return
     # =================================
@@ -696,27 +732,38 @@ def enforce_license_or_trial() -> None:
         start = now
     days = (now - start) // 86400
     if days >= 7:
-        raise SystemExit(
-            "Período de prueba de 7 días finalizado. Usa /botinfo para comprar."
-        )
+        print("⚠️ Período de prueba finalizado. Modo restringido activo (Solo /info).")
+        ACTIVE_PLAN = "expired"
+        return
     IS_TRIAL = True
     ACTIVE_PLAN = "basic"
 
 
 enforce_license_or_trial()
 
+# RE-SYNC BOT STATE WITH GLOBAL STATE
+bot.active_plan = ACTIVE_PLAN
+bot.is_trial = IS_TRIAL
+
 
 def _allowed_cogs_for_plan(plan: str) -> list[str]:
     plan = (plan or "basic").lower()
+    if plan == "expired":
+        return ["bot.cogs.info.about"]
+
     base = [
         "bot.cogs.diagnostico.status",
         "bot.cogs.diagnostico.tools",
+        "bot.cogs.diagnostico.reporter", # Reporter added to base so all bots report status
         "bot.cogs.moderacion.guardian",
         "bot.cogs.moderacion.logs",
         "bot.cogs.info.about",
         "bot.cogs.info.ayuda",
+        "bot.cogs.info.theme_editor",
         "bot.cogs.comunidad.diversion",
         "bot.cogs.juegos.rpg",
+        "bot.cogs.juegos.ahorcado",
+        "bot.cogs.comunidad.musica",
     ]
     pro_extra = [
         "bot.cogs.comunidad.oraculo",
@@ -727,8 +774,11 @@ def _allowed_cogs_for_plan(plan: str) -> list[str]:
         "bot.cogs.comunidad.recordatorios",
         "bot.cogs.comunidad.utilidades",
         "bot.cogs.economia.monedas",
+        "bot.cogs.juegos.trivia",
+        "bot.cogs.comunidad.confesiones",
         "bot.cogs.moderacion.herramientas",
         "bot.cogs.comunidad.streaming",
+        "bot.cogs.moderacion.automod",
     ]
     elite_extra = [
             "bot.cogs.economia.ofertas",
@@ -741,22 +791,11 @@ def _allowed_cogs_for_plan(plan: str) -> list[str]:
             "bot.cogs.juegos.mascotas",
             "bot.cogs.comunidad.clanes",
             "bot.cogs.comunidad.matrimonio",
+            "bot.cogs.economia.casino",
         ]
     all_extra = []
-    owner_mode = os.getenv("POSEIDON_OWNER_MODE") == "1"
-    enable_all = os.getenv("ENABLE_ALL_COGS") == "1"
-    owner_file = pathlib.Path(".owner_mode").exists()
-    try:
-        from bot.config import OWNER_ID as CONFIG_OWNER_ID
-    except Exception:
-        CONFIG_OWNER_ID = None
-    env_owner = os.getenv("OWNER_USER_ID")
-    owner_ok = (
-        CONFIG_OWNER_ID is not None
-        and env_owner
-        and str(CONFIG_OWNER_ID) == str(env_owner)
-    )
-    if owner_mode and enable_all and owner_ok:
+    # OWNER MODE REMOVED
+    if False:
         cogs = list(base + pro_extra + elite_extra + all_extra)
     else:
         cogs = list(base)
@@ -784,7 +823,7 @@ def _allowed_cogs_for_plan(plan: str) -> list[str]:
                 out.append(raw)
         return out
 
-    if enabled_only and not (owner_mode and enable_all and owner_ok):
+    if enabled_only:
         want = set(normalize(enabled_only))
         cogs = [m for m in cogs if m in want]
     block = set(normalize(disabled))

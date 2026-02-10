@@ -1,60 +1,52 @@
 PoseidonUI — Guía rápida para clientes
 
 1) Requisitos
-- Python 3.11+ instalado y en PATH
+- Python 3.11+ instalado y en PATH (asegúrate de marcar "Add Python to PATH" al instalar)
 - Crear aplicación/bot en https://discord.com/developers y copiar el DISCORD_TOKEN
-- Habilitar Intents en el bot: Message Content, Guilds y Members
+- Habilitar Intents en el bot (sección "Bot"): Message Content, Presence, Server Members
 
 2) Instalación
-- Clona el repositorio
-- En Windows, ejecuta start.bat dentro de BotDiscord4.0/ (crea venv e instala dependencias)
-- Copia .env.example a .env y completa:
-  - DISCORD_TOKEN= (obligatorio)
-  - RIOT_API_KEY= (opcional, solo para comandos de LoL)
-  - CANAL_OFERTAS_ID= (opcional, canal donde se publicarán threads diarios)
-  - LICENSE_KEY= (opcional; también puedes activar con /activar)
+- Descomprime el archivo ZIP.
+- En Windows, ejecuta start.bat (doble clic).
+  - Este script creará automáticamente el entorno virtual (venv) e instalará las dependencias.
+- El script se detendrá si no encuentra el archivo .env.
+- Copia el archivo .env.example y renómbralo a .env.
+- Abre .env con un editor de texto (Notepad, VS Code, etc.) y completa:
+  - DISCORD_TOKEN= (Tu token de Discord, OBLIGATORIO)
+  - LICENSE_KEY= (Tu clave de licencia comprada. Si la dejas vacía, tendrás 7 días de prueba)
+  - RIOT_API_KEY= (Opcional, para comandos de LoL)
+  - CANAL_OFERTAS_ID= (Opcional, ID del canal para ofertas diarias)
 
-3) Activación y licencia
-- Si ejecutas sin licencia, tendrás una prueba de 7 días (trial)
-- Para activar una licencia permanente:
-  - Opción A: coloca LICENSE_KEY en .env
-  - Opción B: en tu servidor de Discord, ejecuta /activar POSEIDON-XXXX-XXXX-XXXX
-- La licencia queda vinculada a tu servidor. Los intentos de usarla en otro servidor se bloquean
-- Al activar, recibirás confirmación y el propietario es notificado por DM
+3) Activación y Licencia
+- Prueba Gratuita (Trial): Si no pones licencia, el bot funciona por 7 días.
+- Licencia Permanente:
+  - Coloca tu LICENSE_KEY en el archivo .env
+  - O usa el comando /activar POSEIDON-XXXX-XXXX en Discord.
+- La licencia se vincula a tu servidor (Guild ID).
 
-4) Arranque
-- Opción rápida: doble clic en start.bat
-- Opción manual: activar venv (Windows) y ejecutar: python main.py
+4) Comandos Principales
+- Prefijo ! (comandos clásicos)
+  - !oferta: Muestra ofertas de juegos.
+- Slash / (comandos modernos)
+  - /info: Panel principal de información y estado de licencia.
+  - /ayuda: Lista completa de comandos según tu plan.
+  - /clan: Sistema completo de Clanes (Crear, Unirse, Guerra, Banco, Ranking).
+  - /mascota: Sistema de mascotas (Entrenar, Evolucionar, Duelos).
+  - /love: Comandos de matrimonio y compatibilidad (ship).
+  - /niveles_toggle: (Admin) Activar/Desactivar el sistema de niveles.
+  - /top: Ver ranking de economía.
+  - /guardian: Configuración de seguridad y moderación.
 
-5) Comandos principales
-- Prefijo !
-  - !oferta / !ofertas: muestra ofertas de juegos
-- Slash /
-  - /botinfo: información del bot y botón Comprar (con selector de plan)
-  - /demo: publica tarjetas de presentación en un hilo
-  - /status: panel de salud (admins/staff)
-  - /juicio: rol temporal ritual del Guardian
-  - /crear_roles_guardian: crea roles base del sistema Guardian
-  - /ofertas: publica 30+ ofertas en un thread
-  - /activar: activa licencia (si no usas LICENSE_KEY en .env)
-  - /estado_licencia: muestra la licencia activa (permanente)
+5) Solución de Problemas
+- "El bot se cierra al abrir": Verifica que tengas Python instalado y que el TOKEN en .env sea correcto.
+- "No veo los comandos /": Asegúrate de haber invitado al bot con el permiso "applications.commands" y que los Intents estén activos en el portal de desarrolladores.
+- "Licencia expirada": Si pasaron 7 días y no has activado una licencia, el bot entrará en modo restringido. Usa /info para comprar una licencia.
+- "Error 403 Forbidden en Música": YouTube bloquea IPs de datacenter.
+  1. Instala la extensión "Get cookies.txt LOCALLY" en tu navegador.
+  2. Ve a YouTube.com (logueado).
+  3. Exporta las cookies y pega el contenido en el archivo "cookies.txt" que está en la carpeta del bot.
+  4. Reinicia el bot.
 
-6) Configuración rápida
-- Intents: habilita Message Content en el portal de Discord
-- Roles/canales: si usas nombres distintos, ajusta guardian.py y config.py
-- Ofertas diarias: pon CANAL_OFERTAS_ID con el ID del canal destino
-- LoL: RIOT_API_KEY debe ser válido para consultar invocadores/ranked
-
-7) Problemas comunes
-- DISCORD_TOKEN inválido: el bot no arranca
-- Intents no habilitados: algunos comandos no funcionan
-- RIOT_API_KEY ausente: comandos de LoL mostrarán error controlado
-- Sin licencia y trial vencido: el bot se detiene y pide compra
-
-8) Compra y soporte
-- Usa /botinfo y pulsa Comprar / Solicitar para contactar al propietario
-- También puedes abrir un Issue en GitHub
-- Soporte y personalizaciones disponibles (branding, nuevas funciones, integraciones)
-
-9) Contacto directo
-- Discord: Luciuss04 (envía un DM directamente)
+6) Soporte
+- Contacta al desarrollador (Luciuss04) para soporte, licencias o personalizaciones.
+- Usa el botón "Comprar licencia" en /info para ver los planes disponibles.

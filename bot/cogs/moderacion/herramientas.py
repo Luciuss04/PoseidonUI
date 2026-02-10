@@ -7,7 +7,10 @@ class HerramientasModeracion(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @app_commands.command(name="clear", description="Borra mensajes recientes")
+    # Grupo de comandos de moderación
+    mod_group = app_commands.Group(name="mod", description="Herramientas de moderación")
+
+    @mod_group.command(name="clear", description="Borra mensajes recientes")
     async def clear(self, interaction: discord.Interaction, cantidad: int):
         if cantidad < 1 or cantidad > 100:
             await interaction.response.send_message(
@@ -29,7 +32,7 @@ class HerramientasModeracion(commands.Cog):
         except Exception:
             pass
 
-    @app_commands.command(name="slowmode", description="Aplica slowmode al canal")
+    @mod_group.command(name="slowmode", description="Aplica slowmode al canal")
     async def slowmode(self, interaction: discord.Interaction, segundos: int):
         if segundos < 0 or segundos > 21600:
             await interaction.response.send_message(
@@ -51,7 +54,7 @@ class HerramientasModeracion(commands.Cog):
         except Exception:
             pass
 
-    @app_commands.command(name="mute", description="Silencia a un usuario en minutos")
+    @mod_group.command(name="mute", description="Silencia a un usuario en minutos")
     async def mute(
         self, interaction: discord.Interaction, usuario: discord.Member, minutos: int
     ):
@@ -91,7 +94,7 @@ class HerramientasModeracion(commands.Cog):
                 "⚠️ No se pudo silenciar.", ephemeral=True
             )
 
-    @app_commands.command(name="unmute", description="Quita el silencio a un usuario")
+    @mod_group.command(name="unmute", description="Quita el silencio a un usuario")
     async def unmute(self, interaction: discord.Interaction, usuario: discord.Member):
         try:
             await usuario.edit(timed_out_until=None)
@@ -118,7 +121,7 @@ class HerramientasModeracion(commands.Cog):
                 "⚠️ No se pudo desilenciar.", ephemeral=True
             )
 
-    @app_commands.command(name="lock", description="Bloquea un canal para escribir")
+    @mod_group.command(name="lock", description="Bloquea un canal para escribir")
     async def lock(
         self, interaction: discord.Interaction, canal: discord.TextChannel | None = None
     ):
@@ -139,7 +142,7 @@ class HerramientasModeracion(commands.Cog):
         except Exception:
             pass
 
-    @app_commands.command(name="unlock", description="Desbloquea un canal")
+    @mod_group.command(name="unlock", description="Desbloquea un canal")
     async def unlock(
         self, interaction: discord.Interaction, canal: discord.TextChannel | None = None
     ):
@@ -162,7 +165,7 @@ class HerramientasModeracion(commands.Cog):
         except Exception:
             pass
 
-    @app_commands.command(name="warn", description="Advierte a un usuario")
+    @mod_group.command(name="warn", description="Advierte a un usuario")
     async def warn(
         self, interaction: discord.Interaction, usuario: discord.Member, razon: str
     ):

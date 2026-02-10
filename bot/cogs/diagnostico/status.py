@@ -7,6 +7,7 @@ import discord
 import psutil
 from discord import app_commands
 from discord.ext import commands, tasks
+from bot.themes import Theme
 
 STAFF_ROLES = ["Semidios", "Discípulo de Atena"]
 ALERT_CHANNEL = "⚔️-alertas"
@@ -113,24 +114,21 @@ class Status(commands.Cog):
         memory_percent = memory_info.percent
 
         if latency_ms < 200 and cpu_percent < 70 and memory_percent < 75:
-            health_status = "🟢 Olimpo estable"
-            embed_color = discord.Color.green()
-            embed_title = "⚡ Olimpo en calma"
-            footer_text = "Los dioses sonríen sobre el Olimpo"
+            health_status = "🕊️ Cielos despejados"
+            embed_color = Theme.get_color(guild.id, 'success')
+            embed_title = "🔱 PoseidonUI: Estado Óptimo"
         elif latency_ms < 400 and cpu_percent < 85 and memory_percent < 85:
-            health_status = "🟡 Vigilancia activa"
-            embed_color = discord.Color.gold()
-            embed_title = "⚠️ Olimpo en guardia"
-            footer_text = "Los dioses vigilan con atención"
+            health_status = "☁️ Nubes en el horizonte"
+            embed_color = Theme.get_color(guild.id, 'warning')
+            embed_title = "🔱 PoseidonUI: Estado Alerta"
         else:
-            health_status = "🔴 Crisis detectada"
-            embed_color = discord.Color.red()
-            embed_title = "🔥 Olimpo en crisis"
-            footer_text = "Los dioses se enfurecen y claman justicia"
+            health_status = "⚡ Ira de Zeus"
+            embed_color = Theme.get_color(guild.id, 'error')
+            embed_title = "🔱 PoseidonUI: Estado Crítico"
 
         embed = discord.Embed(
             title=embed_title,
-            description="Panel de diagnóstico completo de Atenea ⚡",
+            description="Panel de diagnóstico del Olimpo.",
             color=embed_color,
         )
         embed.add_field(name="🤖 Bot", value=f"{self.bot.user}", inline=False)
@@ -177,12 +175,8 @@ class Status(commands.Cog):
 
         embed.add_field(name="🌌 Salud global", value=health_status, inline=False)
 
-        embed.add_field(
-            name="⚡ Lema", value="«El Olimpo vigila y protege»", inline=False
-        )
-
         embed.set_footer(
-            text=f"{footer_text} • Hora UTC: {time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime())}"
+            text=f"{Theme.get_footer_text(guild.id)} • {time.strftime('%H:%M UTC', time.gmtime())}"
         )
         return embed
 
@@ -265,7 +259,7 @@ class Status(commands.Cog):
             embed = discord.Embed(
                 title="📦 Perfil del Bot",
                 description="Configuración y módulos activos",
-                color=discord.Color.blurple(),
+                color=Theme.get_color(interaction.guild.id, 'primary'),
             )
             embed.add_field(name="🔑 Plan", value=plan, inline=True)
             embed.add_field(name="🧪 Trial", value="sí" if trial else "no", inline=True)
@@ -280,6 +274,7 @@ class Status(commands.Cog):
             )
             lista = "\n".join(mods) if mods else "(sin cogs)"
             embed.add_field(name="📚 Cogs cargados", value=lista, inline=False)
+            embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
             await interaction.response.send_message(embed=embed, ephemeral=True)
         except Exception as e:
             await interaction.response.send_message(f"⚠️ Error: {e}", ephemeral=True)
