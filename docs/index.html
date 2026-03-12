@@ -14,16 +14,21 @@
         <div class="logo">
             <i class="fa-solid fa-trident"></i> PoseidonUI
         </div>
-        <nav class="nav-links">
+        <nav id="site-nav" class="nav-links">
             <a href="https://luciuss04.github.io/Porfolio-Josep/">← Portafolio</a>
             <a href="#features">Características</a>
             <a href="#stats">Estadísticas</a>
             <a href="#planes">Planes</a>
             <a href="https://discord.gg/Kaf728xRFA" target="_blank">Soporte</a>
         </nav>
-        <a href="#planes" class="cta-btn">
-            <i class="fa-solid fa-gem"></i> Ver Planes
-        </a>
+        <div class="header-actions">
+            <a href="#planes" class="cta-btn">
+                <i class="fa-solid fa-gem"></i> Ver Planes
+            </a>
+            <button class="nav-toggle" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="site-nav">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
     </header>
 
     <section class="hero">
@@ -32,7 +37,7 @@
             <h1>Gobierna tu servidor con el poder del <span>Olimpo</span></h1>
             <p>El bot todo-en-uno definitivo: Mascotas RPG, Economía Avanzada, Música Hi-Fi y Moderación Automatizada.</p>
             <div class="hero-btns">
-                <a href="#planes" class="cta-btn">Obtener Bot</a>
+                <a href="#planes" class="cta-btn">Ver Planes</a>
                 <a href="#features" class="btn-outline">Ver Funciones</a>
             </div>
         </div>
@@ -118,6 +123,16 @@
             <h2>Planes del Olimpo</h2>
             <p>Elige el poder que mejor se adapte a tu reino.</p>
         </div>
+
+        <div class="trial-banner">
+            <div class="trial-text">
+                <h3>Prueba 7 días</h3>
+                <p>Activa una demo limitada durante 7 días para ver si encaja con tu servidor.</p>
+            </div>
+            <a href="#" onclick="selectTrial(); return false;" class="cta-btn">
+                <i class="fa-solid fa-stopwatch"></i> Probar 7 días
+            </a>
+        </div>
         
         <div class="pricing-grid">
             <!-- Basic Plan -->
@@ -177,6 +192,59 @@
         </div>
     </section>
 
+    <section class="steps">
+        <div class="section-title">
+            <h2>Cómo Funciona</h2>
+            <p>Proceso guiado en 3 pasos, sin invitación pública del bot.</p>
+        </div>
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <h3>Elige un plan</h3>
+                <p>Selecciona Básico, Pro, Élite o Custom según tu servidor.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <h3>Envía el mensaje</h3>
+                <p>Pulsa “Elegir” y se abrirá mi DM con un mensaje plantilla copiado.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <h3>Entrega e instalación</h3>
+                <p>Te preparo el bot según tu plan y te guío para dejarlo listo en tu servidor.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="faq">
+        <div class="section-title">
+            <h2>FAQ</h2>
+            <p>Respuestas rápidas antes de comprar.</p>
+        </div>
+        <div class="faq-list">
+            <details class="faq-item">
+                <summary>¿Por qué no hay enlace de invitación?</summary>
+                <p><strong>No hay acceso público.</strong> La instalación y la activación se realizan cuando contratas un plan (o solicitas la demo). Así evitas usos gratuitos y recibes una configuración correcta.</p>
+            </details>
+            <details class="faq-item">
+                <summary>¿Hay prueba gratis?</summary>
+                <p><strong>Sí, 7 días.</strong> Te activo una demo limitada para que compruebes estabilidad, flujo y funciones clave antes de decidir.</p>
+            </details>
+            <details class="faq-item">
+                <summary>¿Puedo cambiar de plan después?</summary>
+                <p><strong>Sin problema.</strong> Puedes subir o bajar de plan en cualquier momento y el bot se ajusta al instante a las funciones incluidas.</p>
+            </details>
+            <details class="faq-item">
+                <summary>¿Qué necesito para que funcione en mi servidor?</summary>
+                <p><strong>Solo permisos de admin.</strong> Te guío en la instalación y dejamos canales, roles, logs y módulos listos para producción.</p>
+            </details>
+            <details class="faq-item">
+                <summary>¿El plan Custom incluye cambios a medida?</summary>
+                <p><strong>Sí.</strong> Incluye marca blanca (nombre/imagen) y desarrollo de funciones a medida, alineadas con tu comunidad y tu flujo de moderación.</p>
+            </details>
+        </div>
+    </section>
+
     <section id="stats" class="stats">
         <div class="stats-grid">
             <div class="stat-item">
@@ -213,9 +281,9 @@
             <div class="footer-links">
                 <h4>Soporte</h4>
                 <ul>
-                    <li><a href="#">Comunidad de Discord</a></li>
-                    <li><a href="#">Documentación</a></li>
-                    <li><a href="#">Estado del Servicio</a></li>
+                    <li><a href="https://discord.gg/Kaf728xRFA" target="_blank">Comunidad de Discord</a></li>
+                    <li><a href="#features">Documentación</a></li>
+                    <li><a href="https://github.com/Luciuss04/PoseidonUI" target="_blank">Repositorio</a></li>
                 </ul>
             </div>
         </div>
@@ -237,6 +305,44 @@
                 window.open(`https://discord.com/users/${userId}`, "_blank");
             });
         }
+
+        function selectTrial() {
+            const userId = "443479189597716480";
+            const text = "Hola, quiero activar la prueba de 7 días de PoseidonUI para mi servidor (demo limitada).";
+
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Mensaje copiado al portapapeles:\n\n" + text + "\n\nRedirigiendo al chat privado...");
+                window.open(`https://discord.com/users/${userId}`, "_blank");
+            }).catch(err => {
+                console.error('Error al copiar:', err);
+                window.open(`https://discord.com/users/${userId}`, "_blank");
+            });
+        }
+
+        (function() {
+            const toggle = document.querySelector(".nav-toggle");
+            const nav = document.getElementById("site-nav");
+            if (!toggle || !nav) return;
+
+            const setOpen = (open) => {
+                nav.classList.toggle("open", open);
+                toggle.setAttribute("aria-expanded", open ? "true" : "false");
+                const icon = toggle.querySelector("i");
+                if (icon) icon.className = open ? "fa-solid fa-xmark" : "fa-solid fa-bars";
+            };
+
+            toggle.addEventListener("click", () => {
+                setOpen(!nav.classList.contains("open"));
+            });
+
+            nav.querySelectorAll("a").forEach((a) => {
+                a.addEventListener("click", () => setOpen(false));
+            });
+
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") setOpen(false);
+            });
+        })();
     </script>
 </body>
 </html>

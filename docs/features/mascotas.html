@@ -16,15 +16,20 @@
                 <i class="fa-solid fa-trident"></i> PoseidonUI
             </a>
         </div>
-        <nav class="nav-links">
+        <nav id="site-nav" class="nav-links">
             <a href="../index.html">← Volver al Inicio</a>
             <a href="guardian.html">Guardian</a>
             <a href="economia.html">Economía</a>
             <a href="oraculo.html">Oráculo</a>
         </nav>
-        <a href="../index.html#planes" class="cta-btn">
-            <i class="fa-solid fa-gem"></i> Ver Planes
-        </a>
+        <div class="header-actions">
+            <a href="../index.html#planes" class="cta-btn">
+                <i class="fa-solid fa-gem"></i> Ver Planes
+            </a>
+            <button class="nav-toggle" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="site-nav">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
     </header>
 
     <section class="hero" style="min-height: 60vh;">
@@ -92,5 +97,31 @@
         </div>
     </footer>
 
+    <script>
+        (function() {
+            const toggle = document.querySelector(".nav-toggle");
+            const nav = document.getElementById("site-nav");
+            if (!toggle || !nav) return;
+
+            const setOpen = (open) => {
+                nav.classList.toggle("open", open);
+                toggle.setAttribute("aria-expanded", open ? "true" : "false");
+                const icon = toggle.querySelector("i");
+                if (icon) icon.className = open ? "fa-solid fa-xmark" : "fa-solid fa-bars";
+            };
+
+            toggle.addEventListener("click", () => {
+                setOpen(!nav.classList.contains("open"));
+            });
+
+            nav.querySelectorAll("a").forEach((a) => {
+                a.addEventListener("click", () => setOpen(false));
+            });
+
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") setOpen(false);
+            });
+        })();
+    </script>
 </body>
 </html>
