@@ -93,16 +93,30 @@ class WebServer(commands.Cog):
 
         async def get_bot_stats(request):
             """Retorna estadísticas globales del bot (Público)."""
-            uptime = str(datetime.fromtimestamp(self.start_time).strftime("%Y-%m-%d %H:%M:%S"))
+            uptime_secs = int(time.time() - self.start_time)
             stats = {
                 "status": "online",
                 "version": BOT_VERSION,
-                "uptime_start": uptime,
+                "uptime_secs": uptime_secs,
                 "guilds_count": len(self.bot.guilds),
-                "users_count": sum(g.member_count for g in self.bot.guilds),
+                "users_count": sum(g.member_count for g in self.bot.guilds if g.member_count),
                 "latency": round(self.bot.latency * 1000, 2)
             }
             return web.json_response(stats)
+
+        async def get_guilds_list(request):
+            """Retorna lista de servidores con detalles básicos (Privado)."""
+            guilds = []
+            for g in self.bot.guilds:
+                guilds.append({
+                    "id": str(g.id),
+                    "name": g.name,
+                    "icon": str(g.icon.url) if g.icon else None,
+                    "members": g.member_count,
+                    "owner": str(g.owner),
+                    "config": get_guild_config(g.id)
+                })
+            return web.json_response(guilds)
 
         async def get_guild_settings(request):
             """Retorna la configuración de un servidor específico (Privado)."""
@@ -130,6 +144,7 @@ class WebServer(commands.Cog):
         # API
         app.router.add_post('/api/login', login)
         app.router.add_get('/api/stats', get_bot_stats)
+        app.router.add_get('/api/guilds', get_guilds_list)
         app.router.add_get('/api/config/{guild_id}', get_guild_settings)
         app.router.add_post('/api/theme', update_theme)
 
