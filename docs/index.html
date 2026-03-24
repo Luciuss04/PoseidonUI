@@ -246,26 +246,18 @@
     </section>
 
     <section id="stats" class="stats">
-        <div class="section-title">
-            <h2>Estado del Olimpo</h2>
-            <p>Monitoreo en tiempo real de la infraestructura divina.</p>
-        </div>
         <div class="stats-grid">
             <div class="stat-item">
-                <h3 id="stat-guilds">...</h3>
-                <p>Servidores</p>
-            </div>
-            <div class="stat-item">
-                <h3 id="stat-users">...</h3>
+                <h3>50+</h3>
                 <p>Usuarios</p>
             </div>
             <div class="stat-item">
-                <h3 id="stat-latency">...</h3>
-                <p>Latencia (ms)</p>
+                <h3>2</h3>
+                <p>Servidores</p>
             </div>
             <div class="stat-item">
-                <h3 id="stat-status">Desconectado</h3>
-                <p>Estado del Bot</p>
+                <h3>99.9%</h3>
+                <p>Uptime</p>
             </div>
         </div>
     </section>
@@ -301,54 +293,6 @@
     </footer>
 
     <script>
-        // Configuración forzada para GitHub Pages vs Local
-        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const BOT_URL = isLocal ? '' : 'http://104.128.49.50:11111'; 
-        
-        console.log("🔱 PoseidonUI: Conectando a " + (isLocal ? "Local Bot" : BOT_URL));
-
-        // Verificar si ya está logueado para cambiar el link
-        const token = localStorage.getItem('poseidon_token');
-        if (token) {
-            const loginLink = document.getElementById('login-link');
-            if (loginLink) {
-                loginLink.innerText = 'Dashboard Admin';
-                loginLink.href = '#stats';
-            }
-        }
-
-        async function updateStats() {
-            try {
-                const response = await fetch(`${BOT_URL}/api/stats`);
-                const data = await response.json();
-                
-                const guildEl = document.getElementById('stat-guilds');
-                const usersEl = document.getElementById('stat-users');
-                const latencyEl = document.getElementById('stat-latency');
-                const statusEl = document.getElementById('stat-status');
-
-                if (guildEl) guildEl.innerText = data.guilds_count;
-                if (usersEl) usersEl.innerText = data.users_count;
-                if (latencyEl) latencyEl.innerText = data.latency + 'ms';
-                
-                if (statusEl) {
-                    statusEl.innerText = data.status.toUpperCase();
-                    statusEl.style.color = data.status === 'online' ? '#2ecc71' : '#e74c3c';
-                }
-            } catch (err) {
-                console.error('Error cargando estadísticas:', err);
-                const statusEl = document.getElementById('stat-status');
-                if (statusEl) {
-                    statusEl.innerText = 'OFFLINE';
-                    statusEl.style.color = '#e74c3c';
-                }
-            }
-        }
-        
-        // Actualizar cada 30 segundos
-        updateStats();
-        setInterval(updateStats, 30000);
-
         function selectPlan(plan) {
             const userId = "443479189597716480";
             const text = `Hola, estoy interesado en adquirir el plan ${plan} de PoseidonUI.`;
