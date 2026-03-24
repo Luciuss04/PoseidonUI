@@ -15,12 +15,12 @@
             <i class="fa-solid fa-trident"></i> PoseidonUI
         </div>
         <nav id="site-nav" class="nav-links">
-            <a href="https://luciuss04.github.io/Porfolio-Josep/">← Portafolio</a>
-            <a href="#features">Características</a>
-            <a href="#stats">Estadísticas</a>
-            <a href="#planes">Planes</a>
-            <a href="/login" id="login-link">Admin Login</a>
-        </nav>
+        <a href="https://luciuss04.github.io/Porfolio-Josep/">← Portafolio</a>
+        <a href="#features">Características</a>
+        <a href="#stats">Estadísticas</a>
+        <a href="#planes">Planes</a>
+        <a href="login.html" id="login-link">Admin Login</a>
+    </nav>
         <div class="header-actions">
             <a href="#planes" class="cta-btn">
                 <i class="fa-solid fa-gem"></i> Ver Planes
@@ -270,6 +270,36 @@
         </div>
     </section>
 
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">
+                <h3><i class="fa-solid fa-trident"></i> PoseidonUI</h3>
+                <p>El mejor bot multifunción para Discord.</p>
+            </div>
+            
+            <div class="footer-links">
+                <h4>Producto</h4>
+                <ul>
+                    <li><a href="#features">Funciones</a></li>
+                    <li><a href="#planes">Planes Premium</a></li>
+                    <li><a href="#">Términos de Servicio</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-links">
+                <h4>Soporte</h4>
+                <ul>
+                    <li><a href="https://discord.gg/Kaf728xRFA" target="_blank">Comunidad de Discord</a></li>
+                    <li><a href="#features">Documentación</a></li>
+                    <li><a href="https://github.com/Luciuss04/PoseidonUI" target="_blank">Repositorio</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2026 PoseidonUI. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
     <script>
         // Configuración del bot (Local o Teramont)
         const BOT_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
@@ -317,52 +347,7 @@
         // Actualizar cada 30 segundos
         updateStats();
         setInterval(updateStats, 30000);
-    </script>
-                <h3>50+</h3>
-                <p>Usuarios</p>
-            </div>
-            <div class="stat-item">
-                <h3>2</h3>
-                <p>Servidores</p>
-            </div>
-            <div class="stat-item">
-                <h3>99.9%</h3>
-                <p>Uptime</p>
-            </div>
-        </div>
-    </section>
 
-    <footer>
-        <div class="footer-content">
-            <div class="footer-logo">
-                <h3><i class="fa-solid fa-trident"></i> PoseidonUI</h3>
-                <p>El mejor bot multifunción para Discord.</p>
-            </div>
-            
-            <div class="footer-links">
-                <h4>Producto</h4>
-                <ul>
-                    <li><a href="#features">Funciones</a></li>
-                    <li><a href="#planes">Planes Premium</a></li>
-                    <li><a href="#">Términos de Servicio</a></li>
-                </ul>
-            </div>
-            
-            <div class="footer-links">
-                <h4>Soporte</h4>
-                <ul>
-                    <li><a href="https://discord.gg/Kaf728xRFA" target="_blank">Comunidad de Discord</a></li>
-                    <li><a href="#features">Documentación</a></li>
-                    <li><a href="https://github.com/Luciuss04/PoseidonUI" target="_blank">Repositorio</a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="copyright">
-            <p>&copy; 2026 PoseidonUI. Todos los derechos reservados.</p>
-        </div>
-    </footer>
-
-    <script>
         function selectPlan(plan) {
             const userId = "443479189597716480";
             const text = `Hola, estoy interesado en adquirir el plan ${plan} de PoseidonUI.`;
