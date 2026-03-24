@@ -301,10 +301,11 @@
     </footer>
 
     <script>
-        // Configuración del bot (IP y Puerto de Teramont)
-        const BOT_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-            ? '' 
-            : 'http://104.128.49.50:11111'; 
+        // Configuración forzada para GitHub Pages vs Local
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const BOT_URL = isLocal ? '' : 'http://104.128.49.50:11111'; 
+        
+        console.log("🔱 PoseidonUI: Conectando a " + (isLocal ? "Local Bot" : BOT_URL));
 
         // Verificar si ya está logueado para cambiar el link
         const token = localStorage.getItem('poseidon_token');
