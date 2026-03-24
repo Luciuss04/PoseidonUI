@@ -84,6 +84,7 @@ bot = PoseidonUIBot(command_prefix="!", intents=intents)
 bot.active_plan = ACTIVE_PLAN
 bot.license_key = LICENSE_KEY
 bot.is_trial = IS_TRIAL
+bot.recent_logs = [] # Buffer de logs recientes para el dashboard
 
 LOG_MIN_LEVEL = os.getenv("LOG_MIN_LEVEL", "info").strip().lower()
 LOG_INCLUDE = {
@@ -138,6 +139,20 @@ async def bot_log(
                 level = _color_level(embed.color, gid)
             except Exception:
                 level = "info"
+        
+        # Guardar en buffer local para el dashboard
+        log_entry = {
+            "timestamp": datetime.datetime.utcnow().isoformat(),
+            "level": level,
+            "kind": kind or "General",
+            "content": content or (embed.description if embed else ""),
+            "guild_id": str(guild.id) if guild else None,
+            "guild_name": guild.name if guild else "Global"
+        }
+        bot.recent_logs.append(log_entry)
+        if len(bot.recent_logs) > 100: # Mantener solo los últimos 100
+            bot.recent_logs.pop(0)
+
         # Apply include/exclude filters
         if kind and kind in LOG_EXCLUDE:
             return

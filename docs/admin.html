@@ -73,10 +73,28 @@
             color: var(--accent-blue);
         }
 
-        .logout-btn {
-            margin-top: auto;
+        .reboot-btn {
+            margin-top: 10px;
             color: var(--accent-red);
             border: 1px solid rgba(231, 76, 60, 0.2);
+            font-size: 0.9rem;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: 0.3s;
+        }
+        .reboot-btn:hover {
+            background: rgba(231, 76, 60, 0.1);
+            border-color: var(--accent-red);
+        }
+
+        .logout-btn {
+            margin-top: auto;
+            color: var(--text-dim);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         /* Main Content */
@@ -196,9 +214,11 @@
         <ul class="nav-menu">
             <li class="nav-item active"><i class="fa-solid fa-chart-line"></i> Dashboard</li>
             <li class="nav-item"><i class="fa-solid fa-server"></i> Servidores</li>
-            <li class="nav-item"><i class="fa-solid fa-shield-halved"></i> Seguridad</li>
-            <li class="nav-item"><i class="fa-solid fa-clock-rotate-left"></i> Logs</li>
+            <li class="nav-item" onclick="viewLogs('global')"><i class="fa-solid fa-clock-rotate-left"></i> Logs Globales</li>
         </ul>
+        <div class="reboot-btn" onclick="rebootBot()">
+            <i class="fa-solid fa-power-off"></i> Reiniciar Bot
+        </div>
         <div class="nav-item logout-btn" onclick="logout()">
             <i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión
         </div>
@@ -265,6 +285,19 @@
         </div>
     </div>
 
+    <!-- Modal de Logs -->
+    <div id="logs-modal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3 id="logs-title">Registros del Servidor</h3>
+                <span class="close-modal" onclick="closeLogsModal()">&times;</span>
+            </div>
+            <div id="logs-container" style="max-height: 500px; overflow-y: auto; background: var(--bg-dark); padding: 15px; border-radius: 10px; font-family: monospace; font-size: 0.85rem;">
+                <!-- Logs dinámicos -->
+            </div>
+        </div>
+    </div>
+
     <script>
         const token = localStorage.getItem('poseidon_token');
         if (!token) window.location.href = 'login.html';
@@ -318,7 +351,7 @@
                             </div>
                             <div class="server-actions">
                                 <button class="btn btn-primary" onclick="manageGuild('${g.id}')">Gestionar</button>
-                                <button class="btn btn-outline">Ver Logs</button>
+                                <button class="btn btn-outline" onclick="viewLogs('${g.id}')">Ver Logs</button>
                             </div>
                         </div>
                     </div>
@@ -355,6 +388,56 @@
 
         function closeModal() {
             document.getElementById('manage-modal').style.display = 'none';
+        }
+
+        async function viewLogs(guildId) {
+            const container = document.getElementById('logs-container');
+            const title = document.getElementById('logs-title');
+            title.innerText = guildId === 'global' ? 'Registros Globales' : 'Registros del Servidor';
+            container.innerHTML = '<div style="color: var(--text-dim);">Cargando pergaminos...</div>';
+            document.getElementById('logs-modal').style.display = 'flex';
+
+            try {
+                const logs = await apiFetch(`/api/logs/${guildId}`);
+                if (logs.length === 0) {
+                    container.innerHTML = '<div style="color: var(--text-dim);">No hay registros recientes.</div>';
+                    return;
+                }
+
+                container.innerHTML = logs.map(l => {
+                    const time = new Date(l.timestamp).toLocaleTimeString();
+                    const color = l.level === 'error' ? '#e74c3c' : (l.level === 'warn' ? '#f1c40f' : '#2ecc71');
+                    return `<div style="margin-bottom: 8px; border-left: 3px solid ${color}; padding-left: 10px;">
+                        <span style="color: var(--text-dim);">[${time}]</span> 
+                        <span style="color: ${color}; font-weight: bold;">${l.kind.toUpperCase()}</span>: 
+                        ${l.content}
+                        ${guildId === 'global' ? `<br><small style="color: var(--text-dim);">Servidor: ${l.guild_name}</small>` : ''}
+                    </div>`;
+                }).join('');
+            } catch (err) {
+                container.innerHTML = '<div style="color: var(--accent-red);">Error al obtener los registros.</div>';
+            }
+        }
+
+        function closeLogsModal() {
+            document.getElementById('logs-modal').style.display = 'none';
+        }
+
+        async function rebootBot() {
+            if (!confirm('🔱 ¿Estás seguro de que deseas reiniciar el bot? Se perderá la conexión por unos segundos.')) return;
+            
+            try {
+                const res = await fetch(`${BOT_URL}/api/reboot`, {
+                    method: 'POST',
+                    headers: { 'Authorization': token }
+                });
+                if (res.ok) {
+                    alert('🚀 Reiniciando... La página se recargará en 5 segundos.');
+                    setTimeout(() => window.location.reload(), 5000);
+                }
+            } catch (err) {
+                alert('❌ Error al solicitar reinicio.');
+            }
         }
 
         document.getElementById('config-form').onsubmit = async (e) => {

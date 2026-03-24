@@ -161,6 +161,33 @@ class WebServer(commands.Cog):
             
             return web.json_response({"status": "success"})
 
+        async def get_logs(request):
+            """Retorna los logs recientes filtrados por servidor (Privado)."""
+            guild_id = request.match_info.get('guild_id')
+            logs = getattr(self.bot, "recent_logs", [])
+            
+            if guild_id == "global":
+                filtered = logs
+            else:
+                filtered = [l for l in logs if l.get('guild_id') == guild_id]
+            
+            return web.json_response(filtered[::-1]) # Invertir para ver lo más reciente primero
+
+        async def reboot_bot(request):
+            """Reinicia el bot (Privado)."""
+            print("🚀 [WebServer] Petición de reinicio recibida.")
+            # Respuesta rápida antes de cerrar
+            response = web.json_response({"status": "rebooting"})
+            
+            async def shutdown():
+                await asyncio.sleep(2)
+                await self.bot.close()
+                # El proceso se reiniciará por el .bat o el host
+                os._exit(0)
+            
+            asyncio.create_task(shutdown())
+            return response
+
         # --- RUTAS ---
         
         # API
@@ -169,7 +196,8 @@ class WebServer(commands.Cog):
         app.router.add_get('/api/guilds', get_guilds_list)
         app.router.add_get('/api/config/{guild_id}', get_guild_settings)
         app.router.add_post('/api/config/update', update_guild_config)
-        app.router.add_post('/api/theme', update_theme)
+        app.router.add_get('/api/logs/{guild_id}', get_logs)
+        app.router.add_post('/api/reboot', reboot_bot)
 
         # Frontend
         async def index(request):
@@ -196,9 +224,6 @@ class WebServer(commands.Cog):
             print(f"🌍 [WebServer] Dashboard con login en http://localhost:{self.port}")
         except Exception as e:
             print(f"❌ [WebServer] Error: {e}")
-
-async def setup(bot):
-    await bot.add_cog(WebServer(bot))
 
 async def setup(bot):
     await bot.add_cog(WebServer(bot))

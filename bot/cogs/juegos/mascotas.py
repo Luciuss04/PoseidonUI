@@ -51,37 +51,60 @@ class BattleView(discord.ui.View):
     async def update_embed(self, interaction, final=False):
         color = Theme.get_color(interaction.guild.id, 'error' if final and self.p_hp <= 0 else 'success')
         
-        desc = "\n".join(self.logs[-5:]) # Últimos 5 logs
-        
-        embed = discord.Embed(title="🏟️ Duelo de Mascotas", description=desc, color=color)
-        
-        # Barras de vida visuales
-        def make_bar(cur, max_v, emoji="🟩"):
-            pct = cur / max_v
+        # --- MEJORA VISUAL 2026 ---
+        def make_bar(cur, max_v, color_emoji="🟩"):
+            pct = max(0, min(1, cur / max_v))
             filled = int(pct * 10)
-            return emoji * filled + "⬛" * (10 - filled)
+            bar = color_emoji * filled + "⬛" * (10 - filled)
+            return f"`{bar}` {int(pct*100)}%"
 
         p_elem_icon = self.p_info.get('emoji_elem', '⚪')
         e_elem_icon = self.e_info.get('emoji_elem', '⚪')
+        
+        # Log formateado
+        log_text = ""
+        for l in self.logs[-4:]:
+            if "atacó" in l: log_text += f"💢 {l}\n"
+            elif "curó" in l: log_text += f"💚 {l}\n"
+            elif "CRÍTICO" in l: log_text += f"🔥 **{l}**\n"
+            else: log_text += f"{l}\n"
+
+        embed = discord.Embed(
+            title="🏟️ El Coliseo de Atenea", 
+            description=f"```fix\nFase de Combate\n```\n{log_text}", 
+            color=color
+        )
+        
+        # Layout de batalla
+        p_stats = f"❤️ HP: {make_bar(self.p_hp, self.p_max_hp, '🟩')}\n⚡ EN: {make_bar(self.p_energy, 100, '🟦')}"
+        e_stats = f"❤️ HP: {make_bar(self.e_hp, self.e_max_hp, '🟥')}\n🤖 IA Nvl: {self.enemy['level']}"
 
         embed.add_field(
-            name=f"{self.p_info['emoji']} {self.pet['name']} (Nvl {self.pet['level']}) {p_elem_icon}",
-            value=f"❤️ {int(self.p_hp)}/{int(self.p_max_hp)}\n{make_bar(self.p_hp, self.p_max_hp, '🟩')}\n⚡ {self.p_energy}%",
-            inline=True
+            name=f"{self.p_info['emoji']} {self.pet['name']} {p_elem_icon}",
+            value=p_stats,
+            inline=False
         )
         embed.add_field(
-            name="🆚", value="\u200b", inline=True
+            name="⚡ VS ⚡", 
+            value=f"**{self.enemy['name']}** {e_elem_icon}", 
+            inline=False
         )
         embed.add_field(
-            name=f"{self.e_info['emoji']} {self.enemy['name']} (Nvl {self.enemy['level']}) {e_elem_icon}",
-            value=f"❤️ {int(self.e_hp)}/{int(self.e_max_hp)}\n{make_bar(self.e_hp, self.e_max_hp, '🟥')}",
-            inline=True
+            name=f"Estadísticas del Oponente",
+            value=e_stats,
+            inline=False
         )
 
         if final:
             self.stop()
             self.clear_items()
-        
+            if self.p_hp > 0:
+                embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/1425781431682076682/1440115588746706984/Imagen_para_el_bot_d.png")
+            else:
+                embed.set_footer(text="¡Derrota en el Coliseo! Entrena más a tu mascota.")
+        else:
+            embed.set_footer(text=f"Turno de: {self.user.display_name} • Usa tus habilidades sabiamente")
+
         if interaction.response.is_done():
             await interaction.message.edit(embed=embed, view=self)
         else:
@@ -130,6 +153,25 @@ class BattleView(discord.ui.View):
         else:
             await self.update_embed(interaction)
 
+    async def _handle_victory(self, interaction):
+        self.e_hp = 0
+        self.logs.append(f"🏆 **¡{self.enemy['name']}** fue derrotado!")
+        
+        # Recompensa
+        monedas = self.bot.get_cog("Monedas")
+        winnings = self.stake * 2
+        if monedas and self.stake > 0:
+            monedas.add_balance(self.user.id, winnings)
+            self.logs.append(f"💰 Ganaste {winnings} monedas.")
+        
+        xp_gain = 30 + (self.enemy['level'] * 5)
+        xp_msg = self.cog._add_xp(self.pet, xp_gain)
+        self.pet['wins'] = self.pet.get('wins', 0) + 1
+        self.logs.append(f"🌟 Ganaste {xp_gain} XP.{xp_msg}")
+        
+        self.cog._save_pet(self.user.id, self.pet)
+        await self.update_embed(interaction, final=True)
+
     @discord.ui.button(label="Atacar", style=discord.ButtonStyle.danger, emoji="⚔️")
     async def attack(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user.id != self.user.id:
@@ -138,39 +180,24 @@ class BattleView(discord.ui.View):
         base_dmg = self.p_info.get('attack', 10) + (self.pet['level'] * 2)
         mult = self._get_element_multiplier(self.p_info.get('element', 'normal'), self.e_info.get('element', 'normal'))
         
-        # Crítico
-        crit = 1.5 if random.random() < 0.1 else 1.0
+        # Crítico con animación
+        is_crit = random.random() < 0.15 # 15% crit
+        crit = 1.7 if is_crit else 1.0
         
         final_dmg = int(base_dmg * mult * crit * random.uniform(0.9, 1.1))
         self.e_hp -= final_dmg
         
         msg = f"⚔️ **{self.pet['name']}** atacó: -{final_dmg} HP"
-        if crit > 1:
-            msg += " (¡CRÍTICO!)"
-        if mult > 1:
+        if is_crit:
+            msg = f"🔥 **CRÍTICO DIVINO** 🔥 {msg}"
+        elif mult > 1:
             msg += " (¡Efectivo!)"
         
         self.logs.append(msg)
-        self.p_energy = min(100, self.p_energy + 10) # Recuperar energía
+        self.p_energy = min(100, self.p_energy + 15) # Recuperar más energía
         
         if self.e_hp <= 0:
-            self.e_hp = 0
-            self.logs.append(f"🏆 **¡{self.enemy['name']}** fue derrotado!")
-            
-            # Recompensa
-            monedas = self.bot.get_cog("Monedas")
-            winnings = self.stake * 2
-            if monedas and self.stake > 0:
-                monedas.add_balance(self.user.id, winnings)
-                self.logs.append(f"💰 Ganaste {winnings} monedas.")
-            
-            xp_gain = 30 + (self.enemy['level'] * 5)
-            xp_msg = self.cog._add_xp(self.pet, xp_gain)
-            self.pet['wins'] = self.pet.get('wins', 0) + 1
-            self.logs.append(f"🌟 Ganaste {xp_gain} XP.{xp_msg}")
-            
-            self.cog._save_pet(self.user.id, self.pet)
-            await self.update_embed(interaction, final=True)
+            await self._handle_victory(interaction)
         else:
             await self.enemy_turn(interaction)
 
@@ -185,29 +212,28 @@ class BattleView(discord.ui.View):
             
         self.p_energy -= 40
         
-        base_dmg = (self.p_info.get('attack', 10) * 1.5) + (self.pet['level'] * 3)
+        # Nombre de habilidad especial según tipo
+        habilidades = {
+            "dragon": "🔥 Aliento de Fuego",
+            "robot": "⚡ Descarga Voltáica",
+            "fantasma": "🌑 Pesadilla Eterna",
+            "alien": "🛸 Abducción Cuántica",
+            "slime": "💧 Explosión Ácida",
+            "dinosaurio": "🦖 Mordisco Ancestral",
+            "unicornio": "✨ Rayo Purificador"
+        }
+        skill_name = habilidades.get(self.pet['type'], "✨ Ataque Especial")
+
+        base_dmg = (self.p_info.get('attack', 10) * 1.6) + (self.pet['level'] * 3)
         mult = self._get_element_multiplier(self.p_info.get('element', 'normal'), self.e_info.get('element', 'normal'))
         
-        final_dmg = int(base_dmg * mult * random.uniform(1.0, 1.3))
+        final_dmg = int(base_dmg * mult * random.uniform(1.1, 1.4))
         self.e_hp -= final_dmg
         
-        self.logs.append(f"✨ **{self.pet['name']}** usó su ULTIMATE: -{final_dmg} HP!!")
+        self.logs.append(f"🌟 **{self.pet['name']}** usó `{skill_name}`: -{final_dmg} HP!!")
         
         if self.e_hp <= 0:
-            # Victoria lógica duplicada (podría refactorizarse pero lo dejo así por brevedad)
-            self.e_hp = 0
-            self.logs.append(f"🏆 **¡{self.enemy['name']}** fue derrotado!")
-            monedas = self.bot.get_cog("Monedas")
-            winnings = self.stake * 2
-            if monedas and self.stake > 0:
-                monedas.add_balance(self.user.id, winnings)
-                self.logs.append(f"💰 Ganaste {winnings} monedas.")
-            xp_gain = 40 + (self.enemy['level'] * 5)
-            xp_msg = self.cog._add_xp(self.pet, xp_gain)
-            self.pet['wins'] = self.pet.get('wins', 0) + 1
-            self.logs.append(f"🌟 Ganaste {xp_gain} XP.{xp_msg}")
-            self.cog._save_pet(self.user.id, self.pet)
-            await self.update_embed(interaction, final=True)
+            await self._handle_victory(interaction)
         else:
             await self.enemy_turn(interaction)
 

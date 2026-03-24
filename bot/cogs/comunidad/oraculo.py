@@ -201,6 +201,58 @@ def guia_por_tipo(tipo: str) -> str:
 TIPOS_ORACULO = list(FRASES_APERTURA.keys())
 
 
+class OraculoAI:
+    """Motor de Sabiduría de Atenea (IA 2026)"""
+    
+    PALABRAS_URGENTES = ["urgente", "ayuda", "robo", "estafa", "raid", "ataque", "pérdida", "hack", "error grave", "prioridad", "inmediato", "auxilio"]
+    
+    MAPA_INTENCIONES = {
+        "soporte": ["error", "bug", "no funciona", "fallo", "problema", "comando", "bot", "configuración", "ajuste", "reparar", "caído"],
+        "denuncia": ["robo", "estafa", "insulto", "trol", "toxicidad", "reportar", "usuario", "maltrato", "spam", "scam", "raid"],
+        "creativo": ["idea", "sugerencia", "mejora", "proyecto", "nuevo", "añadir", "diseño", "arte", "música", "canal"],
+        "administrativo": ["rango", "rol", "permiso", "pago", "donación", "tienda", "unban", "apelación", "verificación"],
+        "místico": ["rolplay", "historia", "lore", "símbolo", "significado", "destino", "oráculo", "profecía"],
+        "colaboración": ["alianza", "partner", "socio", "unión", "evento", "compartir", "promoción"]
+    }
+
+    @staticmethod
+    def analizar_texto(texto: str):
+        texto = (texto or "").lower()
+        
+        # 1. Detección de Urgencia
+        urgencia_score = 0
+        for palabra in OraculoAI.PALABRAS_URGENTES:
+            if palabra in texto:
+                urgencia_score += 2
+        
+        if "?" in texto: urgencia_score += 1
+        if "!" in texto: urgencia_score += 1
+        
+        # 2. Sugerencia de Categoría
+        sugerencia = "general"
+        max_coincidencias = 0
+        for cat, keywords in OraculoAI.MAPA_INTENCIONES.items():
+            coincidencias = sum(1 for k in keywords if k in texto)
+            if coincidencias > max_coincidencias:
+                max_coincidencias = coincidencias
+                sugerencia = cat
+                
+        # 3. Respuesta Divina (Simulada para 2026)
+        respuestas = [
+            "✨ Mis ojos ven la verdad tras tus palabras. El camino de la sabiduría requiere paciencia.",
+            "🏛️ Los hilos del destino se entrelazan. He categorizado tu petición para que los guardianes actúen.",
+            "⚡ El rayo de la justicia caerá si es necesario, pero primero analicemos los hechos.",
+            "🦉 La lechuza de la sabiduría ha llevado tu mensaje al Staff del Olimpo.",
+            "📜 Los registros sagrados están listos. Tu consulta ha sido procesada por mi núcleo de IA."
+        ]
+        
+        return {
+            "urgencia": min(urgencia_score, 10),
+            "sugerencia": sugerencia,
+            "respuesta": random.choice(respuestas)
+        }
+
+
 def _topic_tokens(canal: discord.TextChannel) -> dict[str, str]:
     s = canal.topic or ""
     meta = s
@@ -1348,8 +1400,12 @@ class AperturaOraculoModal(discord.ui.Modal, title="Apertura del Oráculo"):
         titulo = str(self.titulo.value or "").strip()
         detalle = str(self.detalle.value or "").strip()
         
+        # --- INTEGRACIÓN IA ATENEA ---
+        texto_analisis = (titulo + " " + detalle).strip()
+        analisis = OraculoAI.analizar_texto(texto_analisis)
+        
         # Para CheckboxGroup, .value es una lista
-        urg = "true" in (self.urgente.value or [])
+        urg = "true" in (self.urgente.value or []) or analisis["urgencia"] >= 8
         
         if urg:
             try:
@@ -1378,10 +1434,15 @@ class AperturaOraculoModal(discord.ui.Modal, title="Apertura del Oráculo"):
         try:
             if titulo or detalle:
                 emb = discord.Embed(
-                    title=titulo or "📜 Detalles",
-                    description=detalle or "",
+                    title=titulo or "📜 Detalles del Oráculo",
+                    description=detalle or "*Sin descripción adicional*",
                     color=Theme.get_color(interaction.guild.id, 'primary'),
                 )
+                if analisis["urgencia"] >= 8:
+                    emb.add_field(name="🚨 Alerta IA", value="Este mensaje ha sido detectado como prioritario.", inline=False)
+                
+                emb.add_field(name="🔮 Respuesta de Atenea", value=analisis["respuesta"], inline=False)
+                emb.set_footer(text=f"Procesado por el Motor de Sabiduría v4.2")
                 await canal.send(embed=emb)
         except Exception:
             pass
@@ -1680,12 +1741,34 @@ class QuickOraculoModal(discord.ui.Modal):
                     pass
                 return
             if campos:
-                e = discord.Embed(title="Checklist", color=Theme.get_color(interaction.guild.id, 'primary'))
+                # --- INTEGRACIÓN IA ATENEA ---
+                texto_completo = " ".join([v for k, v in campos])
+                analisis = OraculoAI.analizar_texto(texto_completo)
+                
+                # Auto-urgencia si la IA lo detecta muy alto
+                if analisis["urgencia"] >= 8 and not urg:
+                    urg = True
+                    try:
+                        name = canal.name
+                        if not name.startswith("urgente-"):
+                            await _rename_channel(canal, f"urgente-{name}")
+                    except Exception: pass
+
+                e = discord.Embed(title="Checklist & Análisis IA", color=Theme.get_color(interaction.guild.id, 'primary'))
                 if urg:
-                    e.add_field(name="Estado", value="URGENTE", inline=True)
+                    e.add_field(name="⚠️ Estado", value="URGENTE (Detectado por IA)", inline=True)
+                
+                # Sugerencia de categoría si es distinta
+                if analisis["sugerencia"] != self.tipo:
+                    e.add_field(name="💡 Sugerencia de Atenea", value=f"Este Oráculo parece ser de tipo **{analisis['sugerencia'].capitalize()}**.", inline=True)
+
                 for label, val in campos:
                     e.add_field(name=label, value=val[:1024], inline=False)
-                e.set_footer(text=f"{Theme.get_footer_text(interaction.guild.id)} • Añade capturas o archivos en este canal")
+                
+                e.add_field(name="🔮 Guía de Atenea", value=analisis["respuesta"], inline=False)
+                
+                e.set_footer(text=f"{Theme.get_footer_text(interaction.guild.id)} • Análisis v2.7.1-AI")
+                
                 last = None
                 try:
                     async for m in canal.history(limit=30, oldest_first=False):
