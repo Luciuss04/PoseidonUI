@@ -108,7 +108,7 @@
                 if (response.ok) {
                     const data = await response.json();
                     localStorage.setItem('poseidon_token', data.token);
-                    window.location.href = 'index.html'; // Usar ruta relativa para GitHub Pages
+                    window.location.href = 'admin.html'; // Redirigir al panel real
                 } else {
                     error.style.display = 'block';
                 }

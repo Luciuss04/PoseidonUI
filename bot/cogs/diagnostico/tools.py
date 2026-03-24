@@ -9,6 +9,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from bot.config import LOG_CHANNEL_ID, get_guild_setting, set_guild_setting
+from bot.auth import update_auth
 
 
 class ToolsDiagnostico(commands.Cog):
@@ -250,6 +251,19 @@ class ToolsDiagnostico(commands.Cog):
             await interaction.client.log(embed=e, guild=interaction.guild)
         except Exception:
             pass
+
+    @config_group.command(name="dashboard", description="Cambia las credenciales del panel web (Admin Bot)")
+    @app_commands.checks.has_permissions(administrator=True)
+    async def config_dashboard(self, interaction: discord.Interaction, usuario: str, clave: str):
+        # Solo el dueño del bot debería poder cambiar esto por seguridad
+        if not await self.bot.is_owner(interaction.user):
+            await interaction.response.send_message("⛔ Solo el dueño del bot puede cambiar las credenciales globales.", ephemeral=True)
+            return
+
+        if update_auth(usuario, clave):
+            await interaction.response.send_message(f"✅ Credenciales actualizadas.\n**Usuario:** `{usuario}`\n**Clave:** `{clave}`", ephemeral=True)
+        else:
+            await interaction.response.send_message("❌ Error al actualizar credenciales.", ephemeral=True)
 
     @app_commands.command(name="uptime", description="Tiempo activo")
     async def uptime(self, interaction: discord.Interaction):

@@ -23,3 +23,12 @@ def verify_login(username, password):
     config = get_auth_config()
     pw_hash = hashlib.sha256(password.encode()).hexdigest()
     return username == config["username"] and pw_hash == config["password_hash"]
+
+def update_auth(username, password):
+    new_config = {
+        "username": username,
+        "password_hash": hashlib.sha256(password.encode()).hexdigest()
+    }
+    with open(DASHBOARD_CONFIG_FILE, "w") as f:
+        json.dump(new_config, f, indent=4)
+    return True

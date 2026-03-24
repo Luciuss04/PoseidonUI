@@ -140,8 +140,12 @@ class WebServer(commands.Cog):
         async def login_page(request):
             return web.FileResponse(os.path.join(website_path, "login.html"))
 
+        async def admin_page(request):
+            return web.FileResponse(os.path.join(website_path, "admin.html"))
+
         app.router.add_get('/', index)
         app.router.add_get('/login', login_page)
+        app.router.add_get('/admin', admin_page)
         app.router.add_static('/', website_path)
 
         self.runner = web.AppRunner(app)
