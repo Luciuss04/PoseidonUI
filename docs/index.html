@@ -301,10 +301,10 @@
     </footer>
 
     <script>
-        // Configuración del bot (Local o Teramont)
+        // Configuración del bot (IP y Puerto de Teramont)
         const BOT_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
             ? '' 
-            : 'http://localhost:8080'; // Cambiar por la IP/URL de tu bot si no es local
+            : 'http://104.128.49.50:11111'; 
 
         // Verificar si ya está logueado para cambiar el link
         const token = localStorage.getItem('poseidon_token');

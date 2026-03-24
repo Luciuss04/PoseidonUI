@@ -88,10 +88,10 @@
     </div>
 
     <script>
-        // Configuración del bot
+        // Configuración del bot (IP y Puerto de Teramont)
         const BOT_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
             ? '' 
-            : 'http://localhost:8080';
+            : 'http://104.128.49.50:11111';
 
         async function doLogin() {
             const user = document.getElementById('username').value;
