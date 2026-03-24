@@ -1,21 +1,18 @@
 import asyncio
+import logging
 import os
 import sys
-import logging
-from discord.ext import commands
+
 from discord import Intents
+from discord.ext import commands
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
 
-# Add root to path
-sys.path.insert(0, os.getcwd())
-
-# Importar el Cog
-from bot.cogs.integraciones.web import WebServer
-
 async def main():
     print("🚀 Iniciando Servidor Web de Prueba...")
+    sys.path.insert(0, os.getcwd())
+    from bot.cogs.integraciones.web import WebServer
     
     # Configurar Bot dummy
     intents = Intents.default()

@@ -1,3 +1,4 @@
+import asyncio
 import io
 import json
 import os
@@ -6,9 +7,10 @@ import time
 from datetime import datetime
 
 import discord
-import asyncio
 from discord import app_commands
 from discord.ext import commands, tasks
+
+from bot.config import get_guild_setting
 from bot.themes import Theme
 
 LOG_FILE = "oraculos.json"
@@ -79,6 +81,32 @@ FRASES_CIERRE = [
     "📜 *Las palabras se desvanecen, pero la sabiduría permanece.*",
     "🏛️ *El Olimpo cierra sus puertas hasta tu próxima invocación.*",
 ]
+
+
+def _get_staff_role(guild: discord.Guild | None) -> discord.Role | None:
+    if not guild:
+        return None
+    staff_role_ids = get_guild_setting(guild.id, "staff_role_ids", None)
+    if isinstance(staff_role_ids, list) and staff_role_ids:
+        for rid in staff_role_ids:
+            try:
+                r = guild.get_role(int(rid))
+                if r:
+                    return r
+            except Exception:
+                pass
+    staff_role_names = get_guild_setting(guild.id, "staff_role_names", [STAFF_ROLE_NAME])
+    if isinstance(staff_role_names, list) and staff_role_names:
+        for rn in staff_role_names:
+            try:
+                r = discord.utils.get(guild.roles, name=str(rn))
+                if r:
+                    return r
+            except Exception:
+                pass
+    return guild.get_role(STAFF_ROLE_ID) or discord.utils.get(
+        guild.roles, name=STAFF_ROLE_NAME
+    )
 
 
 def guardar_log(oraculo_data):
@@ -530,9 +558,7 @@ class OraculoChannelView(discord.ui.View):
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         guild = interaction.guild
-        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(
-            guild.roles, name=STAFF_ROLE_NAME
-        )
+        rol_staff = _get_staff_role(guild)
         if interaction.user.guild_permissions.administrator or (
             rol_staff and rol_staff in interaction.user.roles
         ):
@@ -574,9 +600,7 @@ class OraculoChannelView(discord.ui.View):
     ):
         miembro = interaction.user
         guild = interaction.guild
-        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(
-            guild.roles, name=STAFF_ROLE_NAME
-        )
+        rol_staff = _get_staff_role(guild)
         owner_ok = False
         try:
             toks = _topic_tokens(interaction.channel)
@@ -606,9 +630,7 @@ class OraculoChannelView(discord.ui.View):
         miembro = interaction.user
         guild = interaction.guild
         canal = interaction.channel
-        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(
-            guild.roles, name=STAFF_ROLE_NAME
-        )
+        rol_staff = _get_staff_role(guild)
         owner_ok = False
         try:
             toks = _topic_tokens(canal)
@@ -664,7 +686,7 @@ class OraculoChannelView(discord.ui.View):
                 for t, ow in canal.overwrites.items():
                     if isinstance(t, discord.Member):
                         lista.append(t.mention)
-            rol_staff = discord.utils.get(guild.roles, name=STAFF_ROLE_NAME)
+            rol_staff = _get_staff_role(guild)
             if rol_staff:
                 lista.append(rol_staff.mention)
             if lista:
@@ -689,9 +711,7 @@ class OraculoChannelView(discord.ui.View):
         miembro = interaction.user
         guild = interaction.guild
         canal = interaction.channel
-        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(
-            guild.roles, name=STAFF_ROLE_NAME
-        )
+        rol_staff = _get_staff_role(guild)
         if not (
             miembro.guild_permissions.administrator
             or (rol_staff and rol_staff in miembro.roles)
@@ -765,9 +785,7 @@ class OraculoChannelView(discord.ui.View):
     ):
         canal = interaction.channel
         guild = interaction.guild
-        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(
-            guild.roles, name=STAFF_ROLE_NAME
-        )
+        rol_staff = _get_staff_role(guild)
         if not rol_staff:
             await interaction.response.send_message(
                 "⚠️ No hay rol Staff configurado.", ephemeral=True
@@ -816,9 +834,7 @@ class OraculoChannelView(discord.ui.View):
         canal = interaction.channel
         miembro = interaction.user
         guild = interaction.guild
-        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(
-            guild.roles, name=STAFF_ROLE_NAME
-        )
+        rol_staff = _get_staff_role(guild)
         if not (
             miembro.guild_permissions.administrator
             or (rol_staff and rol_staff in miembro.roles)
@@ -866,9 +882,7 @@ class OraculoChannelView(discord.ui.View):
     ):
         canal = interaction.channel
         guild = interaction.guild
-        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(
-            guild.roles, name=STAFF_ROLE_NAME
-        )
+        rol_staff = _get_staff_role(guild)
         if not (
             interaction.user.guild_permissions.administrator
             or (rol_staff and rol_staff in interaction.user.roles)
@@ -950,8 +964,17 @@ class OraculoChannelView(discord.ui.View):
 
 
 class CloseOraculoModal(discord.ui.Modal, title="Sellar Oráculo"):
+    motivo = discord.ui.RadioGroup(
+        options=[
+            discord.RadioGroupOption(label="✅ Resuelto", value="Resuelto"),
+            discord.RadioGroupOption(label="💤 Inactivo", value="Inactivo"),
+            discord.RadioGroupOption(label="📁 Duplicado", value="Duplicado"),
+            discord.RadioGroupOption(label="🚫 No procede", value="No procede"),
+        ],
+        required=False,
+    )
     resumen = discord.ui.TextInput(
-        label="Resumen del cierre",
+        label="Detalles adicionales (opcional)",
         style=discord.TextStyle.paragraph,
         required=False,
         max_length=500,
@@ -996,9 +1019,15 @@ class CloseOraculoModal(discord.ui.Modal, title="Sellar Oráculo"):
             except Exception:
                 pass
             frase = random.choice(FRASES_CIERRE)
-            desc = frase
-            if str(self.resumen.value).strip():
-                desc = f"{frase}\n\n📝 Resumen: {self.resumen.value.strip()}"
+            
+            # Combinar motivo y resumen
+            motivo_val = self.motivo.value or "No especificado"
+            resumen_val = str(self.resumen.value).strip()
+            
+            desc = f"{frase}\n\n� **Motivo:** {motivo_val}"
+            if resumen_val:
+                desc += f"\n�📝 **Resumen:** {resumen_val}"
+                
             embed = discord.Embed(
                 title="⚖️ Oráculo Sellado",
                 description=desc,
@@ -1035,7 +1064,8 @@ class CloseOraculoModal(discord.ui.Modal, title="Sellar Oráculo"):
                     "canal": canal.name,
                     "cerrado_por": f"{miembro} ({miembro.id})",
                     "fecha_cierre": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
-                    "resumen": self.resumen.value.strip(),
+                    "motivo": motivo_val,
+                    "resumen": resumen_val,
                 }
             )
             try:
@@ -1045,10 +1075,9 @@ class CloseOraculoModal(discord.ui.Modal, title="Sellar Oráculo"):
             except Exception:
                 pass
             try:
-                txt = self.resumen.value.strip()
                 e = discord.Embed(
                     title="Oráculo sellado",
-                    description=(txt or ""),
+                    description=f"**Motivo:** {motivo_val}\n{resumen_val}",
                     color=Theme.get_color(guild.id, 'warning'),
                 )
                 await _alert_thread_post(guild, canal, embed=e)
@@ -1065,8 +1094,11 @@ class CloseOraculoModal(discord.ui.Modal, title="Sellar Oráculo"):
 
 class ResolveOraculoModal(discord.ui.Modal, title="Resolver Oráculo"):
     resumen = discord.ui.TextInput(label="Resumen breve", required=True, max_length=200)
-    cierre_total = discord.ui.TextInput(
-        label="Cerrar definitivamente (sí/no)", required=False, max_length=3
+    cierre_total = discord.ui.CheckboxGroup(
+        options=[
+            discord.CheckboxGroupOption(label="Cerrar definitivamente", value="true")
+        ],
+        required=False,
     )
 
     async def on_submit(self, interaction: discord.Interaction):
@@ -1093,13 +1125,10 @@ class ResolveOraculoModal(discord.ui.Modal, title="Resolver Oráculo"):
                         )
                     except Exception:
                         categoria_cerrados = None
-                close_def = str(self.cierre_total.value or "").strip().lower() in {
-                    "si",
-                    "sí",
-                    "yes",
-                    "true",
-                    "1",
-                }
+                
+                # Para CheckboxGroup, .value es una lista de valores seleccionados
+                close_def = "true" in (self.cierre_total.value or [])
+                
                 base_name = canal.name
                 nuevo_nombre = (
                     f"resuelto-{base_name}" if not close_def else f"cerrado-{base_name}"
@@ -1132,7 +1161,7 @@ class ResolveOraculoModal(discord.ui.Modal, title="Resolver Oráculo"):
                             )
                         except Exception:
                             pass
-                        rol_staff = discord.utils.get(guild.roles, name=STAFF_ROLE_NAME)
+                        rol_staff = _get_staff_role(guild)
                         if rol_staff:
                             try:
                                 await _set_permissions(
@@ -1292,8 +1321,9 @@ class AperturaOraculoModal(discord.ui.Modal, title="Apertura del Oráculo"):
         required=False,
         max_length=1000,
     )
-    urgente = discord.ui.TextInput(
-        label="Urgente (si/no)", required=False, max_length=3
+    urgente = discord.ui.CheckboxGroup(
+        options=[discord.CheckboxGroupOption(label="Marcar como Urgente", value="true")],
+        required=False,
     )
 
     def __init__(
@@ -1317,13 +1347,14 @@ class AperturaOraculoModal(discord.ui.Modal, title="Apertura del Oráculo"):
             pass
         titulo = str(self.titulo.value or "").strip()
         detalle = str(self.detalle.value or "").strip()
-        urg = str(self.urgente.value or "").strip().lower()
-        if urg in {"si", "sí", "yes", "true"}:
+        
+        # Para CheckboxGroup, .value es una lista
+        urg = "true" in (self.urgente.value or [])
+        
+        if urg:
             try:
                 guild = interaction.guild
-                rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(
-                    guild.roles, name=STAFF_ROLE_NAME
-                )
+                rol_staff = _get_staff_role(guild)
                 if interaction.user.guild_permissions.administrator or (
                     rol_staff and rol_staff in interaction.user.roles
                 ):
@@ -1361,9 +1392,7 @@ class AperturaOraculoModal(discord.ui.Modal, title="Apertura del Oráculo"):
             guild = interaction.guild
             alert = _find_alert_channel(guild)
             if alert:
-                rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(
-                    guild.roles, name=STAFF_ROLE_NAME
-                )
+                rol_staff = _get_staff_role(guild)
                 tipo_norm = normalizar_tipo(self.tipo)
                 urg = False
                 try:
@@ -1702,9 +1731,7 @@ class QuickOraculoModal(discord.ui.Modal):
                     guild = interaction.guild
                     alert = _find_alert_channel(guild)
                     if alert:
-                        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(
-                            guild.roles, name=STAFF_ROLE_NAME
-                        )
+                        rol_staff = _get_staff_role(guild)
                         tipo_norm = normalizar_tipo(self.tipo)
                         urg2 = False
                         try:
@@ -1803,9 +1830,7 @@ async def crear_oraculo(interaction: discord.Interaction, tipo: str = "general")
             view_channel=True, send_messages=True, manage_channels=True
         ),
     }
-    rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(
-        guild.roles, name=STAFF_ROLE_NAME
-    )
+    rol_staff = _get_staff_role(guild)
     if rol_staff:
         overwrites[rol_staff] = discord.PermissionOverwrite(
             view_channel=True, send_messages=True
@@ -1932,7 +1957,7 @@ class OraculoPanel(commands.Cog):
                     embed.set_image(
                         url="https://cdn.discordapp.com/attachments/1425781431682076682/1440115588746706984/Imagen_para_el_bot_d.png"
                     )
-                    embed.set_footer(text=Theme.get_footer_text(g.id))
+                    embed.set_footer(text=Theme.get_footer_text(guild.id))
                     msg = await canal.send(embed=embed, view=OraculoOpenView())
                     try:
                         await msg.pin()
@@ -1966,9 +1991,7 @@ class OraculoPanel(commands.Cog):
     ):
         canal = interaction.channel
         guild = interaction.guild
-        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(
-            guild.roles, name=STAFF_ROLE_NAME
-        )
+        rol_staff = _get_staff_role(guild)
         if not (
             interaction.user.guild_permissions.administrator
             or (rol_staff and rol_staff in interaction.user.roles)
@@ -2050,9 +2073,7 @@ class OraculoPanel(commands.Cog):
     async def oraculo_slowmode(self, interaction: discord.Interaction, segundos: int):
         canal = interaction.channel
         guild = interaction.guild
-        rol_staff = guild.get_role(STAFF_ROLE_ID) or discord.utils.get(
-            guild.roles, name=STAFF_ROLE_NAME
-        )
+        rol_staff = _get_staff_role(guild)
         if not (
             interaction.user.guild_permissions.administrator
             or (rol_staff and rol_staff in interaction.user.roles)

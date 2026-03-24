@@ -1,12 +1,14 @@
-import time
-import random
 import json
 import os
+import random
+import time
 
 import discord
 from discord import app_commands
 from discord.ext import commands
+
 from bot.themes import Theme
+
 
 class Monedas(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -267,7 +269,8 @@ class Monedas(commands.Cog):
                 await interaction.response.send_message(f"❌ No tienes suficientes monedas. Costo: {int(cost)}", ephemeral=True)
                 return
             
-            if uid not in self.user_stocks: self.user_stocks[uid] = {}
+            if uid not in self.user_stocks:
+                self.user_stocks[uid] = {}
             self.user_stocks[uid][ticker] = self.user_stocks[uid].get(ticker, 0) + cantidad
             self._save_data()
             

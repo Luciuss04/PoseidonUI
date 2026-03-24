@@ -1,12 +1,13 @@
 import platform
-import time
 import random
-import asyncio
+import time
 
 import discord
 import psutil
 from discord import app_commands
 from discord.ext import commands, tasks
+
+from bot.config import get_guild_setting
 from bot.themes import Theme
 
 STAFF_ROLES = ["Semidios", "Discípulo de Atena"]
@@ -69,11 +70,32 @@ class Status(commands.Cog):
         miembro = interaction.user
 
         if not miembro.guild_permissions.administrator:
-            tiene_rol_staff = any(rol.name in STAFF_ROLES for rol in miembro.roles)
+            staff_role_ids = get_guild_setting(
+                interaction.guild.id, "staff_role_ids", None
+            )
+            staff_role_names = get_guild_setting(
+                interaction.guild.id, "staff_role_names", STAFF_ROLES
+            )
+            try:
+                staff_role_ids = (
+                    [int(x) for x in staff_role_ids]
+                    if isinstance(staff_role_ids, list)
+                    else None
+                )
+            except Exception:
+                staff_role_ids = None
+            staff_role_names = (
+                staff_role_names
+                if isinstance(staff_role_names, list) and staff_role_names
+                else STAFF_ROLES
+            )
+            if staff_role_ids:
+                tiene_rol_staff = any(rol.id in staff_role_ids for rol in miembro.roles)
+            else:
+                tiene_rol_staff = any(rol.name in staff_role_names for rol in miembro.roles)
             if not tiene_rol_staff:
                 await interaction.response.send_message(
-                    "⛔ Solo administradores o miembros con rol **Semidios** "
-                    "o **Discípulo de Atena** pueden usar este comando.",
+                    "⛔ Solo administradores o miembros staff pueden usar este comando.",
                     ephemeral=True,
                 )
                 return
@@ -206,8 +228,27 @@ class Status(commands.Cog):
             mention = None
             if "🔴" in health_status:
                 try:
-                    rol_staff = discord.utils.get(interaction.guild.roles, name="Staff")
-                    mention = rol_staff.mention if rol_staff else None
+                    staff_role_ids = get_guild_setting(
+                        interaction.guild.id, "staff_role_ids", None
+                    )
+                    staff_role_names = get_guild_setting(
+                        interaction.guild.id, "staff_role_names", STAFF_ROLES
+                    )
+                    mentions = []
+                    if isinstance(staff_role_ids, list) and staff_role_ids:
+                        for rid in staff_role_ids:
+                            try:
+                                r = interaction.guild.get_role(int(rid))
+                                if r:
+                                    mentions.append(r.mention)
+                            except Exception:
+                                pass
+                    if not mentions and isinstance(staff_role_names, list):
+                        for rn in staff_role_names:
+                            r = discord.utils.get(interaction.guild.roles, name=rn)
+                            if r:
+                                mentions.append(r.mention)
+                    mention = " ".join(mentions) if mentions else None
                 except Exception:
                     mention = None
             await interaction.client.log(
@@ -215,9 +256,22 @@ class Status(commands.Cog):
             )
             if "🔴" in health_status:
                 try:
-                    ch = discord.utils.get(
-                        interaction.guild.text_channels, name=ALERT_CHANNEL
+                    alert_channel_id = get_guild_setting(
+                        interaction.guild.id, "alert_channel_id", None
                     )
+                    ch = None
+                    try:
+                        if alert_channel_id:
+                            ch = interaction.guild.get_channel(int(alert_channel_id))
+                    except Exception:
+                        ch = None
+                    if not isinstance(ch, discord.TextChannel):
+                        alert_channel_name = get_guild_setting(
+                            interaction.guild.id, "alert_channel_name", ALERT_CHANNEL
+                        )
+                        ch = discord.utils.get(
+                            interaction.guild.text_channels, name=alert_channel_name
+                        )
                     if isinstance(ch, discord.TextChannel):
                         await ch.send(content=mention, embed=e)
                 except Exception:
@@ -231,11 +285,32 @@ class Status(commands.Cog):
     async def botperfil(self, interaction: discord.Interaction):
         miembro = interaction.user
         if not miembro.guild_permissions.administrator:
-            tiene_rol_staff = any(rol.name in STAFF_ROLES for rol in miembro.roles)
+            staff_role_ids = get_guild_setting(
+                interaction.guild.id, "staff_role_ids", None
+            )
+            staff_role_names = get_guild_setting(
+                interaction.guild.id, "staff_role_names", STAFF_ROLES
+            )
+            try:
+                staff_role_ids = (
+                    [int(x) for x in staff_role_ids]
+                    if isinstance(staff_role_ids, list)
+                    else None
+                )
+            except Exception:
+                staff_role_ids = None
+            staff_role_names = (
+                staff_role_names
+                if isinstance(staff_role_names, list) and staff_role_names
+                else STAFF_ROLES
+            )
+            if staff_role_ids:
+                tiene_rol_staff = any(rol.id in staff_role_ids for rol in miembro.roles)
+            else:
+                tiene_rol_staff = any(rol.name in staff_role_names for rol in miembro.roles)
             if not tiene_rol_staff:
                 await interaction.response.send_message(
-                    "⛔ Solo administradores o miembros con rol **Semidios** "
-                    "o **Discípulo de Atena** pueden usar este comando.",
+                    "⛔ Solo administradores o miembros staff pueden usar este comando.",
                     ephemeral=True,
                 )
                 return

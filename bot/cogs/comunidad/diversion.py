@@ -1,9 +1,12 @@
+import asyncio
+import random
+
 import discord
 from discord import app_commands
 from discord.ext import commands
-import random
-import asyncio
+
 from bot.themes import Theme
+
 
 class PiedraPapelTijeras(discord.ui.View):
     def __init__(self):
@@ -98,8 +101,10 @@ class Diversion(commands.Cog):
 
     @app_commands.command(name="buscaminas", description="Genera un tablero de buscaminas jugable")
     async def buscaminas(self, interaction: discord.Interaction, minas: int = 8):
-        if minas > 20: minas = 20
-        if minas < 1: minas = 1
+        if minas > 20:
+            minas = 20
+        if minas < 1:
+            minas = 1
         
         rows, cols = 8, 8
         grid = [[0 for _ in range(cols)] for _ in range(rows)]
@@ -113,11 +118,13 @@ class Diversion(commands.Cog):
         
         for r in range(rows):
             for c in range(cols):
-                if grid[r][c] == -1: continue
+                if grid[r][c] == -1:
+                    continue
                 count = 0
                 for i in range(max(0, r-1), min(rows, r+2)):
                     for j in range(max(0, c-1), min(cols, c+2)):
-                        if grid[i][j] == -1: count += 1
+                        if grid[i][j] == -1:
+                            count += 1
                 grid[r][c] = count
 
         emojis = {
@@ -153,11 +160,16 @@ class Diversion(commands.Cog):
         bar = "💖" * filled + "🖤" * (bar_len - filled)
         
         msg = ""
-        if percent < 20: msg = "💔 Ni lo intenten..."
-        elif percent < 50: msg = "😐 Solo amigos."
-        elif percent < 80: msg = "😏 Hay química."
-        elif percent < 100: msg = "🔥 ¡Son tal para cual!"
-        else: msg = "💍 ¡Boda inminente!"
+        if percent < 20:
+            msg = "💔 Ni lo intenten..."
+        elif percent < 50:
+            msg = "😐 Solo amigos."
+        elif percent < 80:
+            msg = "😏 Hay química."
+        elif percent < 100:
+            msg = "🔥 ¡Son tal para cual!"
+        else:
+            msg = "💍 ¡Boda inminente!"
 
         embed = discord.Embed(title="💘 Love Calculator", description=f"{usuario1.mention} ❤️ {u2.mention}", color=Theme.get_color(interaction.guild.id, 'primary'))
         embed.add_field(name="Compatibilidad", value=f"**{percent}%**\n{bar}\n\n{msg}")
@@ -183,7 +195,7 @@ class Diversion(commands.Cog):
             await asyncio.sleep(2)
             try:
                 await msg.edit(content=f"💻 {paso}")
-            except:
+            except Exception:
                 pass
         
         await msg.edit(content=f"💀 Hackeo a {usuario.mention} finalizado con éxito. (Es broma 🤡)")

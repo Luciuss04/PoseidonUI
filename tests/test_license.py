@@ -7,9 +7,18 @@ import unittest
 class TestLicenseTrial(unittest.TestCase):
     def setUp(self):
         self.cwd = pathlib.Path(__file__).parent.parent
+        os.environ["POSEIDON_SKIP_DOTENV"] = "1"
+        os.environ.pop("POSEIDON_OWNER_MODE", None)
+        os.environ.pop("ENABLE_ALL_COGS", None)
+        os.environ.pop("DISCORD_TOKEN", None)
         os.environ.pop("LICENSE_KEY", None)
         os.environ.pop("LICENSES_URL", None)
-        for fname in ["license_active.txt", "trial_start.txt", "licenses.txt"]:
+        for fname in [
+            "license_active.txt",
+            "trial_start.txt",
+            "licenses.txt",
+            "license_control.json",
+        ]:
             p = self.cwd / fname
             if p.exists():
                 p.unlink()
@@ -18,11 +27,13 @@ class TestLicenseTrial(unittest.TestCase):
         import importlib
 
         spec = importlib.util.spec_from_file_location(
-            "app_main", str(self.cwd / "main.py")
+            "app_main", str(self.cwd / "app.py")
         )
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
         self.assertTrue((self.cwd / "trial_start.txt").exists())
+        self.assertEqual(mod.ACTIVE_PLAN, "basic")
+        self.assertTrue(mod.IS_TRIAL)
 
     def test_trial_expires_after_7_days(self):
         start = int(time.time()) - (8 * 86400)
@@ -30,11 +41,11 @@ class TestLicenseTrial(unittest.TestCase):
         import importlib
 
         spec = importlib.util.spec_from_file_location(
-            "app_main2", str(self.cwd / "main.py")
+            "app_main2", str(self.cwd / "app.py")
         )
         mod = importlib.util.module_from_spec(spec)
-        with self.assertRaises(SystemExit):
-            spec.loader.exec_module(mod)
+        spec.loader.exec_module(mod)
+        self.assertEqual(mod.ACTIVE_PLAN, "expired")
 
 
 class TestLicenseParsing(unittest.TestCase):
@@ -42,7 +53,7 @@ class TestLicenseParsing(unittest.TestCase):
         import importlib
 
         cwd = pathlib.Path(__file__).parent.parent
-        spec = importlib.util.spec_from_file_location("app_main3", str(cwd / "main.py"))
+        spec = importlib.util.spec_from_file_location("app_main3", str(cwd / "app.py"))
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
         txt = "# comment\nPOSEIDON-ABCD-EFGH-IJKL\nX123|extra"
@@ -58,7 +69,7 @@ class TestLicenseParsing(unittest.TestCase):
         import importlib
 
         cwd = pathlib.Path(__file__).parent.parent
-        spec = importlib.util.spec_from_file_location("app_main4", str(cwd / "main.py"))
+        spec = importlib.util.spec_from_file_location("app_main4", str(cwd / "app.py"))
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
         txt = "POSE-PRO|pro\nPOSE-BASIC|basic\nPOSE-CUSTOM|custom\n# comment\nJUSTKEY"

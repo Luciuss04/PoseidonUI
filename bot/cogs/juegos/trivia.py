@@ -1,11 +1,12 @@
+import json
+import os
+import random
+import time
+
 import discord
 from discord import app_commands
 from discord.ext import commands
-import random
-import asyncio
-import json
-import os
-import time
+
 from bot.themes import Theme
 
 # Base de datos de preguntas (Local para estabilidad)
@@ -42,7 +43,6 @@ class TriviaView(discord.ui.View):
         self.start_time = time.time()
         
         # Setup Buttons
-        labels = ["A", "B", "C", "D"]
         for i, option in enumerate(question_data["o"]):
             button = discord.ui.Button(label=option, custom_id=str(i), style=discord.ButtonStyle.secondary)
             button.callback = self.callback_wrapper(i)
@@ -77,7 +77,7 @@ class Trivia(commands.Cog):
             try:
                 with open(self.scores_file, "r", encoding="utf-8") as f:
                     return json.load(f)
-            except:
+            except Exception:
                 return {}
         return {}
 
@@ -127,7 +127,7 @@ class Trivia(commands.Cog):
                     for uid, pts in winners:
                         coins = pts // 2 # 50% de los puntos en monedas
                         monedas.add_balance(uid, coins)
-                        result_text += f"\n💰 Se repartieron monedas."
+                        result_text += "\n💰 Se repartieron monedas."
 
         # Desactivar botones
         for item in view.children:

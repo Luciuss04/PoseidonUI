@@ -1,11 +1,14 @@
+import json
+import os
+import random
+import time
+
 import discord
 from discord import app_commands
 from discord.ext import commands
-import random
-import time
-import json
-import os
+
 from bot.themes import Theme
+
 
 class BattleView(discord.ui.View):
     def __init__(self, bot, user, pet, enemy_stats, stake, cog):
@@ -67,7 +70,7 @@ class BattleView(discord.ui.View):
             inline=True
         )
         embed.add_field(
-            name=f"🆚", value="\u200b", inline=True
+            name="🆚", value="\u200b", inline=True
         )
         embed.add_field(
             name=f"{self.e_info['emoji']} {self.enemy['name']} (Nvl {self.enemy['level']}) {e_elem_icon}",
@@ -85,14 +88,14 @@ class BattleView(discord.ui.View):
             await interaction.response.edit_message(embed=embed, view=self)
 
     async def enemy_turn(self, interaction):
-        if self.e_hp <= 0: return
+        if self.e_hp <= 0:
+            return
 
         # IA Simple
         action = "attack"
         if self.e_hp < self.e_max_hp * 0.3 and random.random() < 0.3:
             action = "heal"
         
-        dmg = 0
         msg = ""
         
         if action == "heal":
@@ -108,7 +111,8 @@ class BattleView(discord.ui.View):
             self.p_hp -= final_dmg
             eff_text = "💥" if mult > 1 else ("🛡️" if mult < 1 else "⚔️")
             msg = f"{eff_text} **{self.enemy['name']}** atacó: -{final_dmg} HP"
-            if mult > 1: msg += " (¡Super efectivo!)"
+            if mult > 1:
+                msg += " (¡Super efectivo!)"
 
         self.logs.append(msg)
         
@@ -117,7 +121,6 @@ class BattleView(discord.ui.View):
             self.logs.append(f"💀 **{self.pet['name']}** cayó debilitado...")
             
             # Penalización
-            monedas = self.bot.get_cog("Monedas")
             self.pet['losses'] = self.pet.get('losses', 0) + 1
             self.pet['happiness'] = max(0, self.pet['happiness'] - 10)
             self.cog._save_pet(self.user.id, self.pet)
@@ -129,7 +132,8 @@ class BattleView(discord.ui.View):
 
     @discord.ui.button(label="Atacar", style=discord.ButtonStyle.danger, emoji="⚔️")
     async def attack(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if interaction.user.id != self.user.id: return
+        if interaction.user.id != self.user.id:
+            return
         
         base_dmg = self.p_info.get('attack', 10) + (self.pet['level'] * 2)
         mult = self._get_element_multiplier(self.p_info.get('element', 'normal'), self.e_info.get('element', 'normal'))
@@ -141,8 +145,10 @@ class BattleView(discord.ui.View):
         self.e_hp -= final_dmg
         
         msg = f"⚔️ **{self.pet['name']}** atacó: -{final_dmg} HP"
-        if crit > 1: msg += " (¡CRÍTICO!)"
-        if mult > 1: msg += " (¡Efectivo!)"
+        if crit > 1:
+            msg += " (¡CRÍTICO!)"
+        if mult > 1:
+            msg += " (¡Efectivo!)"
         
         self.logs.append(msg)
         self.p_energy = min(100, self.p_energy + 10) # Recuperar energía
@@ -170,7 +176,8 @@ class BattleView(discord.ui.View):
 
     @discord.ui.button(label="Especial (-40⚡)", style=discord.ButtonStyle.primary, emoji="✨")
     async def special(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if interaction.user.id != self.user.id: return
+        if interaction.user.id != self.user.id:
+            return
         
         if self.p_energy < 40:
             await interaction.response.send_message("⚠️ No tienes suficiente energía (40).", ephemeral=True)
@@ -206,7 +213,8 @@ class BattleView(discord.ui.View):
 
     @discord.ui.button(label="Curar (-30⚡)", style=discord.ButtonStyle.success, emoji="💊")
     async def heal(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if interaction.user.id != self.user.id: return
+        if interaction.user.id != self.user.id:
+            return
         
         if self.p_energy < 30:
             await interaction.response.send_message("⚠️ No tienes suficiente energía (30).", ephemeral=True)
@@ -403,7 +411,8 @@ class Mascotas(commands.Cog):
                 return
             
             info = self.pet_types.get(pet["type"], {"emoji": "❓"})
-            if "energy" not in pet: pet["energy"] = 100
+            if "energy" not in pet:
+                pet["energy"] = 100
             
             embed = discord.Embed(title=f"Estado de {pet['name']} {info['emoji']} ({pet['type'].capitalize()})", color=Theme.get_color(interaction.guild.id, 'primary'))
             embed.add_field(name="Nivel", value=str(pet['level']), inline=True)
@@ -439,7 +448,8 @@ class Mascotas(commands.Cog):
             
             pet['hunger'] = min(100, pet['hunger'] + 30)
             msg_extra = self._add_xp(pet, 5)
-            if "energy" not in pet: pet["energy"] = 100
+            if "energy" not in pet:
+                pet["energy"] = 100
             pet['energy'] = min(100, pet['energy'] + 10)
             
             self._save_pet(user_id, pet)
@@ -456,7 +466,8 @@ class Mascotas(commands.Cog):
                 await interaction.response.send_message(f"😟 **{pet['name']}** tiene mucha hambre para jugar. Aliméntalo primero.", ephemeral=True)
                 return
             
-            if "energy" not in pet: pet["energy"] = 100
+            if "energy" not in pet:
+                pet["energy"] = 100
             if pet['energy'] < 10:
                 await interaction.response.send_message(f"😴 **{pet['name']}** está muy cansado. Déjalo dormir un poco.", ephemeral=True)
                 return
@@ -474,7 +485,8 @@ class Mascotas(commands.Cog):
                 await interaction.response.send_message("😢 No tienes mascota.", ephemeral=True)
                 return
             
-            if "energy" not in pet: pet["energy"] = 100
+            if "energy" not in pet:
+                pet["energy"] = 100
             if pet['energy'] < 30:
                 await interaction.response.send_message(f"😴 **{pet['name']}** está demasiado cansado para entrenar.", ephemeral=True)
                 return
@@ -495,7 +507,8 @@ class Mascotas(commands.Cog):
                 await interaction.response.send_message("😢 No tienes mascota.", ephemeral=True)
                 return
             
-            if "energy" not in pet: pet["energy"] = 100
+            if "energy" not in pet:
+                pet["energy"] = 100
             if pet['energy'] >= 90:
                 await interaction.response.send_message(f"👀 **{pet['name']}** no tiene sueño.", ephemeral=True)
                 return
@@ -528,12 +541,14 @@ class Mascotas(commands.Cog):
             
             if outcome <= 25: # 25% dinero común
                 amount = random.randint(10, 50) * pet['level']
-                if monedas: monedas.add_balance(interaction.user.id, amount)
+                if monedas:
+                    monedas.add_balance(interaction.user.id, amount)
                 msg = f"🗺️ **{pet['name']}** encontró unas monedas tiradas: 💰 {amount}."
                 
             elif outcome <= 35: # 10% TESORO
                 amount = random.randint(100, 300) * pet['level']
-                if monedas: monedas.add_balance(interaction.user.id, amount)
+                if monedas:
+                    monedas.add_balance(interaction.user.id, amount)
                 msg = f"💎 **{pet['name']}** descubrió un COFRE DEL TESORO: 💰 {amount}!!"
                 
             elif outcome <= 50: # 15% nada
@@ -654,7 +669,8 @@ class Mascotas(commands.Cog):
                 if monedas and not monedas.remove_balance(interaction.user.id, cost):
                     await interaction.response.send_message(f"❌ No tienes 💰 {cost}.", ephemeral=True)
                     return
-                if "energy" not in pet: pet["energy"] = 100
+                if "energy" not in pet:
+                    pet["energy"] = 100
                 pet['energy'] = min(100, pet['energy'] + 30)
                 msg_extra = self._add_xp(pet, 5)
                 effect = f"se siente energizado. (+30 Energía, +5 XP){msg_extra}"
@@ -708,7 +724,7 @@ class Mascotas(commands.Cog):
             
             del self.pets[user_id]
             self._save_pets()
-            await interaction.response.send_message(f"👋 Has liberado a tu mascota. Esperamos que encuentre un buen hogar.", ephemeral=True)
+            await interaction.response.send_message("👋 Has liberado a tu mascota. Esperamos que encuentre un buen hogar.", ephemeral=True)
 
         elif accion == "evolucionar":
             if not pet:
@@ -753,7 +769,7 @@ class Mascotas(commands.Cog):
                     # Intentar obtener nombre del usuario (puede ser lento si no está en caché)
                     user = self.bot.get_user(int(uid))
                     user_name = user.display_name if user else f"Usuario {uid}"
-                except:
+                except Exception:
                     user_name = f"Usuario {uid}"
                 
                 info = self.pet_types.get(p["type"], {"emoji": "❓"})

@@ -11,7 +11,6 @@ from discord.ext import commands, tasks
 
 from bot.themes import Theme
 
-import os
 
 def _env_int(n: str, d: int) -> int:
     try:

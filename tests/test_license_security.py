@@ -15,11 +15,16 @@ def make_sig(secret: str, key: str, plan: str) -> str:
 class TestLicenseSecurity(unittest.TestCase):
     def setUp(self):
         self.cwd = pathlib.Path(__file__).parent.parent
+        os.environ["POSEIDON_SKIP_DOTENV"] = "1"
+        os.environ.pop("POSEIDON_OWNER_MODE", None)
+        os.environ.pop("ENABLE_ALL_COGS", None)
+        os.environ.pop("DISCORD_TOKEN", None)
         for fname in [
             "license_active.txt",
             "trial_start.txt",
             "licenses_plans.txt",
             "licenses.txt",
+            "license_control.json",
         ]:
             p = self.cwd / fname
             if p.exists():
@@ -37,7 +42,7 @@ class TestLicenseSecurity(unittest.TestCase):
             f"{key}|{plan}|{sig}\n", encoding="utf-8"
         )
         spec = importlib.util.spec_from_file_location(
-            "app_main_signed", str(self.cwd / "main.py")
+            "app_main_signed", str(self.cwd / "app.py")
         )
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
@@ -51,7 +56,7 @@ class TestLicenseSecurity(unittest.TestCase):
         )
         with self.assertRaises(SystemExit):
             spec = importlib.util.spec_from_file_location(
-                "app_main_plain", str(self.cwd / "main.py")
+                "app_main_plain", str(self.cwd / "app.py")
             )
             mod = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(mod)

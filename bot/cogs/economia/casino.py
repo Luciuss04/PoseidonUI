@@ -1,8 +1,9 @@
+import random
+
 import discord
 from discord import app_commands
 from discord.ext import commands
-import random
-import asyncio
+
 from bot.themes import Theme
 
 # Constantes de cartas
@@ -57,10 +58,8 @@ class BlackjackView(discord.ui.View):
         if color is None:
             color = Theme.get_color(interaction.guild.id, 'primary')
             
-        player_val = self.calculate_hand(self.player_hand)
-        dealer_val = self.calculate_hand(self.dealer_hand)
-        
-        desc = f"🃏 **Tu Mano:** {self.format_hand(self.player_hand)} (Valor: {player_val})\n"
+        player_val = calculate_hand(self.player_hand)
+        desc = f"🃏 **Tu Mano:** {format_hand(self.player_hand)} (Valor: {player_val})\n"
         
         if result_msg:
             desc += f"**{result_msg}**"
@@ -147,17 +146,20 @@ class BlackjackView(discord.ui.View):
         
         if d_val > 21:
             winnings = self.bet * 2
-            if monedas: monedas.add_balance(self.user.id, winnings)
+            if monedas:
+                monedas.add_balance(self.user.id, winnings)
             msg = f"🎉 Dealer se pasó. ¡Ganas {winnings}!"
             col = Theme.get_color(interaction.guild.id, 'success')
         elif p_val > d_val:
             winnings = self.bet * 2
-            if monedas: monedas.add_balance(self.user.id, winnings)
+            if monedas:
+                monedas.add_balance(self.user.id, winnings)
             msg = f"🎉 ¡Ganaste! Tienes {p_val} vs {d_val}. (+{winnings})"
             col = Theme.get_color(interaction.guild.id, 'success')
         elif p_val == d_val:
-            if monedas: monedas.add_balance(self.user.id, self.bet) # Devolver apuesta
-            msg = f"🤝 Empate. Recuperas tu apuesta."
+            if monedas:
+                monedas.add_balance(self.user.id, self.bet) # Devolver apuesta
+            msg = "🤝 Empate. Recuperas tu apuesta."
             col = Theme.get_color(interaction.guild.id, 'secondary')
         else:
             msg = f"💀 Dealer gana con {d_val} vs {p_val}. Pierdes {self.bet}."
@@ -336,7 +338,7 @@ class Casino(commands.Cog):
             return
 
         if not monedas.remove_balance(uid, apuesta):
-            await interaction.response.send_message(f"⚠️ No tienes suficientes monedas.", ephemeral=True)
+            await interaction.response.send_message("⚠️ No tienes suficientes monedas.", ephemeral=True)
             return
         
         emojis = ["🍒", "🍋", "🔔", "💎", "7️⃣"]

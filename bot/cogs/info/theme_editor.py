@@ -1,8 +1,10 @@
+import random
+import re
+
 import discord
 from discord import app_commands
 from discord.ext import commands
-import re
-import random
+
 from bot.themes import Theme
 
 # Presets de colores para facilitar el diseño
@@ -140,12 +142,18 @@ class ThemeEditorView(discord.ui.View):
             
             # Map semantic keys to ANSI colors for visual distinction
             ansi_code = "37" # White default
-            if key == "primary": ansi_code = "36" # Cyan
-            elif key == "secondary": ansi_code = "35" # Magenta
-            elif key == "success": ansi_code = "32" # Green
-            elif key == "error": ansi_code = "31" # Red
-            elif key == "warning": ansi_code = "33" # Yellow
-            elif key == "info": ansi_code = "34" # Blue
+            if key == "primary":
+                ansi_code = "36" # Cyan
+            elif key == "secondary":
+                ansi_code = "35" # Magenta
+            elif key == "success":
+                ansi_code = "32" # Green
+            elif key == "error":
+                ansi_code = "31" # Red
+            elif key == "warning":
+                ansi_code = "33" # Yellow
+            elif key == "info":
+                ansi_code = "34" # Blue
             
             # Format: [1;3XmKEY      [0m #HEX
             # Padding for alignment
@@ -153,8 +161,8 @@ class ThemeEditorView(discord.ui.View):
             return f"\u001b[1;{ansi_code}m{key_padded}\u001b[0m {hex_s}"
 
         desc = (
-            f"🛠️ **Estudio de Diseño**\n"
-            f"Personaliza la identidad visual de tu servidor.\n"
+            "🛠️ **Estudio de Diseño**\n"
+            "Personaliza la identidad visual de tu servidor.\n"
         )
         
         e = discord.Embed(
@@ -168,7 +176,7 @@ class ThemeEditorView(discord.ui.View):
         for k in ["primary", "secondary", "success", "error", "warning", "info"]:
             ansi_lines.append(to_ansi(k, c.get(k, 0)))
         
-        e.add_field(name="🎨 Configuración de Color (ANSI)", value=f"```ansi\n" + "\n".join(ansi_lines) + "\n```", inline=False)
+        e.add_field(name="🎨 Configuración de Color (ANSI)", value="```ansi\n" + "\n".join(ansi_lines) + "\n```", inline=False)
         
         e.add_field(name="📝 Footer Activo", value=f"```\n{self.draft_footer}\n```", inline=False)
         

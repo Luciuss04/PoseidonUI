@@ -1,7 +1,9 @@
 import os
 import time
+
 import discord
 from discord.ext import commands
+
 from bot.themes import Theme
 
 
@@ -49,7 +51,7 @@ class Streaming(commands.Cog):
             if channel_id:
                 try:
                     channel = self.bot.get_channel(int(channel_id))
-                except:
+                except Exception:
                     pass
             
             if not channel:

@@ -1,4 +1,4 @@
-from .comunidad import niveles, oraculo, streaming, diversion
+from .comunidad import diversion, niveles, oraculo, streaming
 from .diagnostico import status
 from .economia import ofertas
 from .info import about

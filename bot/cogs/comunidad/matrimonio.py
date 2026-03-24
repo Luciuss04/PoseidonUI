@@ -1,12 +1,14 @@
+import json
+import os
+import random
+import time
+
 import discord
 from discord import app_commands
 from discord.ext import commands
-import json
-import os
-import time
-import random
-from datetime import datetime
+
 from bot.themes import Theme
+
 
 class Matrimonio(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -145,7 +147,8 @@ class Matrimonio(commands.Cog):
                 
                 del self.data[user_id]
             
-            if str(partner_id) in self.data: del self.data[str(partner_id)]
+            if str(partner_id) in self.data:
+                del self.data[str(partner_id)]
             
             self._save_data()
             await interaction.response.send_message(f"💔 **{interaction.user.mention}** se ha divorciado. El dinero conjunto se ha repartido.")
@@ -216,12 +219,14 @@ class Matrimonio(commands.Cog):
                      await interaction.response.send_message(f"❌ La adopción cuesta 💰 {cost}.", ephemeral=True)
                      return
 
-            if "children" not in self.data[user_id]: self.data[user_id]["children"] = []
+            if "children" not in self.data[user_id]:
+                self.data[user_id]["children"] = []
             self.data[user_id]["children"].append(texto)
             
             partner_id = self.data[user_id]["partner"]
             if str(partner_id) in self.data:
-                if "children" not in self.data[str(partner_id)]: self.data[str(partner_id)]["children"] = []
+                if "children" not in self.data[str(partner_id)]:
+                    self.data[str(partner_id)]["children"] = []
                 self.data[str(partner_id)]["children"].append(texto)
             
             self._save_data()
@@ -279,11 +284,12 @@ class Matrimonio(commands.Cog):
             await interaction.response.send_message(msg)
 
         elif accion == "banco":
-            if not self._get_partner(user_id): return
+            if not self._get_partner(user_id):
+                return
             
             try:
                 amount = int(texto) if texto else 0
-            except:
+            except Exception:
                 await interaction.response.send_message("⚠️ Ingresa la cantidad en 'texto'.", ephemeral=True)
                 return
             
@@ -300,7 +306,8 @@ class Matrimonio(commands.Cog):
                 
                 self.data[user_id]["bank"] = self.data[user_id].get("bank", 0) + amount
                 pid = str(self.data[user_id]["partner"])
-                if pid in self.data: self.data[pid]["bank"] = self.data[user_id]["bank"]
+                if pid in self.data:
+                    self.data[pid]["bank"] = self.data[user_id]["bank"]
                 
                 self._save_data()
                 await interaction.response.send_message(f"💰 Depositaste {amount} en la cuenta conjunta.")
@@ -313,9 +320,11 @@ class Matrimonio(commands.Cog):
                 
                 self.data[user_id]["bank"] = current - withdraw
                 pid = str(self.data[user_id]["partner"])
-                if pid in self.data: self.data[pid]["bank"] = self.data[user_id]["bank"]
+                if pid in self.data:
+                    self.data[pid]["bank"] = self.data[user_id]["bank"]
                 
-                if monedas: monedas.add_balance(interaction.user.id, withdraw)
+                if monedas:
+                    monedas.add_balance(interaction.user.id, withdraw)
                 
                 self._save_data()
                 await interaction.response.send_message(f"💸 Retiraste {withdraw} de la cuenta conjunta.")
@@ -337,10 +346,14 @@ class Matrimonio(commands.Cog):
                 percentage = random.randint(0, 100)
                 random.seed() # Reset seed
                 
-                if percentage >= 90: msg = "🔥 ¡Es el destino! Almas gemelas."
-                elif percentage >= 70: msg = "❤️ Hay mucha química aquí."
-                elif percentage >= 40: msg = "🤔 Podría funcionar con esfuerzo."
-                else: msg = "❄️ Mejor sean solo amigos..."
+                if percentage >= 90:
+                    msg = "🔥 ¡Es el destino! Almas gemelas."
+                elif percentage >= 70:
+                    msg = "❤️ Hay mucha química aquí."
+                elif percentage >= 40:
+                    msg = "🤔 Podría funcionar con esfuerzo."
+                else:
+                    msg = "❄️ Mejor sean solo amigos..."
             
             # Progress bar
             blocks = percentage // 10

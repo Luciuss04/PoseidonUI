@@ -1,11 +1,14 @@
-import discord
-from discord import app_commands
-from discord.ext import commands
 import json
 import os
 import random
-from typing import Optional
+import time
+
+import discord
+from discord import app_commands
+from discord.ext import commands
+
 from bot.themes import Theme
+
 
 class Clanes(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -34,7 +37,8 @@ class Clanes(commands.Cog):
         return None
 
     def _add_log(self, clan_name: str, message: str):
-        if clan_name not in self.clanes: return
+        if clan_name not in self.clanes:
+            return
         if "bank_log" not in self.clanes[clan_name]:
             self.clanes[clan_name]["bank_log"] = []
         
@@ -134,7 +138,8 @@ class Clanes(commands.Cog):
                 m = interaction.guild.get_member(int(mid))
                 if m: 
                     role = roles.get(mid, "Miembro")
-                    if mid == str(data["owner"]): role = "Líder"
+                    if mid == str(data["owner"]):
+                        role = "Líder"
                     member_names.append(f"{m.display_name} ({role})")
             
             if len(data["members"]) > 10:
@@ -210,7 +215,7 @@ class Clanes(commands.Cog):
             
             try:
                 amount = int(nombre) if nombre else 100
-            except:
+            except Exception:
                 await interaction.response.send_message("⚠️ Debes especificar una cantidad válida en 'nombre'. Ej: 100 o -50 (retirar)", ephemeral=True)
                 return
             
@@ -276,8 +281,6 @@ class Clanes(commands.Cog):
             enemy_power = self.clanes[enemy_clan]["level"] * 20 + len(self.clanes[enemy_clan]["members"]) * 10 + random.randint(1, 50)
             
             if my_power > enemy_power:
-                winner = my_clan
-                loser = enemy_clan
                 loot = int(self.clanes[enemy_clan].get("bank", 0) * 0.15) # 15% robo
                 self.clanes[enemy_clan]["bank"] -= loot
                 self.clanes[my_clan]["bank"] += loot
@@ -288,8 +291,6 @@ class Clanes(commands.Cog):
 
                 msg = f"🏆 **¡VICTORIA!**\n**{my_clan}** (Poder: {my_power}) ha aplastado a **{enemy_clan}** (Poder: {enemy_power}).\nBotín robado: 💰 {loot}"
             else:
-                winner = enemy_clan
-                loser = my_clan
                 # El atacante pierde un poco de oro por la derrota
                 penalty = int(clan_data.get("bank", 0) * 0.05)
                 self.clanes[my_clan]["bank"] -= penalty
@@ -305,7 +306,8 @@ class Clanes(commands.Cog):
 
         elif accion == "expulsar":
             my_clan = self._get_user_clan(interaction.user.id)
-            if not my_clan: return
+            if not my_clan:
+                return
             
             if self.clanes[my_clan]["owner"] != user_id:
                 await interaction.response.send_message("❌ Solo el líder puede expulsar.", ephemeral=True)
@@ -332,7 +334,8 @@ class Clanes(commands.Cog):
 
         elif accion == "mejorar":
             my_clan = self._get_user_clan(interaction.user.id)
-            if not my_clan: return
+            if not my_clan:
+                return
             
             data = self.clanes[my_clan]
             if data["owner"] != user_id:
@@ -355,7 +358,8 @@ class Clanes(commands.Cog):
         elif accion == "roles":
             # nombre = usuario_id, descripcion = rol (General, Veterano, Miembro)
             my_clan = self._get_user_clan(interaction.user.id)
-            if not my_clan: return
+            if not my_clan:
+                return
             
             if self.clanes[my_clan]["owner"] != user_id:
                 await interaction.response.send_message("❌ Solo el líder gestiona roles.", ephemeral=True)
@@ -378,14 +382,16 @@ class Clanes(commands.Cog):
                 await interaction.response.send_message(f"❌ Rol no válido. Usa: {', '.join(valid_roles)}", ephemeral=True)
                 return
 
-            if "roles" not in self.clanes[my_clan]: self.clanes[my_clan]["roles"] = {}
+            if "roles" not in self.clanes[my_clan]:
+                self.clanes[my_clan]["roles"] = {}
             self.clanes[my_clan]["roles"][target_id] = new_role
             self._save_clanes()
             await interaction.response.send_message(f"✅ Rol de <@{target_id}> actualizado a **{new_role}**.")
 
         elif accion == "config_salario":
             my_clan = self._get_user_clan(interaction.user.id)
-            if not my_clan: return
+            if not my_clan:
+                return
             
             if self.clanes[my_clan]["owner"] != user_id:
                 await interaction.response.send_message("❌ Solo el líder puede configurar el salario.", ephemeral=True)
@@ -393,7 +399,7 @@ class Clanes(commands.Cog):
             
             try:
                 salary = int(nombre)
-            except:
+            except Exception:
                 await interaction.response.send_message("⚠️ Debes especificar una cantidad válida en 'nombre'.", ephemeral=True)
                 return
             
@@ -414,7 +420,8 @@ class Clanes(commands.Cog):
 
         elif accion == "salario":
             my_clan = self._get_user_clan(interaction.user.id)
-            if not my_clan: return
+            if not my_clan:
+                return
             
             data = self.clanes[my_clan]
             salary = data.get("daily_salary", 0)
@@ -433,7 +440,8 @@ class Clanes(commands.Cog):
                 return
             
             data["bank"] -= salary
-            if "last_salary" not in data: data["last_salary"] = {}
+            if "last_salary" not in data:
+                data["last_salary"] = {}
             data["last_salary"][user_id] = time.time()
             self._add_log(my_clan, f"Salario cobrado: {salary} por <@{user_id}>")
             
@@ -445,7 +453,8 @@ class Clanes(commands.Cog):
 
         elif accion == "escudo":
             my_clan = self._get_user_clan(interaction.user.id)
-            if not my_clan: return
+            if not my_clan:
+                return
             
             if self.clanes[my_clan]["owner"] != user_id:
                 await interaction.response.send_message("❌ Solo el líder puede cambiar el escudo.", ephemeral=True)

@@ -1,8 +1,10 @@
+# -*- coding: utf-8 -*-
 import asyncio
+import json
 import os
-import sys
 import pathlib
 import re
+import sys
 import time
 
 # Asegurar que el directorio actual está en el path de Python
@@ -10,14 +12,16 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import aiohttp
 import discord
+from discord import app_commands
 from discord.ext import commands
 from dotenv import load_dotenv
 
-from bot.config import LOG_CHANNEL_ID
+from bot.config import BOT_VERSION, LOG_CHANNEL_ID, get_guild_setting
 from bot.themes import Theme
 
 # ====== Cargar variables de entorno ======
-load_dotenv(override=True)
+if os.getenv("POSEIDON_SKIP_DOTENV") != "1":
+    load_dotenv(override=True)
 TOKEN = os.getenv("DISCORD_TOKEN")
 LICENSE_KEY = os.getenv("LICENSE_KEY")
 LICENSES_URL = os.getenv("LICENSES_URL")
@@ -26,6 +30,7 @@ IS_TRIAL: bool = False
 LICENSE_SIGNING_SECRET = os.getenv("LICENSE_SIGNING_SECRET")
 ALLOW_PLAIN_LICENSES = os.getenv("ALLOW_PLAIN_LICENSES", "0")
 LICENSES_PATH = os.getenv("LICENSES_PATH")
+LICENSE_CONTROL_PATH = pathlib.Path("license_control.json")
 
 # Establecer ACTIVE_PLAN desde entrada firmada local si existe (antes de cualquier lógica)
 try:
@@ -67,6 +72,12 @@ class PoseidonUIBot(commands.Bot):
                 pass
         # Sincronizar slash commands
         await self.tree.sync()
+        try:
+            if not getattr(self, "_license_watchdog_started", False):
+                self._license_watchdog_started = True
+                asyncio.create_task(_license_watchdog(self))
+        except Exception:
+            pass
 
 
 bot = PoseidonUIBot(command_prefix="!", intents=intents)
@@ -154,9 +165,17 @@ async def bot_log(
             bot._log_last[key] = now
         except Exception:
             pass
-        ch = bot.get_channel(LOG_CHANNEL_ID)
+        log_channel_id = LOG_CHANNEL_ID
+        if guild:
+            try:
+                log_channel_id = int(
+                    get_guild_setting(guild.id, "log_channel_id", LOG_CHANNEL_ID)
+                )
+            except Exception:
+                log_channel_id = LOG_CHANNEL_ID
+        ch = bot.get_channel(log_channel_id)
         if not isinstance(ch, discord.TextChannel) and guild:
-            ch = guild.get_channel(LOG_CHANNEL_ID) if guild else None
+            ch = guild.get_channel(log_channel_id) if guild else None
         if isinstance(ch, discord.TextChannel):
             if embed is not None:
                 await ch.send(content=content or None, embed=embed)
@@ -202,7 +221,10 @@ def build_log_embed(
             for k, v in extra.items():
                 e.add_field(name=k, value=v, inline=True)
         try:
-            e.set_footer(text=Theme.get_footer_text(gid) + f" • {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}")
+            e.set_footer(
+                text=Theme.get_footer_text(gid)
+                + f" • {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}"
+            )
         except Exception:
             pass
         return e
@@ -245,16 +267,13 @@ async def on_ready():
     try:
         # ====== Client Registry Tracking ======
         # Actualizar registro local de clientes activos
-        import json
-        from bot.config import BOT_VERSION
-        
         registry_file = pathlib.Path("client_registry.json")
         registry = {}
         
         if registry_file.exists():
             try:
                 registry = json.loads(registry_file.read_text(encoding="utf-8"))
-            except:
+            except Exception:
                 registry = {}
         
         # Datos de este cliente
@@ -269,7 +288,7 @@ async def on_ready():
                 "plan": ACTIVE_PLAN or "Basic",
                 "version": BOT_VERSION,
                 "members": current_guild.member_count,
-                "last_seen": time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())
+                "last_seen": time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()),
             }
             
             # Guardar
@@ -316,7 +335,9 @@ async def on_command_error(ctx, error):
     try:
         g = ctx.guild
         e = discord.Embed(
-            title="Error", description=str(error), color=Theme.get_color(g.id if g else None, 'error')
+            title="Error",
+            description=str(error),
+            color=Theme.get_color(g.id if g else None, "error"),
         )
         if ctx.command:
             e.add_field(name="Comando", value=ctx.command.qualified_name, inline=True)
@@ -335,7 +356,9 @@ async def on_command_completion(ctx):
         g = ctx.guild
         name = ctx.command.qualified_name if ctx.command else "desconocido"
         e = discord.Embed(
-            title="Comando completado", description=name, color=Theme.get_color(g.id if g else None, 'success')
+            title="Comando completado",
+            description=name,
+            color=Theme.get_color(g.id if g else None, "success"),
         )
         e.add_field(name="Autor", value=f"{ctx.author} ({ctx.author.id})", inline=True)
         await bot_log(embed=e, guild=g)
@@ -346,9 +369,29 @@ async def on_command_completion(ctx):
 @bot.tree.error
 async def on_app_command_error(interaction: discord.Interaction, error: Exception):
     try:
+        err = getattr(error, "original", error)
+        msg = "⚠️ Ocurrió un error al ejecutar el comando."
+        if isinstance(err, app_commands.MissingPermissions):
+            msg = "⛔ No tienes permisos para usar este comando."
+        elif isinstance(err, app_commands.CommandOnCooldown):
+            try:
+                msg = f"⏳ Estás en cooldown. Intenta de nuevo en {err.retry_after:.1f}s."
+            except Exception:
+                msg = "⏳ Estás en cooldown. Intenta de nuevo en unos segundos."
+        elif isinstance(err, app_commands.CheckFailure):
+            msg = "⛔ No cumples los requisitos para usar este comando."
+        try:
+            if interaction.response.is_done():
+                await interaction.followup.send(msg, ephemeral=True)
+            else:
+                await interaction.response.send_message(msg, ephemeral=True)
+        except Exception:
+            pass
         g = interaction.guild
         e = discord.Embed(
-            title="Error de slash", description=str(error), color=Theme.get_color(g.id if g else None, 'error')
+            title="Error de slash",
+            description=str(err),
+            color=Theme.get_color(g.id if g else None, "error"),
         )
         try:
             cmd = interaction.command
@@ -393,7 +436,7 @@ async def on_guild_remove(guild: discord.Guild):
         pass
 
 
-if not TOKEN:
+if __name__ == "__main__" and not TOKEN:
     raise SystemExit("DISCORD_TOKEN no está configurado")
 
 
@@ -604,6 +647,28 @@ def enforce_license_or_trial() -> None:
         return
     # =================================
 
+    now = int(time.time())
+    try:
+        if LICENSE_CONTROL_PATH.exists():
+            import json
+
+            data = json.loads(LICENSE_CONTROL_PATH.read_text(encoding="utf-8") or "{}")
+            if isinstance(data, dict):
+                if data.get("revoked") is True:
+                    ACTIVE_PLAN = "expired"
+                    IS_TRIAL = False
+                    return
+                try:
+                    exp = int(data.get("expires_at") or 0)
+                except Exception:
+                    exp = 0
+                if exp and now >= exp:
+                    ACTIVE_PLAN = "expired"
+                    IS_TRIAL = False
+                    return
+    except Exception:
+        pass
+
     if ACTIVE_PLAN:
         return
     if not LICENSE_KEY:
@@ -720,7 +785,6 @@ def enforce_license_or_trial() -> None:
             raise SystemExit("Licencia no válida o firma requerida")
         # not found: permitir trial
     p = pathlib.Path("trial_start.txt")
-    now = int(time.time())
     if not p.exists():
         p.write_text(str(now), encoding="utf-8")
         IS_TRIAL = True
@@ -732,7 +796,8 @@ def enforce_license_or_trial() -> None:
         start = now
     days = (now - start) // 86400
     if days >= 7:
-        print("⚠️ Período de prueba finalizado. Modo restringido activo (Solo /info).")
+        if __name__ == "__main__":
+            print("⚠️ Período de prueba finalizado. Modo restringido activo (Solo /info).")
         ACTIVE_PLAN = "expired"
         return
     IS_TRIAL = True
@@ -832,12 +897,147 @@ def _allowed_cogs_for_plan(plan: str) -> list[str]:
     return cogs
 
 
+def get_license_control() -> dict:
+    try:
+        if not LICENSE_CONTROL_PATH.exists():
+            return {}
+        import json
+
+        data = json.loads(LICENSE_CONTROL_PATH.read_text(encoding="utf-8") or "{}")
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+def set_license_control(
+    revoked: bool | None = None,
+    expires_at: int | None = None,
+    reason: str | None = None,
+) -> dict:
+    data = get_license_control()
+    now = int(time.time())
+    if revoked is not None:
+        data["revoked"] = bool(revoked)
+        data["revoked_at"] = now if revoked else None
+    if expires_at is not None:
+        data["expires_at"] = int(expires_at) if expires_at else 0
+    if reason is not None:
+        data["reason"] = str(reason)
+    try:
+        import json
+
+        LICENSE_CONTROL_PATH.write_text(
+            json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+    except Exception:
+        pass
+    return data
+
+
+def recompute_license_state() -> tuple[str | None, bool]:
+    global ACTIVE_PLAN
+    global IS_TRIAL
+
+    ACTIVE_PLAN = None
+    IS_TRIAL = False
+    enforce_license_or_trial()
+    return (ACTIVE_PLAN, IS_TRIAL)
+
+
+async def apply_plan_runtime(bot: commands.Bot, plan: str | None, is_trial: bool) -> None:
+    global ACTIVE_PLAN
+    global IS_TRIAL
+
+    plan_norm = (plan or "basic").lower()
+    ACTIVE_PLAN = plan_norm
+    IS_TRIAL = bool(is_trial)
+    bot.active_plan = plan_norm
+    bot.is_trial = bool(is_trial)
+
+    allowed = set(_allowed_cogs_for_plan(plan_norm))
+    try:
+        loaded_mods = set()
+        to_remove = []
+        for name, cog in list(bot.cogs.items()):
+            mod = getattr(cog, "__module__", None)
+            if mod:
+                loaded_mods.add(mod)
+            if mod and mod not in allowed:
+                to_remove.append(name)
+        for name in to_remove:
+            bot.remove_cog(name)
+
+        missing = [m for m in allowed if m not in loaded_mods]
+        for modname in missing:
+            try:
+                m = __import__(modname, fromlist=["setup"])
+                if modname.endswith("integraciones.lol"):
+                    if not os.getenv("RIOT_API_KEY"):
+                        continue
+                await m.setup(bot)
+            except Exception as e:
+                print(f"Error loading cog {modname}: {e}")
+                pass
+    except Exception:
+        pass
+
+    try:
+        await bot.tree.sync()
+    except Exception:
+        pass
+
+
+async def _license_watchdog(bot: commands.Bot) -> None:
+    last = None
+    while not bot.is_closed():
+        try:
+            owner_mode = os.getenv("POSEIDON_OWNER_MODE") == "1"
+            enable_all = os.getenv("ENABLE_ALL_COGS") == "1"
+            if owner_mode and enable_all:
+                await asyncio.sleep(60)
+                continue
+
+            data = get_license_control()
+            now = int(time.time())
+            forced_expired = False
+            if data.get("revoked") is True:
+                forced_expired = True
+            else:
+                try:
+                    exp = int(data.get("expires_at") or 0)
+                except Exception:
+                    exp = 0
+                if exp and now >= exp:
+                    forced_expired = True
+
+            if forced_expired:
+                cur = (getattr(bot, "active_plan", None) or "").lower()
+                if cur != "expired":
+                    await apply_plan_runtime(bot, "expired", False)
+                last = ("expired", False)
+                await asyncio.sleep(60)
+                continue
+
+            cur_plan = (getattr(bot, "active_plan", None) or "").lower()
+            cur_trial = bool(getattr(bot, "is_trial", False))
+            if cur_plan == "expired":
+                plan, is_trial = recompute_license_state()
+                plan_norm = (plan or "basic").lower()
+                state = (plan_norm, bool(is_trial))
+                if state != (cur_plan, cur_trial):
+                    await apply_plan_runtime(bot, plan_norm, bool(is_trial))
+                last = state
+            else:
+                state = (cur_plan or "basic", cur_trial)
+                if last is None:
+                    last = state
+        except Exception:
+            pass
+        await asyncio.sleep(60)
+
+
 if __name__ == "__main__":
+    if not TOKEN:
+        print("⛔ DISCORD_TOKEN no está configurado. Revisa tu .env.")
+        raise SystemExit(1)
     bot.run(TOKEN)
-try:
-    if TOKEN:
-        print(f"🔑 Token cargado desde .env (longitud: {len(TOKEN)})")
-    else:
-        print("⛔ No se cargó DISCORD_TOKEN desde .env")
-except Exception:
-    pass

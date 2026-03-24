@@ -19,7 +19,7 @@
             <a href="#features">Características</a>
             <a href="#stats">Estadísticas</a>
             <a href="#planes">Planes</a>
-            <a href="https://discord.gg/Kaf728xRFA" target="_blank">Soporte</a>
+            <a href="/login" id="login-link">Admin Login</a>
         </nav>
         <div class="header-actions">
             <a href="#planes" class="cta-btn">
@@ -246,8 +246,78 @@
     </section>
 
     <section id="stats" class="stats">
+        <div class="section-title">
+            <h2>Estado del Olimpo</h2>
+            <p>Monitoreo en tiempo real de la infraestructura divina.</p>
+        </div>
         <div class="stats-grid">
             <div class="stat-item">
+                <h3 id="stat-guilds">...</h3>
+                <p>Servidores</p>
+            </div>
+            <div class="stat-item">
+                <h3 id="stat-users">...</h3>
+                <p>Usuarios</p>
+            </div>
+            <div class="stat-item">
+                <h3 id="stat-latency">...</h3>
+                <p>Latencia (ms)</p>
+            </div>
+            <div class="stat-item">
+                <h3 id="stat-status">Desconectado</h3>
+                <p>Estado del Bot</p>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Configuración del bot (Local o Teramont)
+        const BOT_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+            ? '' 
+            : 'http://localhost:8080'; // Cambiar por la IP/URL de tu bot si no es local
+
+        // Verificar si ya está logueado para cambiar el link
+        const token = localStorage.getItem('poseidon_token');
+        if (token) {
+            const loginLink = document.getElementById('login-link');
+            if (loginLink) {
+                loginLink.innerText = 'Dashboard Admin';
+                loginLink.href = '#stats';
+            }
+        }
+
+        async function updateStats() {
+            try {
+                const response = await fetch(`${BOT_URL}/api/stats`);
+                const data = await response.json();
+                
+                const guildEl = document.getElementById('stat-guilds');
+                const usersEl = document.getElementById('stat-users');
+                const latencyEl = document.getElementById('stat-latency');
+                const statusEl = document.getElementById('stat-status');
+
+                if (guildEl) guildEl.innerText = data.guilds_count;
+                if (usersEl) usersEl.innerText = data.users_count;
+                if (latencyEl) latencyEl.innerText = data.latency + 'ms';
+                
+                if (statusEl) {
+                    statusEl.innerText = data.status.toUpperCase();
+                    statusEl.style.color = data.status === 'online' ? '#2ecc71' : '#e74c3c';
+                }
+            } catch (err) {
+                console.error('Error cargando estadísticas:', err);
+                const statusEl = document.getElementById('stat-status');
+                if (statusEl) {
+                    statusEl.innerText = 'OFFLINE';
+                    statusEl.style.color = '#e74c3c';
+                }
+            }
+        }
+        
+        // Actualizar cada 30 segundos
+        updateStats();
+        setInterval(updateStats, 30000);
+    </script>
                 <h3>50+</h3>
                 <p>Usuarios</p>
             </div>

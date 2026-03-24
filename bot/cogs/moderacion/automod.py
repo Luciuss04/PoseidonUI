@@ -1,9 +1,12 @@
-import discord
-from discord.ext import commands
-from discord import app_commands
+import asyncio
 import json
 import os
 import re
+
+import discord
+from discord import app_commands
+from discord.ext import commands
+
 from bot.themes import Theme
 
 CONFIG_FILE = "automod_config.json"
@@ -197,8 +200,6 @@ class AutoMod(commands.Cog):
         self._save_config()
         
         await interaction.response.send_message(f"✅ Palabra eliminada: ||{palabra}||", ephemeral=True)
-
-import asyncio
 
 async def setup(bot):
     await bot.add_cog(AutoMod(bot))

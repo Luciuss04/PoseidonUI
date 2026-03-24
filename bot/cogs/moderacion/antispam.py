@@ -5,14 +5,14 @@ import time
 import discord
 from discord.ext import commands
 
+from bot.themes import Theme
+
 WINDOW_SECONDS = 10
 MAX_MSGS = 7
 MAX_MENTIONS = 5
 ALERT_CHANNEL = "⚔️-alertas"
 INVITE_REGEX = re.compile(r"(discord\.gg\/|discord\.com\/invite\/)")
 
-
-from bot.themes import Theme
 
 class AntiSpam(commands.Cog):
     def __init__(self, bot: commands.Bot):

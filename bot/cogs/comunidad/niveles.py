@@ -1,8 +1,8 @@
 import json
-import random
 import os
-import discord
+import random
 
+import discord
 from discord import app_commands
 from discord.ext import commands
 
@@ -127,7 +127,7 @@ class NivelesCog(commands.Cog):
             try:
                 user = await self.bot.fetch_user(int(uid))
                 name = user.display_name
-            except:
+            except Exception:
                 name = f"Usuario {uid}"
                 
             medal = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else f"{i}."

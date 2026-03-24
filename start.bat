@@ -37,6 +37,8 @@ goto START_BOT
 :VENV_EXISTS
 echo Activando virtualenv...
 call venv\Scripts\activate.bat
+echo Verificando dependencias (v2.7.1)...
+pip install --upgrade -r requirements.txt --quiet
 rem Comandos utilitarios: format, lint, fixlint
 if /I "%~1"=="format" goto FORMAT
 if /I "%~1"=="lint" goto LINT
@@ -51,25 +53,46 @@ exit /b 1
 
 :START_BOT
 if not exist ".env" (
-    echo Error: no se encontro el archivo .env en la raiz del proyecto. Crea uno con tus claves.
-    goto END
-)
-set "HAS_TOKEN="
-findstr /I /C:"DISCORD_TOKEN=" ".env" >nul 2>&1
-if errorlevel 1 (
-    echo Error: .env no contiene DISCORD_TOKEN. Aborting.
+    echo Error: no se encontro el archivo .env en la raiz del proyecto.
+    echo Creando .env desde .env.example...
+    copy .env.example .env
+    echo Por favor, edita el archivo .env con tu DISCORD_TOKEN.
+    pause
     goto END
 )
 
-echo Iniciando el bot...
-REM Priorizar valores de .env sobre variables del sistema
+REM Limpiar variables previas para evitar conflictos
 set "DISCORD_TOKEN="
+
+REM Leer .env de forma robusta
 for /f "usebackq tokens=1,* delims==" %%A in (".env") do (
-  if /I "%%A"=="DISCORD_TOKEN" set "DISCORD_TOKEN=%%B"
+    set "key=%%A"
+    set "val=%%B"
+    if /I "%%A"=="DISCORD_TOKEN" (
+        set "DISCORD_TOKEN=%%B"
+    )
 )
+
+REM Eliminar comillas si existen en el token
+if defined DISCORD_TOKEN (
+    set "DISCORD_TOKEN=%DISCORD_TOKEN:"=%"
+)
+
+if not defined DISCORD_TOKEN (
+    echo Error: El archivo .env existe pero no contiene DISCORD_TOKEN o esta vacio.
+    pause
+    goto END
+)
+
+echo Iniciando el bot PoseidonUI...
 python app.py
 if errorlevel 1 (
-    echo Error al iniciar el bot. Revisa DISCORD_TOKEN en .env y los intents.
+    echo.
+    echo El bot se detuvo con errores. Revisa:
+    echo 1. Que el TOKEN en .env sea correcto.
+    echo 2. Que tengas conexion a internet.
+    echo 3. Que el bot tenga los "Privileged Gateway Intents" activados en el Dev Portal.
+    pause
 )
 goto END
 

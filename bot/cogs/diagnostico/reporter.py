@@ -1,32 +1,27 @@
+import asyncio
+import os
+
+import aiohttp
 import discord
 from discord.ext import commands, tasks
-import os
-import aiohttp
-import json
-import time
-import asyncio
+
 from bot.config import BOT_VERSION
 from bot.themes import Theme
+
 
 class Reporter(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.webhook_url = os.getenv("STATUS_WEBHOOK_URL")
-        self.heartbeat_task.start()
+        # Ya no iniciamos el bucle, solo una tarea única
+        asyncio.create_task(self.initial_report())
 
-    def cog_unload(self):
-        self.heartbeat_task.cancel()
-
-    @tasks.loop(minutes=60)
-    async def heartbeat_task(self):
-        await self.send_heartbeat()
-
-    @heartbeat_task.before_loop
-    async def before_heartbeat(self):
+    async def initial_report(self):
+        """Envía el reporte inicial una sola vez al encenderse el bot."""
         await self.bot.wait_until_ready()
-        # Wait a random bit to avoid thundering herd if many bots restart at once
-        import random
-        await asyncio.sleep(random.randint(5, 60))
+        # Espera un poco para asegurar que todo cargó bien
+        await asyncio.sleep(10)
+        await self.send_heartbeat()
 
     async def send_heartbeat(self):
         if not self.webhook_url:

@@ -1,10 +1,11 @@
-import secrets
-import string
-import hmac
-import hashlib
 import base64
+import hashlib
+import hmac
 import os
 import pathlib
+import secrets
+import string
+
 
 def generate_key():
     parts = []
@@ -13,9 +14,11 @@ def generate_key():
         parts.append(part)
     return f"POSEIDON-{'-'.join(parts)}"
 
+
 def make_sig(secret: str, key: str, plan: str) -> str:
     mac = hmac.new(secret.encode(), f"{key}|{plan}".encode(), hashlib.sha256).digest()
     return base64.urlsafe_b64encode(mac).decode().rstrip("=")
+
 
 def main():
     print("=== Generador de Licencias PoseidonUI ===")
@@ -45,7 +48,7 @@ def main():
                 if line.strip().startswith("LICENSE_SIGNING_SECRET="):
                     secret = line.split("=", 1)[1].strip()
                     break
-        except:
+        except Exception:
             pass
             
     signature = ""

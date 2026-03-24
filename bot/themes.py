@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
 import json
 import os
+
 import discord
 
 THEME_FILE = "theme_config.json"

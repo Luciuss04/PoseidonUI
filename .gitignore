@@ -1,4 +1,9 @@
+# Configuración y datos sensibles
 .env
+dashboard_auth.json
+guild_config.json
+theme_config.json
+backups/
 venv/
 __pycache__/
 *.pyc

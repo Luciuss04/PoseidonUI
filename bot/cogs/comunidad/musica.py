@@ -1,11 +1,13 @@
-import discord
-from discord import app_commands
-from discord.ext import commands
-import yt_dlp
 import asyncio
-import os
 import ctypes
 import ctypes.util
+import os
+
+import discord
+import yt_dlp
+from discord import app_commands
+from discord.ext import commands
+
 from bot.themes import Theme
 
 try:
@@ -86,6 +88,8 @@ class MusicPlayerView(discord.ui.View):
             self.stop() # Stop the view
 
 class Musica(commands.Cog):
+    music_group = app_commands.Group(name="musica", description="Comandos de música y reproducción")
+
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.queues = {} # {guild_id: [url, url, ...]}
@@ -94,9 +98,6 @@ class Musica(commands.Cog):
         self.loop_mode = {} # {guild_id: bool}
         self.active_filters = {} # {guild_id: "filter_name"}
         self.player_messages = {} # {guild_id: discord.Message}
-
-        # Grupo de comandos de música
-        music_group = app_commands.Group(name="musica", description="Comandos de música y reproducción")
         
         # Intentar cargar Opus manualmente para entornos Linux/Docker
         if not discord.opus.is_loaded():
@@ -146,7 +147,7 @@ class Musica(commands.Cog):
         try:
             socket.create_connection(("www.google.com", 80), timeout=2)
             conn_status = "✅ Conexión OK"
-        except:
+        except Exception:
             conn_status = "❌ Sin conexión a Internet"
 
         # 5. Check PyNaCl
@@ -198,7 +199,7 @@ class Musica(commands.Cog):
             if interaction.user.voice:
                 try:
                     voice_client = await interaction.user.voice.channel.connect()
-                except:
+                except Exception:
                     return # Cannot connect, abort
             else:
                 return # No voice client and user not in voice
@@ -270,7 +271,7 @@ class Musica(commands.Cog):
                 fut = asyncio.run_coroutine_threadsafe(coro, self.bot.loop)
                 try:
                     fut.result()
-                except:
+                except Exception:
                     pass
 
             if voice_client.is_playing():
@@ -286,11 +287,11 @@ class Musica(commands.Cog):
             embed.set_author(name="Poseidon Music Player", icon_url=self.bot.user.display_avatar.url)
             
             description = f"### 🔱 [{title}]({info.get('webpage_url', url2)})\n"
-            description += f"**▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬**\n\n"
+            description += "**▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬**\n\n"
             description += f"⏱️ **Tiempo:** `{info.get('duration_string', '??:??')}`\n"
             description += f"🎵 **Invocador:** {interaction.user.mention}\n"
             description += f"🎛️ **Filtro:** `{current_filter_name.capitalize()}`\n"
-            description += f"📡 **Estado:** `Reproduciendo en el Olimpo`\n"
+            description += "📡 **Estado:** `Reproduciendo en el Olimpo`\n"
             
             embed.description = description
             
@@ -366,7 +367,7 @@ class Musica(commands.Cog):
         # 4. Search and Queue
         try:
             # Notify user quietly
-            status_msg = await interaction.followup.send(f"🔎 Buscando: **{busqueda}**...", ephemeral=True)
+            await interaction.followup.send(f"🔎 Buscando: **{busqueda}**...", ephemeral=True)
             # Check for Spotify
             if "open.spotify.com" in busqueda:
                 # Try to get credentials
@@ -423,7 +424,7 @@ class Musica(commands.Cog):
                         await interaction.followup.send(f"❌ Error en modo sin claves: {e}. El dueño debe configurar SPOTIFY_CLIENT_ID.")
                         return
                 
-                await interaction.followup.send(f"🔎 Analizando lista de Spotify (API)...")
+                await interaction.followup.send("🔎 Analizando lista de Spotify (API)...")
                 
                 try:
                     sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=client_id, client_secret=client_secret))
@@ -504,7 +505,8 @@ class Musica(commands.Cog):
             added_count = 0
             
             for entry in entries:
-                if not entry: continue
+                if not entry:
+                    continue
                 url = entry.get('url')
                 title = entry.get('title', 'Canción sin título')
                 

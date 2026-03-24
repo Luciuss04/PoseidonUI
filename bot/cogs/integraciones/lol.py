@@ -1,9 +1,11 @@
 import os
+
 import aiohttp
 import discord
 from discord import app_commands
 from discord.ext import commands
 from dotenv import load_dotenv
+
 from bot.themes import Theme
 
 load_dotenv()
@@ -97,7 +99,8 @@ class LoLCog(commands.Cog):
                     entry = e
                     break
             
-            if not entry and ranked_data: entry = ranked_data[0] # Fallback
+            if not entry and ranked_data:
+                entry = ranked_data[0] # Fallback
 
             if entry:
                 tier = entry["tier"]

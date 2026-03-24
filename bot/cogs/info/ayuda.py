@@ -2,7 +2,6 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from bot.config import LOG_CHANNEL_ID
 from bot.themes import Theme
 
 

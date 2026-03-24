@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | PoseidonUI Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .login-container {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #0a0e14;
+        }
+        .login-card {
+            background: #151d27;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid #1e2a3a;
+        }
+        .login-card h2 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            color: #a0aec0;
+            margin-bottom: 8px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            background: #0a0e14;
+            border: 1px solid #2d3748;
+            color: #fff;
+            border-radius: 8px;
+            outline: none;
+        }
+        .form-group input:focus {
+            border-color: #3498db;
+        }
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        .login-btn:hover {
+            background: #2980b9;
+        }
+        .error-msg {
+            color: #e74c3c;
+            text-align: center;
+            margin-top: 15px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <h2>🔱 Poseidon Dashboard</h2>
+            <div class="form-group">
+                <label>Usuario</label>
+                <input type="text" id="username" placeholder="admin">
+            </div>
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input type="password" id="password" placeholder="••••••••">
+            </div>
+            <button class="login-btn" onclick="doLogin()">Entrar al Olimpo</button>
+            <p id="error" class="error-msg">Credenciales incorrectas</p>
+        </div>
+    </div>
+
+    <script>
+        // Configuración del bot
+        const BOT_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+            ? '' 
+            : 'http://localhost:8080';
+
+        async function doLogin() {
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            const error = document.getElementById('error');
+
+            try {
+                const response = await fetch(`${BOT_URL}/api/login`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username: user, password: pass})
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('poseidon_token', data.token);
+                    window.location.href = 'index.html'; // Usar ruta relativa para GitHub Pages
+                } else {
+                    error.style.display = 'block';
+                }
+            } catch (err) {
+                error.style.display = 'block';
+                error.innerText = 'Error de conexión con el bot';
+            }
+        }
+    </script>
+</body>
+</html>
