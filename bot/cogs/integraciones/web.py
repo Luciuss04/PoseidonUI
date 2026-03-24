@@ -119,25 +119,47 @@ class WebServer(commands.Cog):
             return web.json_response(guilds)
 
         async def get_guild_settings(request):
-            """Retorna la configuración de un servidor específico (Privado)."""
+            """Retorna la configuración detallada de un servidor (Privado)."""
             guild_id = request.match_info.get('guild_id')
             if not guild_id:
                 return web.json_response({"error": "guild_id required"}, status=400)
             
-            config = get_guild_config(int(guild_id))
-            return web.json_response(config)
+            guild = self.bot.get_guild(int(guild_id))
+            if not guild:
+                return web.json_response({"error": "Guild not found"}, status=404)
 
-        async def update_theme(request):
-            """Actualiza el tema de un servidor vía API (Privado)."""
+            config = get_guild_config(guild.id)
+            
+            # Obtener canales de texto y roles para los selects del dashboard
+            channels = [{"id": str(c.id), "name": c.name} for c in guild.text_channels]
+            roles = [{"id": str(r.id), "name": r.name} for r in guild.roles if not r.is_default()]
+
+            return web.json_response({
+                "config": config,
+                "channels": channels,
+                "roles": roles,
+                "name": guild.name
+            })
+
+        async def update_guild_config(request):
+            """Actualiza ajustes del servidor vía API (Privado)."""
             data = await request.json()
             guild_id = data.get('guild_id')
-            theme_name = data.get('theme')
+            updates = data.get('updates', {}) # Diccionario con {key: value}
             
-            if not guild_id or not theme_name:
-                return web.json_response({"error": "Missing params"}, status=400)
+            if not guild_id:
+                return web.json_response({"error": "Missing guild_id"}, status=400)
             
-            set_guild_setting(int(guild_id), "theme", theme_name)
-            return web.json_response({"status": "success", "new_theme": theme_name})
+            for key, value in updates.items():
+                # Convertir a int si son IDs de canales/roles
+                if key in ['log_channel_id', 'staff_role_id', 'alert_channel_id']:
+                    try:
+                        value = int(value) if value else None
+                    except ValueError:
+                        continue
+                set_guild_setting(int(guild_id), key, value)
+            
+            return web.json_response({"status": "success"})
 
         # --- RUTAS ---
         
@@ -146,6 +168,7 @@ class WebServer(commands.Cog):
         app.router.add_get('/api/stats', get_bot_stats)
         app.router.add_get('/api/guilds', get_guilds_list)
         app.router.add_get('/api/config/{guild_id}', get_guild_settings)
+        app.router.add_post('/api/config/update', update_guild_config)
         app.router.add_post('/api/theme', update_theme)
 
         # Frontend

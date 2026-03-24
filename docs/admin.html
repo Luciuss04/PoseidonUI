@@ -158,6 +158,24 @@
         .btn-outline { background: transparent; border: 1px solid var(--border-color); color: var(--text-dim); }
         .btn-outline:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
 
+        /* Modal Management */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: var(--card-bg); width: 90%; max-width: 500px; padding: 30px;
+            border-radius: 15px; border: 1px solid var(--border-color);
+        }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; color: var(--text-dim); margin-bottom: 8px; font-size: 0.9rem; }
+        .form-group select, .form-group input {
+            width: 100%; padding: 10px; background: var(--bg-dark); border: 1px solid var(--border-color);
+            color: white; border-radius: 8px; outline: none;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .close-modal { cursor: pointer; font-size: 1.5rem; color: var(--text-dim); }
+
         /* Loading & Error */
         #loading-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -212,6 +230,41 @@
         </div>
     </main>
 
+    <!-- Modal de Gestión -->
+    <div id="manage-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-guild-name">Gestionar Servidor</h3>
+                <span class="close-modal" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="config-form">
+                <input type="hidden" id="edit-guild-id">
+                <div class="form-group">
+                    <label>Canal de Logs</label>
+                    <select id="select-logs">
+                        <option value="">Desactivado</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Rol de Staff</label>
+                    <select id="select-staff">
+                        <option value="">Ninguno</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tema Visual</label>
+                    <select id="select-theme">
+                        <option value="default">Por defecto</option>
+                        <option value="ocean">Océano</option>
+                        <option value="fire">Infierno</option>
+                        <option value="nature">Naturaleza</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px;">Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
+
     <script>
         const token = localStorage.getItem('poseidon_token');
         if (!token) window.location.href = 'login.html';
@@ -264,7 +317,7 @@
                                 <div><i class="fa-solid fa-crown"></i> ${g.owner}</div>
                             </div>
                             <div class="server-actions">
-                                <button class="btn btn-primary" onclick="alert('Configurando: ${g.name}')">Gestionar</button>
+                                <button class="btn btn-primary" onclick="manageGuild('${g.id}')">Gestionar</button>
                                 <button class="btn btn-outline">Ver Logs</button>
                             </div>
                         </div>
@@ -277,6 +330,62 @@
                 alert('Error al conectar con el Olimpo. Revisa que el bot esté online.');
             }
         }
+
+        async function manageGuild(guildId) {
+            const data = await apiFetch(`/api/config/${guildId}`);
+            
+            document.getElementById('edit-guild-id').value = guildId;
+            document.getElementById('modal-guild-name').innerText = `Gestionar ${data.name}`;
+            
+            // Llenar Canales
+            const logSelect = document.getElementById('select-logs');
+            logSelect.innerHTML = '<option value="">Desactivado</option>' + 
+                data.channels.map(c => `<option value="${c.id}" ${data.config.log_channel_id == c.id ? 'selected' : ''}>#${c.name}</option>`).join('');
+            
+            // Llenar Roles
+            const staffSelect = document.getElementById('select-staff');
+            staffSelect.innerHTML = '<option value="">Ninguno</option>' + 
+                data.roles.map(r => `<option value="${r.id}" ${data.config.staff_role_id == r.id ? 'selected' : ''}>@${r.name}</option>`).join('');
+            
+            // Tema
+            document.getElementById('select-theme').value = data.config.theme || 'default';
+            
+            document.getElementById('manage-modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('manage-modal').style.display = 'none';
+        }
+
+        document.getElementById('config-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const guildId = document.getElementById('edit-guild-id').value;
+            const updates = {
+                log_channel_id: document.getElementById('select-logs').value,
+                staff_role_id: document.getElementById('select-staff').value,
+                theme: document.getElementById('select-theme').value
+            };
+
+            try {
+                const res = await fetch(`${BOT_URL}/api/config/update`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ guild_id: guildId, updates })
+                });
+
+                if (res.ok) {
+                    alert('🔱 Configuración guardada con éxito.');
+                    closeModal();
+                } else {
+                    alert('❌ Error al guardar.');
+                }
+            } catch (err) {
+                alert('❌ Error de conexión.');
+            }
+        };
 
         function logout() {
             localStorage.removeItem('poseidon_token');
