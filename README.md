@@ -57,7 +57,7 @@
 ### Requisitos
 - Python 3.11+
 - FFmpeg (Instalado en el PATH)
-- Puerto `11111` abierto (Para el Dashboard Web)
+- Un puerto abierto para el Dashboard Web (Configurable en .env)
 
 ### Guía Rápida
 1. **Clonar y Entrar:**
@@ -76,8 +76,12 @@
    python app.py
    ```
 
+### Despliegue en Hosting (Pterodactyl/VPS)
+1. Subir el contenido de la carpeta `BotDiscord4.0` a la raíz del servidor.
+2. Configurar el **Punto de Entrada** (Startup File) como `app.py`.
+3. Configurar las variables de entorno en el panel del servidor.
+
 ### 🔒 Seguridad Importante
-- El archivo `admin_keygen.py` **NO** debe subirse al repositorio (ya incluido en `.gitignore`).
 - Asegúrate de configurar `LICENSE_SIGNING_SECRET` para proteger la integridad de tus licencias.
 - El Dashboard requiere que el navegador permita "Contenido no seguro" si no se utiliza un certificado SSL en el host.
 

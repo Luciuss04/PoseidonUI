@@ -21,8 +21,14 @@ def get_auth_config():
 
 def verify_login(username, password):
     config = get_auth_config()
+    # Usar hmac.compare_digest para prevenir ataques de tiempo
+    import hmac
     pw_hash = hashlib.sha256(password.encode()).hexdigest()
-    return username == config["username"] and pw_hash == config["password_hash"]
+    
+    user_ok = hmac.compare_digest(username, config["username"])
+    pass_ok = hmac.compare_digest(pw_hash, config["password_hash"])
+    
+    return user_ok and pass_ok
 
 def update_auth(username, password):
     new_config = {

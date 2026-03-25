@@ -69,26 +69,59 @@ class WebServer(commands.Cog):
                 response = await handler(request)
             except web.HTTPException as ex:
                 response = ex
+            except Exception as e:
+                # Log del error real pero respuesta genérica al cliente
+                print(f"🔥 [API Error] {request.path}: {e}")
+                response = web.json_response({"error": "Internal Server Error"}, status=500)
             
             # Añadir headers CORS a todas las respuestas
             response.headers['Access-Control-Allow-Origin'] = origin or '*'
             response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
             response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+            # Headers de seguridad adicionales
+            response.headers['X-Content-Type-Options'] = 'nosniff'
+            response.headers['X-Frame-Options'] = 'DENY'
             return response
 
         app.middlewares.append(custom_middleware)
 
         # --- API ENDPOINTS ---
         
+        # Diccionario para rate limit básico de login
+        self.login_attempts = {}
+
         async def login(request):
-            data = await request.json()
+            # Rate limit básico por IP
+            peername = request.transport.get_extra_info('peername')
+            if peername:
+                ip = peername[0]
+                now = time.time()
+                last_attempt, count = self.login_attempts.get(ip, (0, 0))
+                
+                # Bloquear 1 minuto si hay más de 5 intentos fallidos en 5 minutos
+                if count >= 5 and now - last_attempt < 60:
+                    return web.json_response({"error": "Too many attempts. Try again in 1 minute."}, status=429)
+                
+                if now - last_attempt > 300: # Reset cada 5 mins
+                    count = 0
+                self.login_attempts[ip] = (now, count + 1)
+
+            try:
+                data = await request.json()
+            except Exception:
+                return web.json_response({"error": "Invalid JSON"}, status=400)
+
             username = data.get('username')
             password = data.get('password')
             
             if verify_login(username, password):
+                # Reset intentos tras login exitoso
+                if peername: self.login_attempts[ip] = (0, 0)
+                
                 token = secrets.token_hex(32)
                 self.sessions.add(token)
                 return web.json_response({"token": token})
+            
             return web.json_response({"error": "Invalid credentials"}, status=401)
 
         async def get_bot_stats(request):
@@ -143,20 +176,49 @@ class WebServer(commands.Cog):
 
         async def update_guild_config(request):
             """Actualiza ajustes del servidor vía API (Privado)."""
-            data = await request.json()
+            try:
+                data = await request.json()
+            except Exception:
+                return web.json_response({"error": "Invalid JSON"}, status=400)
+                
             guild_id = data.get('guild_id')
             updates = data.get('updates', {}) # Diccionario con {key: value}
             
             if not guild_id:
                 return web.json_response({"error": "Missing guild_id"}, status=400)
             
+            # Validación de existencia de servidor
+            guild = self.bot.get_guild(int(guild_id))
+            if not guild:
+                return web.json_response({"error": "Guild not found"}, status=404)
+
+            # Lista blanca de configuraciones permitidas para evitar inyecciones en el JSON
+            allowed_keys = ['log_channel_id', 'staff_role_id', 'theme', 'alert_channel_id']
+            
             for key, value in updates.items():
-                # Convertir a int si son IDs de canales/roles
+                if key not in allowed_keys:
+                    continue # Ignorar claves no permitidas
+                
+                # Convertir a int si son IDs de canales/roles y verificar que pertenecen al servidor
                 if key in ['log_channel_id', 'staff_role_id', 'alert_channel_id']:
                     try:
-                        value = int(value) if value else None
+                        if value:
+                            val_int = int(value)
+                            # Verificación extra: ¿El canal/rol existe en este servidor?
+                            if key == 'log_channel_id' and not guild.get_channel(val_int):
+                                continue
+                            if key == 'staff_role_id' and not guild.get_role(val_int):
+                                continue
+                            value = val_int
+                        else:
+                            value = None
                     except ValueError:
                         continue
+                
+                # Validación de tema
+                if key == 'theme' and value not in ['default', 'ocean', 'fire', 'nature']:
+                    value = 'default'
+
                 set_guild_setting(int(guild_id), key, value)
             
             return web.json_response({"status": "success"})

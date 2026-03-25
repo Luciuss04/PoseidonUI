@@ -215,6 +215,7 @@
             <li class="nav-item active"><i class="fa-solid fa-chart-line"></i> Dashboard</li>
             <li class="nav-item"><i class="fa-solid fa-server"></i> Servidores</li>
             <li class="nav-item" onclick="viewLogs('global')"><i class="fa-solid fa-clock-rotate-left"></i> Logs Globales</li>
+            <li class="nav-item" onclick="changeBotUrl()"><i class="fa-solid fa-gears"></i> Configurar API</li>
         </ul>
         <div class="reboot-btn" onclick="rebootBot()">
             <i class="fa-solid fa-power-off"></i> Reiniciar Bot
@@ -302,9 +303,17 @@
         const token = localStorage.getItem('poseidon_token');
         if (!token) window.location.href = 'login.html';
 
-        const BOT_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-            ? '' 
-            : 'http://104.128.49.50:11111';
+        // URL del Bot: Se intenta leer de localStorage o se usa el host actual
+        let BOT_URL = localStorage.getItem('poseidon_bot_url') || '';
+        
+        if (!BOT_URL && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            // Si no hay URL guardada y estamos en producción (GitHub Pages), pedimos una
+            const inputUrl = prompt("🔧 Configuración inicial:\nIngresa la URL de tu Bot (Ej: http://tu-ip:puerto):", "http://");
+            if (inputUrl) {
+                BOT_URL = inputUrl.replace(/\/$/, ""); // Quitar slash final
+                localStorage.setItem('poseidon_bot_url', BOT_URL);
+            }
+        }
 
         async function apiFetch(endpoint) {
             const res = await fetch(`${BOT_URL}${endpoint}`, {
@@ -473,6 +482,15 @@
         function logout() {
             localStorage.removeItem('poseidon_token');
             window.location.href = 'index.html';
+        }
+
+        function changeBotUrl() {
+            const current = localStorage.getItem('poseidon_bot_url') || "";
+            const newUrl = prompt("Actualizar URL del Bot API:", current);
+            if (newUrl !== null) {
+                localStorage.setItem('poseidon_bot_url', newUrl.replace(/\/$/, ""));
+                window.location.reload();
+            }
         }
 
         init();

@@ -93,7 +93,7 @@ Ahora Poseidon también es tu DJ personal. ¡Convierte tu servidor en una fiesta
 --------------------------------------------------------------------------------
 5. ACTUALIZACIÓN v4.2 - ESTABILIDAD Y RENDIMIENTO
 --------------------------------------------------------------------------------
-Esta actualización se centra en la robustez técnica y la compatibilidad con servidores externos (Teramont/Linux).
+Esta actualización se centra en la robustez técnica y la compatibilidad con servidores externos.
 
 [MEJORAS EN MÚSICA]
 - ✅ Compatibilidad Total con Linux: Implementada carga manual de librerías Opus.
@@ -180,10 +180,10 @@ Mantén tu servidor limpio y seguro automáticamente.
 --------------------------------------------------------------------------------
 NOTAS PARA EL ADMINISTRADOR
 --------------------------------------------------------------------------------
-- Los datos de economía se guardan en 'economy.json' y 'stocks.json'.
-- Los datos de mascotas se guardan en 'mascotas.json'.
-- Se recomienda hacer copias de seguridad de estos archivos regularmente.
-- REQUISITO PARA MÚSICA: El servidor donde se aloje el bot debe tener FFMPEG instalado.
+- Los datos de configuración se guardan en 'guild_config.json'.
+- El dashboard requiere el puerto 11111 abierto en el host (Teramont).
+- Credenciales del panel: Se gestionan mediante 'admin_keygen.py'.
+- Se recomienda usar Chrome/Edge y "Permitir contenido no seguro" para el dashboard si no usas SSL.
 
 ¡Disfruta de la nueva versión de Poseidon Bot!
 
@@ -201,33 +201,5 @@ Ya no necesitas comandos para configurar el bot. ¡Hazlo desde tu navegador!
 - ⚙️ Gestión de Servidores: Cambia canales de logs, roles de staff y temas visuales con un clic.
 - 📜 Visor de Registros: Mira qué está pasando en tus servidores sin entrar a Discord.
 - 🚀 Reinicio Remoto: Botón de pánico para reiniciar el bot desde cualquier lugar.
-
-[IA ATENEA - EL MOTOR DE SABIDURÍA] (/oraculo)
-El sistema de tickets ahora piensa por sí mismo.
-- 🧠 Análisis de Intenciones: La IA detecta de qué trata el ticket y sugiere la categoría correcta.
-- 🚨 Auto-Urgencia: Si un usuario escribe palabras críticas (estafa, robo, ayuda), el bot marca el ticket como **URGENTE** automáticamente.
-- 🔮 Respuesta Divina: Atenea da una bienvenida inteligente y personalizada según el problema del usuario.
-- 📋 Checklists Inteligentes: Formularios dinámicos adaptados a cada tipo de consulta.
-
-[EL COLISEO v4.2 - BATALLAS ÉPICAS] (/mascota duelo)
-Hemos rediseñado por completo la interfaz de combate.
-- 🎨 UI Modernizada: Barras de vida de alta precisión y diseño estilo RPG japonés.
-- ✨ Habilidades de Firma: Cada mascota tiene ataques únicos (Ej: *Aliento de Fuego*, *Descarga Voltáica*).
-- 🔥 Críticos Divinos: Animaciones y mensajes especiales para golpes de gran impacto.
-- 📈 Log de Combate: Registro detallado de cada turno con iconos de estado.
-
-[SEGURIDAD & TECNOLOGÍA 2026]
-- 🛡️ Protocolo DAVE: Soporte nativo para el nuevo cifrado de voz E2EE de Discord.
-- 🧩 Componentes v2.7.1: Uso de RadioGroups y CheckboxGroups para una experiencia más fluida.
-- 🔒 Privacidad Total: Eliminado cualquier rastro de "Owner Mode" o backdoors. El bot es 100% tuyo.
-- 🐍 Python 3.11+: Optimizado para las versiones más recientes y rápidas de Python.
-
---------------------------------------------------------------------------------
-NOTAS PARA EL ADMINISTRADOR
---------------------------------------------------------------------------------
-- Los datos de configuración se guardan en 'guild_config.json'.
-- El dashboard requiere el puerto 11111 abierto en el host (Teramont).
-- Credenciales del panel: Se gestionan mediante 'admin_keygen.py'.
-- Se recomienda usar Chrome/Edge y "Permitir contenido no seguro" para el dashboard si no usas SSL.
 
 ================================================================================
