@@ -1745,8 +1745,14 @@ class QuickOraculoModal(discord.ui.Modal):
                 texto_completo = " ".join([v for k, v in campos])
                 analisis = OraculoAI.analizar_texto(texto_completo)
                 
-                # Auto-urgencia si la IA lo detecta muy alto
-                if analisis["urgencia"] >= 8 and not urg:
+                # Análisis de Sentimiento
+                sentiment_cog = interaction.client.get_cog("SentimentAI")
+                sentiment_data = None
+                if sentiment_cog:
+                    sentiment_data = sentiment_cog.analyze_sentiment(texto_completo)
+
+                # Auto-urgencia si la IA lo detecta muy alto o es muy tóxico
+                if (analisis["urgencia"] >= 8 or (sentiment_data and sentiment_data["toxicity"] > 0.6)) and not urg:
                     urg = True
                     try:
                         name = canal.name
@@ -1758,6 +1764,9 @@ class QuickOraculoModal(discord.ui.Modal):
                 if urg:
                     e.add_field(name="⚠️ Estado", value="URGENTE (Detectado por IA)", inline=True)
                 
+                if sentiment_data:
+                    e.add_field(name="🎭 Estado Emocional", value=f"{sentiment_data['emoji']} **{sentiment_data['label']}**", inline=True)
+
                 # Sugerencia de categoría si es distinta
                 if analisis["sugerencia"] != self.tipo:
                     e.add_field(name="💡 Sugerencia de Atenea", value=f"Este Oráculo parece ser de tipo **{analisis['sugerencia'].capitalize()}**.", inline=True)

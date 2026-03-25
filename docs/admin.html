@@ -6,6 +6,7 @@
     <title>Dashboard Admin | PoseidonUI</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg-dark: #0a0e14;
@@ -212,8 +213,9 @@
             <i class="fa-solid fa-trident"></i> PoseidonUI
         </div>
         <ul class="nav-menu">
-            <li class="nav-item active"><i class="fa-solid fa-chart-line"></i> Dashboard</li>
-            <li class="nav-item"><i class="fa-solid fa-server"></i> Servidores</li>
+            <li class="nav-item active" onclick="showView('dashboard')"><i class="fa-solid fa-chart-line"></i> Dashboard</li>
+            <li class="nav-item" onclick="showView('servers')"><i class="fa-solid fa-server"></i> Servidores</li>
+            <li class="nav-item" onclick="showView('analytics')"><i class="fa-solid fa-chart-bar"></i> Analíticas</li>
             <li class="nav-item" onclick="viewLogs('global')"><i class="fa-solid fa-clock-rotate-left"></i> Logs Globales</li>
             <li class="nav-item" onclick="changeBotUrl()"><i class="fa-solid fa-gears"></i> Configurar API</li>
         </ul>
@@ -226,28 +228,63 @@
     </aside>
 
     <main class="main-content">
-        <div class="header-stats">
-            <div class="stat-card">
-                <div class="label">Servidores</div>
-                <div class="value" id="stat-guilds">...</div>
+        <!-- Vista: Dashboard -->
+        <div id="view-dashboard" class="view">
+            <div class="header-stats">
+                <div class="stat-card">
+                    <div class="label">Servidores</div>
+                    <div class="value" id="stat-guilds">...</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Usuarios Protegidos</div>
+                    <div class="value" id="stat-users">...</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Ping de la API</div>
+                    <div class="value" id="stat-ping">...</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Ánimo del Olimpo</div>
+                    <div class="value" id="stat-mood">...</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Uptime</div>
+                    <div class="value" id="stat-uptime" style="font-size: 1.2rem;">...</div>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="label">Usuarios Protegidos</div>
-                <div class="value" id="stat-users">...</div>
-            </div>
-            <div class="stat-card">
-                <div class="label">Ping de la API</div>
-                <div class="value" id="stat-ping">...</div>
-            </div>
-            <div class="stat-card">
-                <div class="label">Uptime</div>
-                <div class="value" id="stat-uptime" style="font-size: 1.2rem;">...</div>
+            <h2 style="margin-bottom: 25px;">Resumen General</h2>
+            <div style="background: var(--card-bg); padding: 30px; border-radius: 15px; border: 1px solid var(--border-color);">
+                <canvas id="mainChart" height="100"></canvas>
             </div>
         </div>
 
-        <h2 style="margin-bottom: 25px;">Lista de Reinos (Servidores)</h2>
-        <div class="server-grid" id="server-list">
-            <!-- Servidores cargados dinámicamente -->
+        <!-- Vista: Servidores -->
+        <div id="view-servers" class="view" style="display: none;">
+            <h2 style="margin-bottom: 25px;">Lista de Reinos (Servidores)</h2>
+            <div class="server-grid" id="server-list">
+                <!-- Servidores cargados dinámicamente -->
+            </div>
+        </div>
+
+        <!-- Vista: Analíticas -->
+        <div id="view-analytics" class="view" style="display: none;">
+            <h2 style="margin-bottom: 25px;">Analíticas de Actividad</h2>
+            <div class="form-group" style="max-width: 300px;">
+                <label>Seleccionar Servidor</label>
+                <select id="analytics-server-select" onchange="loadDetailedAnalytics()">
+                    <option value="global">Cargando servidores...</option>
+                </select>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div style="background: var(--card-bg); padding: 20px; border-radius: 15px; border: 1px solid var(--border-color);">
+                    <h3 style="margin-top: 0;">Mensajes Enviados</h3>
+                    <canvas id="messagesChart"></canvas>
+                </div>
+                <div style="background: var(--card-bg); padding: 20px; border-radius: 15px; border: 1px solid var(--border-color);">
+                    <h3 style="margin-top: 0;">Comandos Usados</h3>
+                    <canvas id="commandsChart"></canvas>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -283,6 +320,60 @@
                 </div>
                 <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px;">Guardar Cambios</button>
             </form>
+            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 20px 0;">
+            <button class="btn btn-outline" style="width: 100%;" onclick="openThemeEditor()">🎨 Personalizar Tema (Avanzado)</button>
+        </div>
+    </div>
+
+    <!-- Modal: Editor de Temas -->
+    <div id="theme-modal" class="modal">
+        <div class="modal-content" style="max-width: 900px; display: grid; grid-template-columns: 1fr 1.5fr; gap: 30px;">
+            <div>
+                <div class="modal-header">
+                    <h3>Editor de Tema</h3>
+                    <span class="close-modal" onclick="closeThemeModal()">&times;</span>
+                </div>
+                <div class="form-group">
+                    <label>Color Principal (Embeds)</label>
+                    <input type="color" id="theme-color-primary" oninput="updatePreview()">
+                </div>
+                <div class="form-group">
+                    <label>Color de Éxito</label>
+                    <input type="color" id="theme-color-success" oninput="updatePreview()">
+                </div>
+                <div class="form-group">
+                    <label>Color de Error</label>
+                    <input type="color" id="theme-color-error" oninput="updatePreview()">
+                </div>
+                <div class="form-group">
+                    <label>Texto del Footer</label>
+                    <input type="text" id="theme-footer-text" placeholder="Ej: PoseidonUI • El Poder del Olimpo" oninput="updatePreview()">
+                </div>
+                <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="saveTheme()">Aplicar al Servidor</button>
+            </div>
+            
+            <!-- Previsualización Discord -->
+            <div style="background: #313338; padding: 20px; border-radius: 8px; align-self: start;">
+                <h4 style="margin: 0 0 15px 0; color: #b5bac1; font-size: 0.75rem; text-transform: uppercase;">Previsualización en Discord</h4>
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--accent-blue);"></div>
+                    <div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <span style="font-weight: 600; color: white;">PoseidonUI</span>
+                            <span style="background: #5865f2; color: white; font-size: 0.6rem; padding: 1px 4px; border-radius: 3px;">BOT</span>
+                            <span style="color: #949ba4; font-size: 0.75rem;">Hoy a las 12:00</span>
+                        </div>
+                        <div id="preview-embed" style="margin-top: 8px; border-left: 4px solid #00FFFF; background: #2b2d31; padding: 12px 16px; border-radius: 4px; width: 350px;">
+                            <div style="font-weight: 600; color: white; margin-bottom: 8px;">🏛️ Oráculo de Atenea</div>
+                            <div style="color: #dbdee1; font-size: 0.9rem;">Mis ojos ven la verdad tras tus palabras. El camino de la sabiduría requiere paciencia.</div>
+                            <div id="preview-footer" style="margin-top: 8px; color: #949ba4; font-size: 0.75rem; display: flex; align-items: center; gap: 5px;">
+                                <img src="https://cdn.discordapp.com/emojis/1425781431682076682.png" width="16" height="16">
+                                <span>🔱 PoseidonUI • El Poder del Olimpo</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -329,6 +420,8 @@
             return `${h}h ${m}m activo`;
         }
 
+        let charts = {};
+
         async function init() {
             try {
                 const [stats, guilds] = await Promise.all([
@@ -344,6 +437,8 @@
 
                 // Guilds
                 const list = document.getElementById('server-list');
+                const serverSelect = document.getElementById('analytics-server-select');
+                
                 list.innerHTML = guilds.map(g => `
                     <div class="server-card">
                         <div class="server-header">
@@ -366,10 +461,147 @@
                     </div>
                 `).join('');
 
+                serverSelect.innerHTML = guilds.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+                
+                // Load Initial Global Analytics for Dashboard
+                loadDashboardChart(guilds[0]?.id);
+
                 document.getElementById('loading-overlay').style.display = 'none';
             } catch (err) {
                 console.error(err);
                 alert('Error al conectar con el Olimpo. Revisa que el bot esté online.');
+            }
+        }
+
+        function showView(viewName) {
+            document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
+            document.querySelectorAll('.nav-item').forEach(v => v.classList.remove('active'));
+            
+            document.getElementById(`view-${viewName}`).style.display = 'block';
+            event.currentTarget.classList.add('active');
+
+            if (viewName === 'analytics') loadDetailedAnalytics();
+        }
+
+        function renderChart(canvasId, label, labels, data, color) {
+            if (charts[canvasId]) charts[canvasId].destroy();
+            
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            charts[canvasId] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        borderColor: color,
+                        backgroundColor: color + '22',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#ffffff11' }, ticks: { color: '#a0aec0' } },
+                        x: { grid: { display: false }, ticks: { color: '#a0aec0' } }
+                    }
+                }
+            });
+        }
+
+        async function loadDashboardChart(guildId) {
+            if (!guildId) return;
+            const data = await apiFetch(`/api/analytics/${guildId}`);
+            if (!data || data.length === 0) return;
+
+            const labels = data.map(d => d.date.split('-').slice(1).reverse().join('/'));
+            const messages = data.map(d => d.messages);
+            renderChart('mainChart', 'Mensajes Recientes', labels, messages, '#3498db');
+
+            // Calcular Ánimo (Mood) promedio del último día con datos
+            const lastDay = data[data.length - 1];
+            if (lastDay && lastDay.sentiment_count > 0) {
+                const avg = lastDay.sentiment_sum / lastDay.sentiment_count;
+                let mood = "Neutral 😐";
+                let color = "var(--text-dim)";
+                
+                if (avg > 0.2) { mood = "Positivo 😊"; color = "var(--accent-green)"; }
+                else if (avg < -0.2) { mood = "Tenso 😠"; color = "var(--accent-red)"; }
+                
+                const moodEl = document.getElementById('stat-mood');
+                moodEl.innerText = mood;
+                moodEl.style.color = color;
+            } else {
+                document.getElementById('stat-mood').innerText = "Neutral 😐";
+            }
+        }
+
+        async function loadDetailedAnalytics() {
+            const guildId = document.getElementById('analytics-server-select').value;
+            const data = await apiFetch(`/api/analytics/${guildId}`);
+            
+            const labels = data.map(d => d.date.split('-').slice(1).reverse().join('/'));
+            renderChart('messagesChart', 'Mensajes', labels, data.map(d => d.messages), '#2ecc71');
+            renderChart('commandsChart', 'Comandos', labels, data.map(d => d.commands), '#e74c3c');
+        }
+
+        // --- Theme Editor Logic ---
+        let currentEditingGuild = null;
+
+        async function openThemeEditor() {
+            currentEditingGuild = document.getElementById('edit-guild-id').value;
+            closeModal();
+            
+            // Cargar valores actuales
+            const data = await apiFetch(`/api/config/${currentEditingGuild}`);
+            
+            // En una implementación real, aquí cargaríamos los colores actuales del tema personalizado
+            // Por ahora usamos valores por defecto si no existen
+            document.getElementById('theme-color-primary').value = '#00FFFF';
+            document.getElementById('theme-color-success').value = '#00FF00';
+            document.getElementById('theme-color-error').value = '#FF0000';
+            document.getElementById('theme-footer-text').value = "PoseidonUI • El Poder del Olimpo";
+            
+            updatePreview();
+            document.getElementById('theme-modal').style.display = 'flex';
+        }
+
+        function closeThemeModal() {
+            document.getElementById('theme-modal').style.display = 'none';
+        }
+
+        function updatePreview() {
+            const color = document.getElementById('theme-color-primary').value;
+            const footer = document.getElementById('theme-footer-text').value;
+            
+            document.getElementById('preview-embed').style.borderColor = color;
+            document.querySelector('#preview-footer span').innerText = footer;
+        }
+
+        async function saveTheme() {
+            const colors = {
+                primary: parseInt(document.getElementById('theme-color-primary').value.replace('#', ''), 16),
+                success: parseInt(document.getElementById('theme-color-success').value.replace('#', ''), 16),
+                error: parseInt(document.getElementById('theme-color-error').value.replace('#', ''), 16)
+            };
+            const footer = document.getElementById('theme-footer-text').value;
+
+            try {
+                const res = await fetch(`${BOT_URL}/api/theme/update`, {
+                    method: 'POST',
+                    headers: { 'Authorization': token, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ guild_id: currentEditingGuild, colors, footer })
+                });
+
+                if (res.ok) {
+                    alert('🎨 Tema personalizado aplicado con éxito.');
+                    closeThemeModal();
+                }
+            } catch (err) {
+                alert('❌ Error al guardar el tema.');
             }
         }
 

@@ -235,6 +235,37 @@ class WebServer(commands.Cog):
             
             return web.json_response(filtered[::-1]) # Invertir para ver lo más reciente primero
 
+        async def get_analytics(request):
+            """Retorna las analíticas de actividad por servidor (Privado)."""
+            guild_id = request.match_info.get('guild_id')
+            analytics_cog = self.bot.get_cog("Analytics")
+            if not analytics_cog:
+                return web.json_response({"error": "Analytics module not loaded"}, status=503)
+            
+            data = analytics_cog.get_guild_analytics(guild_id)
+            return web.json_response(data)
+
+        async def update_theme(request):
+            """Actualiza el tema personalizado de un servidor (Privado)."""
+            try:
+                data = await request.json()
+            except Exception:
+                return web.json_response({"error": "Invalid JSON"}, status=400)
+            
+            guild_id = data.get('guild_id')
+            colors = data.get('colors', {}) # {primary: 0x..., secondary: 0x...}
+            footer = data.get('footer', "PoseidonUI")
+            
+            if not guild_id:
+                return web.json_response({"error": "Missing guild_id"}, status=400)
+            
+            from bot.themes import Theme
+            theme_name = f"custom_{guild_id}"
+            Theme.create_custom_theme(theme_name, f"Tema Personalizado {guild_id}", colors, footer)
+            Theme.set_theme(theme_name, guild_id)
+            
+            return web.json_response({"status": "success"})
+
         async def reboot_bot(request):
             """Reinicia el bot (Privado)."""
             print("🚀 [WebServer] Petición de reinicio recibida.")
@@ -259,6 +290,8 @@ class WebServer(commands.Cog):
         app.router.add_get('/api/config/{guild_id}', get_guild_settings)
         app.router.add_post('/api/config/update', update_guild_config)
         app.router.add_get('/api/logs/{guild_id}', get_logs)
+        app.router.add_get('/api/analytics/{guild_id}', get_analytics)
+        app.router.add_post('/api/theme/update', update_theme)
         app.router.add_post('/api/reboot', reboot_bot)
 
         # Frontend

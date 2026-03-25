@@ -840,6 +840,8 @@ def _allowed_cogs_for_plan(plan: str) -> list[str]:
         "bot.cogs.info.about",
         "bot.cogs.info.ayuda",
         "bot.cogs.info.theme_editor",
+        "bot.cogs.integraciones.analytics",
+        "bot.cogs.integraciones.sentimiento",
         "bot.cogs.comunidad.diversion",
         "bot.cogs.juegos.rpg",
         "bot.cogs.juegos.ahorcado",
