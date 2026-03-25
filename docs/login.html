@@ -88,10 +88,16 @@
     </div>
 
     <script>
-        // Configuración del bot (IP y Puerto de Teramont)
-        const BOT_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-            ? '' 
-            : 'http://104.128.49.50:11111';
+        // Intentar obtener URL guardada o pedirla
+        let BOT_URL = localStorage.getItem('poseidon_bot_url') || '';
+        
+        if (!BOT_URL && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            const inputUrl = prompt("🔧 Configuración inicial:\nIngresa la URL de tu Bot (Ej: http://tu-ip:puerto):", "http://");
+            if (inputUrl) {
+                BOT_URL = inputUrl.replace(/\/$/, "");
+                localStorage.setItem('poseidon_bot_url', BOT_URL);
+            }
+        }
 
         async function doLogin() {
             const user = document.getElementById('username').value;
