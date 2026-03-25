@@ -1,139 +1,101 @@
-# 🔱 PoseidonUI — Gestión Avanzada para Comunidades de Discord
+# 🔱 PoseidonUI — Gestión de Élite para Comunidades de Discord (v4.2)
 
 [![CI](https://github.com/Luciuss04/PoseidonUI/actions/workflows/ci.yml/badge.svg)](https://github.com/Luciuss04/PoseidonUI/actions/workflows/ci.yml)
 [![Website](https://img.shields.io/badge/Website-PoseidonUI-0077be)](https://luciuss04.github.io/PoseidonUI/)
 [![Discord](https://img.shields.io/discord/443479189597716480?color=5865F2&label=Soporte)](https://discord.gg/Kaf728xRFA)
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 
 ![Banner](banner.png)
 
-**PoseidonUI** es la solución definitiva para servidores de Discord que buscan profesionalismo, entretenimiento y gestión automatizada. Desde sistemas de economía complejos hasta batallas de mascotas estratégicas, todo bajo una interfaz moderna y temática mitológica.
+**PoseidonUI** es la solución definitiva para servidores de Discord en 2026. Combina una gestión profesional mediante un **Dashboard Web** exclusivo, inteligencia artificial avanzada (**IA de Atenea**) y entretenimiento de alto nivel con un sistema de **Mascotas y Coliseo** totalmente interactivo.
 
-🔗 **[Ver Documentación y Planes Web](https://luciuss04.github.io/PoseidonUI/)**
+🔗 **[Explorar Panel de Control](https://luciuss04.github.io/PoseidonUI/admin.html)** | **[Documentación Oficial](https://luciuss04.github.io/PoseidonUI/)**
 
 ---
 
-## 🚀 Características Principales
+## 🚀 Novedades Destacadas (Actualización Marzo 2026)
 
-### 🐾 Sistema de Mascotas v2.1 (Batallas Estratégicas)
-- **Colección:** 10 tipos de mascotas (Dragón, Fénix, Alien, Dinosaurio, etc.) con evoluciones visuales.
-- **Combate:** Sistema de batalla por turnos con interfaz gráfica (BattleView).
-- **Estrategia:** Tabla de elementos (Fuego > Agua > Eléctrico > Tierra > Fuego) y habilidades especiales.
-- **Exploración:** Eventos aleatorios (tesoros, peligros, encuentros) para ganar XP y objetos.
+### 🖥️ Dashboard Administrativo Web
+- **Control Remoto:** Gestiona canales de logs, roles de staff y temas visuales desde tu navegador.
+- **Estadísticas en Tiempo Real:** Monitoriza el ping, uptime y actividad de los servidores.
+- **Visor de Logs:** Accede a los registros detallados de cada servidor de forma centralizada.
+- **Seguridad SHA-256:** Sistema de autenticación robusto con protección contra ataques de fuerza bruta.
 
-### 💰 Economía Global v5.0
-- **Bolsa de Valores:** Mercado dinámico de acciones que fluctúa en tiempo real.
-- **Trabajos Progresivos:** Sistema de experiencia laboral con ascensos y mejores salarios.
-- **Casino:** Ruleta, Slots y Blackjack para apostar monedas.
-- **Tienda:** Compra de objetos, mejoras para mascotas y roles.
+### 🦉 IA de Atenea (Tickets Inteligentes)
+- **Análisis de Intenciones:** La IA analiza el contenido de los tickets para sugerir la categoría adecuada.
+- **Auto-Urgencia:** Detección automática de palabras clave críticas para marcar tickets como prioritarios.
+- **Respuestas Divinas:** Bienvenida inteligente y personalizada según el problema detectado.
 
-### 🛡️ Moderación y Seguridad (AutoMod)
-- **Guardian:** Sistema de verificación con captcha/botón y roles temporales.
-- **Auto-Moderación:** Filtros configurables para malas palabras, mayúsculas excesivas y spam.
-- **Logs Avanzados:** Registro detallado de acciones en canales configurables.
-- **Comandos:** `/clear`, `/mute`, `/warn`, `/lock`, `/slowmode`.
+### 🏟️ El Coliseo de Mascotas v4.2
+- **Interfaz RPG:** Barras de vida dinámicas y diseño visual estilo Coliseo.
+- **Habilidades Únicas:** Cada especie cuenta con ataques especiales (Ej: *Aliento de Fuego*, *Descarga Voltáica*).
+- **Críticos Divinos:** Sistema de combate aleatorio con bonificadores por elementos y golpes críticos.
 
-### 🎵 Música Pro
-- **Calidad de Estudio:** Soporte para filtros de audio (Bassboost, Nightcore, 8D, Vaporwave).
-- **Fuentes:** YouTube, SoundCloud, Spotify (via yt-dlp).
-- **Lyrics:** Integración con Genius para mostrar letras en tiempo real.
-- **Estabilidad:** Optimizado para evitar microcortes en hosting Linux (Teramont).
+---
 
-### 🏛️ Comunidad y Social
-- **Clanes (Olimpos):** Crea tu propio clan, banco compartido y guerras de clanes.
-- **Matrimonios:** Sistema de bodas con anillos, hijos y árbol genealógico.
-- **Confesiones:** Sistema de confesiones anónimas con moderación previa.
-- **Juegos:** Trivia competitiva, Ahorcado visual, Conecta 4.
-- **Oráculo:** Sistema de tickets/soporte con transcripciones automáticas.
+## 🛠️ Características Core
+
+- **💰 Economía Pro:** Bolsa de valores dinámica, trabajos con niveles y casino completo.
+- **🛡️ Seguridad Avanzada:** Sistema Guardian (Captcha), AutoMod inteligente y soporte para protocolo DAVE (Voice E2EE).
+- **🎵 Música Studio:** Filtros de audio (8D, Bassboost, Nightcore) y búsqueda ultra-rápida.
+- **🏛️ Social & Rol:** Sistema de Clanes (Olimpos), Matrimonios, Confesiones y Niveles con rangos mitológicos.
 
 ---
 
 ## 💎 Planes y Licencias
 
-El bot funciona con un sistema de licencias validado criptográficamente.
-
-| Plan | Precio | Incluye | Ideal para |
-| :--- | :--- | :--- | :--- |
-| **Básico** | 19€ | Moderación, Música, Minijuegos, Guardian | Servidores pequeños |
-| **Pro** | 39€ | Todo Básico + Niveles, Economía, Oráculo, Confesiones | Comunidades activas |
-| **Élite** | 69€ | Todo Pro + Mascotas v2, Clanes, Bolsa, Integraciones | Gaming / eSports |
-| **Custom** | 99€+ | Marca Blanca (Tu Bot), Funciones a medida, Soporte 24/7 | Marcas y Empresas |
-
-> ℹ️ **Nota:** Consulta los detalles completos en nuestra [página web](https://luciuss04.github.io/PoseidonUI/).
+| Plan | Incluye | Ideal para |
+| :--- | :--- | :--- |
+| **Básico** | Moderación, Música, Minijuegos, Guardian | Servidores pequeños |
+| **Pro** | Todo Básico + Niveles, Economía, Oráculo, Confesiones | Comunidades activas |
+| **Élite** | Todo Pro + Mascotas v4.2, Dashboard Web, IA Atenea | Gaming / eSports |
 
 ---
 
-## 🛠️ Instalación y Despliegue
+## ⚙️ Instalación y Configuración
 
-### Requisitos Previos
-- Python 3.11 o superior.
-- FFmpeg (para música).
-- Clave de licencia válida (archivo `licenses_plans.txt` o variable de entorno).
+### Requisitos
+- Python 3.11+
+- FFmpeg (Instalado en el PATH)
+- Puerto `11111` abierto (Para el Dashboard Web)
 
-### Despliegue Local / VPS
-1. **Clonar repositorio:**
+### Guía Rápida
+1. **Clonar y Entrar:**
    ```bash
    git clone https://github.com/Luciuss04/PoseidonUI.git
    cd PoseidonUI/BotDiscord4.0
    ```
-
-2. **Configurar entorno:**
-   Copia `.env.example` a `.env` y rellena las variables:
-   ```ini
-   DISCORD_TOKEN=tu_token_aqui
-   LICENSE_KEY=tu_clave_de_licencia
-   # ... otras variables
-   ```
-
-3. **Instalar dependencias:**
+2. **Entorno:**
+   Configura el archivo `.env` basándote en `.env.example`.
+3. **Dependencias:**
    ```bash
    pip install -r requirements.txt
    ```
-
-4. **Iniciar:**
+4. **Ejecutar:**
    ```bash
-   python main.py
-   # O usa start.bat en Windows
+   python app.py
    ```
 
-### Despliegue en Teramont (Pterodactyl)
-1. Subir el contenido de la carpeta `BotDiscord4.0` a la raíz del servidor.
-2. Configurar el **Punto de Entrada** (Startup File) como `app.py`.
-3. Subir el archivo `.env` manualmente o configurar las variables en el panel.
-4. Asegurarse de que `ffmpeg` está disponible o configurado en el bot.
+### 🔒 Seguridad Importante
+- El archivo `admin_keygen.py` **NO** debe subirse al repositorio (ya incluido en `.gitignore`).
+- Asegúrate de configurar `LICENSE_SIGNING_SECRET` para proteger la integridad de tus licencias.
+- El Dashboard requiere que el navegador permita "Contenido no seguro" si no se utiliza un certificado SSL en el host.
 
 ---
 
-## 📂 Estructura del Proyecto
+## 📂 Estructura de Carpetas
 
-```text
-PoseidonUI/
-├── BotDiscord4.0/          # Núcleo del Bot
-│   ├── bot/
-│   │   ├── cogs/           # Módulos (Comandos)
-│   │   │   ├── comunidad/  # Clanes, Oráculo, Social
-│   │   │   ├── economia/   # Bolsa, Tienda, Trabajos
-│   │   │   ├── info/       # Ayuda, Ping, Planes
-│   │   │   ├── mascotas/   # Sistema de Batallas y Mascotas
-│   │   │   ├── moderacion/ # AutoMod, Guardian
-│   │   │   ├── musica/     # Reproductor y Filtros
-│   │   │   └── util/       # Utilidades varias
-│   │   └── ...
-│   ├── data/               # Persistencia (JSONs, ignorados en git)
-│   ├── app.py              # Entrypoint para Hosting
-│   └── main.py             # Entrypoint Local
-└── docs/                   # Website / Documentación (GitHub Pages)
-```
+- `/bot/cogs`: Módulos de comandos organizados por categorías (Economía, Juegos, Moderación, etc.).
+- `/docs`: Frontend del Dashboard y Landing Page (Servido por GitHub Pages).
+- `app.py`: Punto de entrada principal optimizado para Teramont/Pterodactyl.
+- `guild_config.json`: Persistencia de configuraciones personalizadas por servidor.
 
 ---
 
-## 🤝 Soporte y Contacto
+## 🤝 Soporte
 
-¿Necesitas ayuda o quieres adquirir una licencia?
-
-- **Discord:** [Únete a nuestro servidor](https://discord.gg/Kaf728xRFA)
+- **Discord:** [Únete al Soporte](https://discord.gg/Kaf728xRFA)
 - **Web:** [luciuss04.github.io/PoseidonUI](https://luciuss04.github.io/PoseidonUI/)
 - **Email:** luciuss0444@gmail.com
-
----
 
 © 2026 PoseidonUI. Todos los derechos reservados.
