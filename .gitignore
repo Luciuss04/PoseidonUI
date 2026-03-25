@@ -3,6 +3,7 @@
 dashboard_auth.json
 guild_config.json
 theme_config.json
+admin_keygen.py
 backups/
 venv/
 __pycache__/
