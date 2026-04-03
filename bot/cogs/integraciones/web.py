@@ -245,6 +245,45 @@ class WebServer(commands.Cog):
             data = analytics_cog.get_guild_analytics(guild_id)
             return web.json_response(data)
 
+        async def get_streaming_config(request):
+            """Retorna la configuración de streaming de un servidor (Privado)."""
+            guild_id = request.match_info.get('guild_id')
+            if not guild_id:
+                return web.json_response({"error": "Missing guild_id"}, status=400)
+            
+            config = get_guild_setting(int(guild_id), "streaming_config", {
+                "enabled": False,
+                "target_ids": [],
+                "target_role_id": None,
+                "channel_id": None,
+                "message": "¡@everyone **{user}** está en directo en {platform}! 🔴"
+            })
+            return web.json_response(config)
+
+        async def update_streaming_config(request):
+            """Actualiza la configuración de streaming (Privado)."""
+            try:
+                data = await request.json()
+            except Exception:
+                return web.json_response({"error": "Invalid JSON"}, status=400)
+            
+            guild_id = data.get('guild_id')
+            config = data.get('config', {})
+            
+            if not guild_id:
+                return web.json_response({"error": "Missing guild_id"}, status=400)
+            
+            # Limpiar IDs de texto a números
+            if "target_ids" in config:
+                config["target_ids"] = [int(tid) for tid in config["target_ids"] if str(tid).isdigit()]
+            if config.get("target_role_id"):
+                config["target_role_id"] = int(config["target_role_id"])
+            if config.get("channel_id"):
+                config["channel_id"] = int(config["channel_id"])
+            
+            set_guild_setting(int(guild_id), "streaming_config", config)
+            return web.json_response({"status": "success"})
+
         async def update_theme(request):
             """Actualiza el tema personalizado de un servidor (Privado)."""
             try:
@@ -291,6 +330,8 @@ class WebServer(commands.Cog):
         app.router.add_post('/api/config/update', update_guild_config)
         app.router.add_get('/api/logs/{guild_id}', get_logs)
         app.router.add_get('/api/analytics/{guild_id}', get_analytics)
+        app.router.add_get('/api/streaming/{guild_id}', get_streaming_config)
+        app.router.add_post('/api/streaming/update', update_streaming_config)
         app.router.add_post('/api/theme/update', update_theme)
         app.router.add_post('/api/reboot', reboot_bot)
 
