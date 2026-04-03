@@ -217,6 +217,7 @@
             <li class="nav-item" onclick="showView('servers')"><i class="fa-solid fa-server"></i> Servidores</li>
             <li class="nav-item" onclick="showView('analytics')"><i class="fa-solid fa-chart-bar"></i> Analíticas</li>
             <li class="nav-item" onclick="showView('streaming')"><i class="fa-solid fa-tower-broadcast"></i> Directos</li>
+            <li class="nav-item" onclick="showView('commands')"><i class="fa-solid fa-terminal"></i> Comandos</li>
             <li class="nav-item" onclick="viewLogs('global')"><i class="fa-solid fa-clock-rotate-left"></i> Logs Globales</li>
             <li class="nav-item" onclick="changeBotUrl()"><i class="fa-solid fa-gears"></i> Configurar API</li>
         </ul>
@@ -274,49 +275,37 @@
 
         <!-- Vista: Streaming -->
         <div id="view-streaming" class="view" style="display: none;">
-            <h2 style="margin-bottom: 25px;">Configuración de Directos</h2>
+            <!-- ... content ... -->
+        </div>
+
+        <!-- Vista: Comandos -->
+        <div id="view-commands" class="view" style="display: none;">
+            <h2 style="margin-bottom: 25px;">Gestor de Comandos Personalizados</h2>
             <div class="form-group" style="max-width: 300px;">
                 <label>Seleccionar Servidor</label>
-                <select id="streaming-server-select" onchange="loadStreamingConfig()">
+                <select id="commands-server-select" onchange="loadCustomCommands()">
                     <option value="">Cargando servidores...</option>
                 </select>
             </div>
             
-            <div style="background: var(--card-bg); padding: 25px; border-radius: 15px; border: 1px solid var(--border-color); max-width: 700px;">
-                <form id="streaming-form">
-                    <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
-                        <input type="checkbox" id="stream-enabled" style="width: 20px; height: 20px;">
-                        <label style="margin: 0;">Habilitar Notificaciones de Stream</label>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Canal de Notificaciones</label>
-                        <select id="stream-channel">
-                            <option value="">Cargando canales...</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Rol a Notificar (Opcional)</label>
-                        <select id="stream-role">
-                            <option value="">Ninguno</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>ID del Streamer a monitorear</label>
-                        <input type="text" id="stream-target-id" placeholder="ID de Discord (Ej: 123456789)">
-                        <small style="color: var(--text-dim);">Si se deja vacío, se usará el dueño configurado en el bot.</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Mensaje de Notificación</label>
-                        <textarea id="stream-message" rows="3" style="width: 100%; background: var(--bg-dark); color: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px;"></textarea>
-                        <small style="color: var(--text-dim);">Variables: {user}, {platform}, {url}, {title}</small>
-                    </div>
-
-                    <button type="button" class="btn btn-primary" onclick="saveStreamingConfig()" style="width: 100%;">Guardar Configuración de Stream</button>
-                </form>
+            <div style="background: var(--card-bg); padding: 25px; border-radius: 15px; border: 1px solid var(--border-color); max-width: 900px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="margin: 0;">Comandos del Servidor</h3>
+                    <button class="btn btn-primary" onclick="openNewCommandModal()"><i class="fa-solid fa-plus"></i> Nuevo Comando</button>
+                </div>
+                
+                <table style="width: 100%; border-collapse: collapse; color: var(--text-dim);">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-color); text-align: left;">
+                            <th style="padding: 12px;">Comando</th>
+                            <th style="padding: 12px;">Respuesta</th>
+                            <th style="padding: 12px;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="commands-table-body">
+                        <!-- Comandos dinámicos -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </main>
@@ -356,6 +345,11 @@
             <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 20px 0;">
             <button class="btn btn-outline" style="width: 100%;" onclick="openThemeEditor()">🎨 Personalizar Tema (Avanzado)</button>
         </div>
+    </div>
+
+    <!-- Modal: Nuevo Comando -->
+    <div id="cmd-modal" class="modal">
+        <!-- ... content ... -->
     </div>
 
     <!-- Modal: Editor de Temas -->
@@ -407,6 +401,26 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal: Nuevo Comando -->
+    <div id="cmd-modal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>Nuevo Comando Personalizado</h3>
+                <span class="close-modal" onclick="closeCmdModal()">&times;</span>
+            </div>
+            <div class="form-group">
+                <label>Nombre del Comando (sin / ni espacios)</label>
+                <input type="text" id="new-cmd-name" placeholder="Ej: normas">
+            </div>
+            <div class="form-group">
+                <label>Respuesta del Bot</label>
+                <textarea id="new-cmd-response" rows="4" style="width: 100%; background: var(--bg-dark); color: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px;" placeholder="¡Hola! Estas son las normas..."></textarea>
+                <small style="color: var(--text-dim);">Variables: {user}, {server}</small>
+            </div>
+            <button class="btn btn-primary" style="width: 100%;" onclick="saveNewCommand()">Crear Comando</button>
         </div>
     </div>
 
@@ -516,6 +530,7 @@
 
             if (viewName === 'analytics') loadDetailedAnalytics();
             if (viewName === 'streaming') loadStreamingConfig();
+            if (viewName === 'commands') loadCustomCommands();
         }
 
         function renderChart(canvasId, label, labels, data, color) {
@@ -605,6 +620,7 @@
         }
 
         async function saveStreamingConfig() {
+            // ... existing save logic ...
             const guildId = document.getElementById('streaming-server-select').value;
             const config = {
                 enabled: document.getElementById('stream-enabled').checked,
@@ -626,6 +642,81 @@
                 }
             } catch (err) {
                 alert('❌ Error al guardar la configuración.');
+            }
+        }
+
+        // --- Custom Commands Logic ---
+        async function loadCustomCommands() {
+            const guildId = document.getElementById('commands-server-select').value;
+            if (!guildId) return;
+
+            const cmds = await apiFetch(`/api/custom_cmds/${guildId}`);
+            const tbody = document.getElementById('commands-table-body');
+            
+            tbody.innerHTML = Object.entries(cmds).map(([name, data]) => `
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 12px; color: var(--accent-blue);">/${name}</td>
+                    <td style="padding: 12px; max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${data.response}</td>
+                    <td style="padding: 12px;">
+                        <button class="btn btn-outline" style="padding: 5px 10px; color: var(--accent-red);" onclick="deleteCommand('${name}')">Borrar</button>
+                    </td>
+                </tr>
+            `).join('') || '<tr><td colspan="3" style="padding: 20px; text-align: center;">No hay comandos personalizados.</td></tr>';
+        }
+
+        function openNewCommandModal() {
+            document.getElementById('cmd-modal').style.display = 'flex';
+        }
+
+        function closeCmdModal() {
+            document.getElementById('cmd-modal').style.display = 'none';
+        }
+
+        async function saveNewCommand() {
+            const guildId = document.getElementById('commands-server-select').value;
+            const name = document.getElementById('new-cmd-name').value.trim().toLowerCase().replace(/\s+/g, '');
+            const response = document.getElementById('new-cmd-response').value.trim();
+
+            if (!name || !response) return alert("Rellena todos los campos.");
+
+            const cmds = await apiFetch(`/api/custom_cmds/${guildId}`);
+            cmds[name] = { response };
+
+            try {
+                const res = await fetch(`${BOT_URL}/api/custom_cmds/update`, {
+                    method: 'POST',
+                    headers: { 'Authorization': token, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ guild_id: guildId, cmds })
+                });
+
+                if (res.ok) {
+                    closeCmdModal();
+                    loadCustomCommands();
+                    alert('✅ Comando creado con éxito.');
+                }
+            } catch (err) {
+                alert('❌ Error al guardar el comando.');
+            }
+        }
+
+        async function deleteCommand(name) {
+            if (!confirm(`¿Borrar el comando /${name}?`)) return;
+            const guildId = document.getElementById('commands-server-select').value;
+            const cmds = await apiFetch(`/api/custom_cmds/${guildId}`);
+            delete cmds[name];
+
+            try {
+                const res = await fetch(`${BOT_URL}/api/custom_cmds/update`, {
+                    method: 'POST',
+                    headers: { 'Authorization': token, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ guild_id: guildId, cmds })
+                });
+
+                if (res.ok) {
+                    loadCustomCommands();
+                }
+            } catch (err) {
+                alert('❌ Error al borrar el comando.');
             }
         }
 

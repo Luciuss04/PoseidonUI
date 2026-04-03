@@ -262,6 +262,7 @@ class WebServer(commands.Cog):
 
         async def update_streaming_config(request):
             """Actualiza la configuración de streaming (Privado)."""
+            # ... existing logic ...
             try:
                 data = await request.json()
             except Exception:
@@ -282,6 +283,40 @@ class WebServer(commands.Cog):
                 config["channel_id"] = int(config["channel_id"])
             
             set_guild_setting(int(guild_id), "streaming_config", config)
+            return web.json_response({"status": "success"})
+
+        async def get_custom_cmds(request):
+            """Retorna los comandos personalizados de un servidor (Privado)."""
+            guild_id = request.match_info.get('guild_id')
+            if not guild_id:
+                return web.json_response({"error": "Missing guild_id"}, status=400)
+            
+            cmds = get_guild_setting(int(guild_id), "custom_commands", {})
+            return web.json_response(cmds)
+
+        async def update_custom_cmds(request):
+            """Actualiza la lista de comandos personalizados (Privado)."""
+            try:
+                data = await request.json()
+            except Exception:
+                return web.json_response({"error": "Invalid JSON"}, status=400)
+            
+            guild_id = data.get('guild_id')
+            cmds = data.get('cmds', {}) # {name: {response: "..."}}
+            
+            if not guild_id:
+                return web.json_response({"error": "Missing guild_id"}, status=400)
+            
+            set_guild_setting(int(guild_id), "custom_commands", cmds)
+            
+            # Intentar sincronizar árbol de comandos para este servidor
+            # Esto es experimental y requiere que el bot esté online
+            guild = self.bot.get_guild(int(guild_id))
+            if guild:
+                # Nota: Sincronizar slash commands en caliente es lento, 
+                # usaremos el listener de on_interaction por ahora
+                pass
+                
             return web.json_response({"status": "success"})
 
         async def update_theme(request):
@@ -332,6 +367,8 @@ class WebServer(commands.Cog):
         app.router.add_get('/api/analytics/{guild_id}', get_analytics)
         app.router.add_get('/api/streaming/{guild_id}', get_streaming_config)
         app.router.add_post('/api/streaming/update', update_streaming_config)
+        app.router.add_get('/api/custom_cmds/{guild_id}', get_custom_cmds)
+        app.router.add_post('/api/custom_cmds/update', update_custom_cmds)
         app.router.add_post('/api/theme/update', update_theme)
         app.router.add_post('/api/reboot', reboot_bot)
 
