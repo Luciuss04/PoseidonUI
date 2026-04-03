@@ -296,6 +296,7 @@ class WebServer(commands.Cog):
 
         async def update_custom_cmds(request):
             """Actualiza la lista de comandos personalizados (Privado)."""
+            # ... logic ...
             try:
                 data = await request.json()
             except Exception:
@@ -308,16 +309,25 @@ class WebServer(commands.Cog):
                 return web.json_response({"error": "Missing guild_id"}, status=400)
             
             set_guild_setting(int(guild_id), "custom_commands", cmds)
-            
-            # Intentar sincronizar árbol de comandos para este servidor
-            # Esto es experimental y requiere que el bot esté online
-            guild = self.bot.get_guild(int(guild_id))
-            if guild:
-                # Nota: Sincronizar slash commands en caliente es lento, 
-                # usaremos el listener de on_interaction por ahora
-                pass
-                
             return web.json_response({"status": "success"})
+
+        async def get_gaming_profiles(request):
+            """Retorna todos los perfiles gaming vinculados (Privado)."""
+            gaming_cog = self.bot.get_cog("GamingProfiles")
+            if not gaming_cog:
+                return web.json_response({"error": "Gaming module not loaded"}, status=503)
+            
+            # Formatear datos para el frontend
+            formatted = []
+            for user_id, games in gaming_cog.profiles.items():
+                user = self.bot.get_user(int(user_id))
+                formatted.append({
+                    "user_id": user_id,
+                    "username": str(user) if user else f"Usuario {user_id}",
+                    "avatar": str(user.avatar.url) if user and user.avatar else None,
+                    "games": games
+                })
+            return web.json_response(formatted)
 
         async def update_theme(request):
             """Actualiza el tema personalizado de un servidor (Privado)."""
@@ -369,6 +379,7 @@ class WebServer(commands.Cog):
         app.router.add_post('/api/streaming/update', update_streaming_config)
         app.router.add_get('/api/custom_cmds/{guild_id}', get_custom_cmds)
         app.router.add_post('/api/custom_cmds/update', update_custom_cmds)
+        app.router.add_get('/api/gaming/profiles', get_gaming_profiles)
         app.router.add_post('/api/theme/update', update_theme)
         app.router.add_post('/api/reboot', reboot_bot)
 
