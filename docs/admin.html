@@ -271,12 +271,71 @@
 
         <!-- Vista: Analíticas -->
         <div id="view-analytics" class="view" style="display: none;">
-            <!-- ... content ... -->
+            <h2 style="margin-bottom: 25px;">Analíticas de Actividad</h2>
+            <div class="form-group" style="max-width: 300px;">
+                <label>Seleccionar Servidor</label>
+                <select id="analytics-server-select" onchange="loadDetailedAnalytics()">
+                    <option value="global">Cargando servidores...</option>
+                </select>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div style="background: var(--card-bg); padding: 20px; border-radius: 15px; border: 1px solid var(--border-color);">
+                    <h3 style="margin-top: 0;">Mensajes Enviados</h3>
+                    <canvas id="messagesChart"></canvas>
+                </div>
+                <div style="background: var(--card-bg); padding: 20px; border-radius: 15px; border: 1px solid var(--border-color);">
+                    <h3 style="margin-top: 0;">Comandos Usados</h3>
+                    <canvas id="commandsChart"></canvas>
+                </div>
+            </div>
         </div>
 
         <!-- Vista: Streaming -->
         <div id="view-streaming" class="view" style="display: none;">
-            <!-- ... content ... -->
+            <h2 style="margin-bottom: 25px;">Configuración de Directos</h2>
+            <div class="form-group" style="max-width: 300px;">
+                <label>Seleccionar Servidor</label>
+                <select id="streaming-server-select" onchange="loadStreamingConfig()">
+                    <option value="">Cargando servidores...</option>
+                </select>
+            </div>
+            
+            <div style="background: var(--card-bg); padding: 25px; border-radius: 15px; border: 1px solid var(--border-color); max-width: 700px;">
+                <form id="streaming-form">
+                    <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="stream-enabled" style="width: 20px; height: 20px;">
+                        <label style="margin: 0;">Habilitar Notificaciones de Stream</label>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Canal de Notificaciones</label>
+                        <select id="stream-channel">
+                            <option value="">Cargando canales...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Rol a Notificar (Opcional)</label>
+                        <select id="stream-role">
+                            <option value="">Ninguno</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>ID del Streamer a monitorear</label>
+                        <input type="text" id="stream-target-id" placeholder="ID de Discord (Ej: 123456789)">
+                        <small style="color: var(--text-dim);">Si se deja vacío, se usará el dueño configurado en el bot.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mensaje de Notificación</label>
+                        <textarea id="stream-message" rows="3" style="width: 100%; background: var(--bg-dark); color: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px;"></textarea>
+                        <small style="color: var(--text-dim);">Variables: {user}, {platform}, {url}, {title}</small>
+                    </div>
+
+                    <button type="button" class="btn btn-primary" onclick="saveStreamingConfig()" style="width: 100%;">Guardar Configuración de Stream</button>
+                </form>
+            </div>
         </div>
 
         <!-- Vista: Comandos -->
@@ -361,7 +420,22 @@
 
     <!-- Modal: Nuevo Comando -->
     <div id="cmd-modal" class="modal">
-        <!-- ... content ... -->
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>Nuevo Comando Personalizado</h3>
+                <span class="close-modal" onclick="closeCmdModal()">&times;</span>
+            </div>
+            <div class="form-group">
+                <label>Nombre del Comando (sin / ni espacios)</label>
+                <input type="text" id="new-cmd-name" placeholder="Ej: normas">
+            </div>
+            <div class="form-group">
+                <label>Respuesta del Bot</label>
+                <textarea id="new-cmd-response" rows="4" style="width: 100%; background: var(--bg-dark); color: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px;" placeholder="¡Hola! Estas son las normas..."></textarea>
+                <small style="color: var(--text-dim);">Variables: {user}, {server}</small>
+            </div>
+            <button class="btn btn-primary" style="width: 100%;" onclick="saveNewCommand()">Crear Comando</button>
+        </div>
     </div>
 
     <!-- Modal: Editor de Temas -->
@@ -413,26 +487,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Modal: Nuevo Comando -->
-    <div id="cmd-modal" class="modal">
-        <div class="modal-content" style="max-width: 500px;">
-            <div class="modal-header">
-                <h3>Nuevo Comando Personalizado</h3>
-                <span class="close-modal" onclick="closeCmdModal()">&times;</span>
-            </div>
-            <div class="form-group">
-                <label>Nombre del Comando (sin / ni espacios)</label>
-                <input type="text" id="new-cmd-name" placeholder="Ej: normas">
-            </div>
-            <div class="form-group">
-                <label>Respuesta del Bot</label>
-                <textarea id="new-cmd-response" rows="4" style="width: 100%; background: var(--bg-dark); color: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px;" placeholder="¡Hola! Estas son las normas..."></textarea>
-                <small style="color: var(--text-dim);">Variables: {user}, {server}</small>
-            </div>
-            <button class="btn btn-primary" style="width: 100%;" onclick="saveNewCommand()">Crear Comando</button>
         </div>
     </div>
 
