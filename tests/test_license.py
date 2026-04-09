@@ -26,9 +26,7 @@ class TestLicenseTrial(unittest.TestCase):
     def test_trial_starts_and_allows(self):
         import importlib
 
-        spec = importlib.util.spec_from_file_location(
-            "app_main", str(self.cwd / "app.py")
-        )
+        spec = importlib.util.spec_from_file_location("app_main", str(self.cwd / "app.py"))
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
         self.assertTrue((self.cwd / "trial_start.txt").exists())
@@ -40,9 +38,7 @@ class TestLicenseTrial(unittest.TestCase):
         (self.cwd / "trial_start.txt").write_text(str(start), encoding="utf-8")
         import importlib
 
-        spec = importlib.util.spec_from_file_location(
-            "app_main2", str(self.cwd / "app.py")
-        )
+        spec = importlib.util.spec_from_file_location("app_main2", str(self.cwd / "app.py"))
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
         self.assertEqual(mod.ACTIVE_PLAN, "expired")

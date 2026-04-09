@@ -18,9 +18,7 @@ class EncuestaView(discord.ui.View):
         self.add_item(self._make_close())
 
     def _make_button(self, label: str, custom_id: str) -> discord.ui.Button:
-        btn = discord.ui.Button(
-            label=label, style=discord.ButtonStyle.primary, custom_id=custom_id
-        )
+        btn = discord.ui.Button(label=label, style=discord.ButtonStyle.primary, custom_id=custom_id)
 
         async def on_click(interaction: discord.Interaction):
             opt = label
@@ -51,13 +49,11 @@ class EncuestaView(discord.ui.View):
                     "⚠️ Solo el creador puede cerrar la encuesta.", ephemeral=True
                 )
                 return
-            resumen = "\n".join(
-                [f"• {o}: {len(self.votos[o])} votos" for o in self.opciones]
-            )
+            resumen = "\n".join([f"• {o}: {len(self.votos[o])} votos" for o in self.opciones])
             embed = discord.Embed(
                 title="📊 Resultados de la encuesta",
                 description=resumen,
-                color=Theme.get_color(interaction.guild.id, 'primary'),
+                color=Theme.get_color(interaction.guild.id, "primary"),
             )
             embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
             await interaction.message.edit(view=None)
@@ -75,9 +71,7 @@ class Encuestas(commands.Cog):
         name="encuesta",
         description="Crea una encuesta con opciones (separadas por ';')",
     )
-    async def encuesta(
-        self, interaction: discord.Interaction, pregunta: str, opciones: str
-    ):
+    async def encuesta(self, interaction: discord.Interaction, pregunta: str, opciones: str):
         opts = [o.strip() for o in opciones.split(";") if o.strip()]
         if len(opts) < 2 or len(opts) > MAX_OPTIONS:
             await interaction.response.send_message(
@@ -85,7 +79,9 @@ class Encuestas(commands.Cog):
             )
             return
         embed = discord.Embed(
-            title="📊 Encuesta", description=pregunta, color=Theme.get_color(interaction.guild.id, 'primary')
+            title="📊 Encuesta",
+            description=pregunta,
+            color=Theme.get_color(interaction.guild.id, "primary"),
         )
         embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
         view = EncuestaView(interaction.user.id, opts)

@@ -18,6 +18,7 @@ def _env_int(n: str, d: int) -> int:
     except Exception:
         return d
 
+
 WELCOME_CHANNEL = "📜-puertas-del-olimpo"
 FAREWELL_CHANNEL = "🏺-el-umbral-de-hades"
 ALERT_CHANNEL = "⚔️-alertas"
@@ -62,9 +63,7 @@ class VerifyView(discord.ui.View):
         emoji="🔱",
         custom_id="verify_button",
     )
-    async def verify_button(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ):
+    async def verify_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         role = discord.utils.get(interaction.guild.roles, name=VERIFY_ROLE)
         if role:
             await interaction.user.add_roles(role, reason="Juramento ante Poseidón aceptado")
@@ -118,12 +117,8 @@ class Guardian(commands.Cog):
     async def on_member_join(self, member):
         canal = discord.utils.get(member.guild.text_channels, name=WELCOME_CHANNEL)
         if canal:
-            ch_general = discord.utils.get(
-                member.guild.text_channels, name="chat-general"
-            )
-            ch_zeus = discord.utils.get(
-                member.guild.text_channels, name="📣-voz-de-zeus"
-            )
+            ch_general = discord.utils.get(member.guild.text_channels, name="chat-general")
+            ch_zeus = discord.utils.get(member.guild.text_channels, name="📣-voz-de-zeus")
             g_mention = ch_general.mention if ch_general else "#chat-general"
             dz_mention = ch_zeus.mention if ch_zeus else "#📣-voz-de-zeus"
             desc = (
@@ -141,7 +136,7 @@ class Guardian(commands.Cog):
             embed = discord.Embed(
                 title=f"⚡ {member.display_name}, el Olimpo te abre sus puertas",
                 description=desc,
-                color=Theme.get_color(member.guild.id, 'primary'),
+                color=Theme.get_color(member.guild.id, "primary"),
             )
             embed.add_field(
                 name="🫂 Presentación",
@@ -156,9 +151,7 @@ class Guardian(commands.Cog):
                     else "Para recibir la notificación debes tener el rol Olimpofans"
                 )
             except Exception:
-                directos_txt = (
-                    "Para recibir la notificación debes tener el rol Olimpofans"
-                )
+                directos_txt = "Para recibir la notificación debes tener el rol Olimpofans"
             embed.add_field(
                 name="🎙 Directos",
                 value=f"Anuncios en {dz_mention}. {directos_txt}",
@@ -201,7 +194,7 @@ class Guardian(commands.Cog):
                     embed=discord.Embed(
                         title="Log",
                         description=f"Bienvenida enviada a {member.mention}",
-                        color=Theme.get_color(member.guild.id, 'primary'),
+                        color=Theme.get_color(member.guild.id, "primary"),
                     ),
                 )
             except Exception:
@@ -210,7 +203,7 @@ class Guardian(commands.Cog):
             e2 = discord.Embed(
                 title="Bienvenido al Olimpo",
                 description="Pulsa el botón del canal de bienvenida para recibir acceso.",
-                color=Theme.get_color(member.guild.id, 'warning'),
+                color=Theme.get_color(member.guild.id, "warning"),
             )
             await member.send(embed=e2)
             try:
@@ -219,7 +212,7 @@ class Guardian(commands.Cog):
                     embed=discord.Embed(
                         title="Log",
                         description=f"DM de bienvenida enviado a {member.mention}",
-                        color=Theme.get_color(member.guild.id, 'primary'),
+                        color=Theme.get_color(member.guild.id, "primary"),
                     ),
                 )
             except Exception:
@@ -236,9 +229,7 @@ class Guardian(commands.Cog):
             while dq and now - dq[0] > 60:
                 dq.popleft()
             if len(dq) >= 5:
-                alert = discord.utils.get(
-                    member.guild.text_channels, name=ALERT_CHANNEL
-                )
+                alert = discord.utils.get(member.guild.text_channels, name=ALERT_CHANNEL)
                 rol_staff = discord.utils.get(member.guild.roles, name="Staff")
                 mention = rol_staff.mention if rol_staff else None
                 canales_bloqueo = []
@@ -247,9 +238,7 @@ class Guardian(commands.Cog):
                     if ch:
                         canales_bloqueo.append(ch)
                 if canales_bloqueo:
-                    await self._apply_raid_lock(
-                        member.guild, canales_bloqueo, duration_secs=600
-                    )
+                    await self._apply_raid_lock(member.guild, canales_bloqueo, duration_secs=600)
                 if alert:
                     tit = "Posible raid"
                     desc = f"{len(dq)} ingresos en 60s"
@@ -260,7 +249,9 @@ class Guardian(commands.Cog):
                     await alert.send(
                         content=mention,
                         embed=discord.Embed(
-                            title=tit, description=desc, color=Theme.get_color(member.guild.id, 'error')
+                            title=tit,
+                            description=desc,
+                            color=Theme.get_color(member.guild.id, "error"),
                         ),
                     )
                 try:
@@ -269,7 +260,7 @@ class Guardian(commands.Cog):
                         embed=discord.Embed(
                             title="Log",
                             description=f"Anti‑raid: {len(dq)} ingresos en 60s",
-                            color=Theme.get_color(member.guild.id, 'error'),
+                            color=Theme.get_color(member.guild.id, "error"),
                         ),
                     )
                 except Exception:
@@ -290,22 +281,18 @@ class Guardian(commands.Cog):
         try:
             age_days = 999
             try:
-                age_days = (
-                    datetime.utcnow() - member.created_at.replace(tzinfo=None)
-                ).days
+                age_days = (datetime.utcnow() - member.created_at.replace(tzinfo=None)).days
             except Exception:
                 age_days = 999
             if age_days < 7:
-                alert = discord.utils.get(
-                    member.guild.text_channels, name=ALERT_CHANNEL
-                )
+                alert = discord.utils.get(member.guild.text_channels, name=ALERT_CHANNEL)
                 rol_staff = discord.utils.get(member.guild.roles, name="Staff")
                 mention = rol_staff.mention if rol_staff else None
                 if alert:
                     e = discord.Embed(
                         title="Cuenta reciente",
                         description=f"{member.mention} creada hace {age_days} día(s)",
-                        color=Theme.get_color(member.guild.id, 'warning'),
+                        color=Theme.get_color(member.guild.id, "warning"),
                     )
                     try:
                         e.set_thumbnail(url=member.display_avatar.url)
@@ -318,7 +305,7 @@ class Guardian(commands.Cog):
                         embed=discord.Embed(
                             title="Log",
                             description=f"Cuenta reciente: {member} ({age_days} días)",
-                            color=Theme.get_color(member.guild.id, 'warning'),
+                            color=Theme.get_color(member.guild.id, "warning"),
                         ),
                     )
                 except Exception:
@@ -352,7 +339,11 @@ class Guardian(commands.Cog):
             elif isinstance(ch, discord.Thread):
                 try:
                     parent = ch.parent
-                    if not (isinstance(parent, discord.TextChannel) and parent.category and parent.category.name == ORACULO_ABIERTOS_NAME):
+                    if not (
+                        isinstance(parent, discord.TextChannel)
+                        and parent.category
+                        and parent.category.name == ORACULO_ABIERTOS_NAME
+                    ):
                         return
                     key_id = parent.id
                 except Exception:
@@ -380,7 +371,7 @@ class Guardian(commands.Cog):
                     embed=discord.Embed(
                         title="Log",
                         description=f"Verificado: {member.mention}",
-                        color=Theme.get_color(guild.id, 'success'),
+                        color=Theme.get_color(guild.id, "success"),
                     ),
                 )
             except Exception:
@@ -417,9 +408,7 @@ class Guardian(commands.Cog):
                 hora = datetime.utcfromtimestamp(ts).strftime("%H:%M UTC")
                 if m:
                     try:
-                        age_days = (
-                            datetime.utcnow() - m.created_at.replace(tzinfo=None)
-                        ).days
+                        age_days = (datetime.utcnow() - m.created_at.replace(tzinfo=None)).days
                     except Exception:
                         age_days = "?"
                     lines.append(f"{hora} — {m.mention} (cuenta {age_days} días)")
@@ -430,7 +419,7 @@ class Guardian(commands.Cog):
             e = discord.Embed(
                 title="🛡️ Accesos recientes",
                 description="\n".join(lines[:10]),
-                color=Theme.get_color(guild.id, 'primary'),
+                color=Theme.get_color(guild.id, "primary"),
             )
             try:
                 if guild.icon:
@@ -447,7 +436,7 @@ class Guardian(commands.Cog):
                             embed=discord.Embed(
                                 title="Log",
                                 description="Panel de accesos actualizado",
-                                color=Theme.get_color(guild.id, 'primary'),
+                                color=Theme.get_color(guild.id, "primary"),
                             ),
                         )
                     except Exception:
@@ -467,7 +456,7 @@ class Guardian(commands.Cog):
                     embed=discord.Embed(
                         title="Log",
                         description="Panel de accesos creado",
-                        color=Theme.get_color(guild.id, 'primary'),
+                        color=Theme.get_color(guild.id, "primary"),
                     ),
                 )
             except Exception:
@@ -508,7 +497,9 @@ class Guardian(commands.Cog):
         vrole = discord.utils.get(g.roles, name=VERIFY_ROLE)
         if not vrole:
             try:
-                vrole = await g.create_role(name=VERIFY_ROLE, color=Theme.get_color(g.id, 'success'), mentionable=True)
+                vrole = await g.create_role(
+                    name=VERIFY_ROLE, color=Theme.get_color(g.id, "success"), mentionable=True
+                )
                 created.append(vrole.mention)
             except Exception:
                 pass
@@ -518,14 +509,22 @@ class Guardian(commands.Cog):
                 adjusted.append(welcome.mention)
             except Exception:
                 pass
-        e = discord.Embed(title="Configuración aplicada", color=Theme.get_color(interaction.guild.id, 'primary'))
+        e = discord.Embed(
+            title="Configuración aplicada", color=Theme.get_color(interaction.guild.id, "primary")
+        )
         if created:
             e.add_field(name="Creados", value="\n".join(created), inline=False)
         if adjusted:
             e.add_field(name="Ajustados", value="\n".join(adjusted), inline=False)
         await interaction.response.send_message(embed=e, ephemeral=True)
         try:
-            le = self.bot.build_log_embed("Setup", "Configuración de canales y roles", user=u, guild=g, extra={"Creados": str(len(created)), "Ajustados": str(len(adjusted))})
+            le = self.bot.build_log_embed(
+                "Setup",
+                "Configuración de canales y roles",
+                user=u,
+                guild=g,
+                extra={"Creados": str(len(created)), "Ajustados": str(len(adjusted))},
+            )
             await self.bot.log(embed=le, guild=g)
         except Exception:
             pass
@@ -533,11 +532,13 @@ class Guardian(commands.Cog):
     @app_commands.command(name="stats_olimpo", description="Muestra estadísticas diarias actuales")
     async def stats_olimpo(self, interaction: discord.Interaction):
         if not interaction.user.guild_permissions.manage_guild:
-            await interaction.response.send_message("⛔ Solo staff con permisos de gestionar servidor.", ephemeral=True)
+            await interaction.response.send_message(
+                "⛔ Solo staff con permisos de gestionar servidor.", ephemeral=True
+            )
             return
 
         c = self._daily_counts.get(interaction.guild.id) or {}
-        
+
         verifies = c.get("verifies", 0)
         raids = c.get("raids", 0)
         new_acc = c.get("new_accounts", 0)
@@ -567,9 +568,11 @@ class Guardian(commands.Cog):
         embed = discord.Embed(
             title="📊 Estadísticas del Olimpo (Hoy)",
             description="\n".join(lines),
-            color=Theme.get_color(interaction.guild.id, 'secondary')
+            color=Theme.get_color(interaction.guild.id, "secondary"),
         )
-        embed.set_footer(text=f"{Theme.get_footer_text(interaction.guild.id)} • Solicitado por {interaction.user.display_name}")
+        embed.set_footer(
+            text=f"{Theme.get_footer_text(interaction.guild.id)} • Solicitado por {interaction.user.display_name}"
+        )
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @commands.Cog.listener()
@@ -687,9 +690,17 @@ class Guardian(commands.Cog):
                         "Top verificadores:",
                         "• " + ", ".join(top_verifiers),
                     ]
-                e = discord.Embed(title="Resumen diario del Olimpo", description="\n".join(lines), color=Theme.get_color(guild.id, 'primary'))
+                e = discord.Embed(
+                    title="Resumen diario del Olimpo",
+                    description="\n".join(lines),
+                    color=Theme.get_color(guild.id, "primary"),
+                )
                 try:
-                    e.add_field(name="Cálculo actividad", value="Mensajes + Adjuntos + Reacciones", inline=False)
+                    e.add_field(
+                        name="Cálculo actividad",
+                        value="Mensajes + Adjuntos + Reacciones",
+                        inline=False,
+                    )
                 except Exception:
                     pass
                 mention = None
@@ -704,7 +715,20 @@ class Guardian(commands.Cog):
                 except Exception:
                     pass
                 try:
-                    await self._log(guild, embed=self.bot.build_log_embed("Resumen diario", "Panel publicado", guild=guild, extra={"verificados": str(verifies), "raids": str(raids), "nuevas": str(new_acc), "bloqueos": str(locks)}))
+                    await self._log(
+                        guild,
+                        embed=self.bot.build_log_embed(
+                            "Resumen diario",
+                            "Panel publicado",
+                            guild=guild,
+                            extra={
+                                "verificados": str(verifies),
+                                "raids": str(raids),
+                                "nuevas": str(new_acc),
+                                "bloqueos": str(locks),
+                            },
+                        ),
+                    )
                 except Exception:
                     pass
                 try:
@@ -762,7 +786,10 @@ class Guardian(commands.Cog):
                         t_deleted_channel = 0
                         for th in list(getattr(ch, "threads", []) or []):
                             try:
-                                if ORACULO_CLEANUP_THREAD_MAX and t_deleted_channel >= ORACULO_CLEANUP_THREAD_MAX:
+                                if (
+                                    ORACULO_CLEANUP_THREAD_MAX
+                                    and t_deleted_channel >= ORACULO_CLEANUP_THREAD_MAX
+                                ):
                                     break
                                 await th.delete()
                                 t_deleted_channel += 1
@@ -775,15 +802,24 @@ class Guardian(commands.Cog):
                             pages = 0
                             before_msg = None
                             while True:
-                                if ORACULO_CLEANUP_ATTACH_MAX and a_deleted_channel >= ORACULO_CLEANUP_ATTACH_MAX:
+                                if (
+                                    ORACULO_CLEANUP_ATTACH_MAX
+                                    and a_deleted_channel >= ORACULO_CLEANUP_ATTACH_MAX
+                                ):
                                     break
-                                if ORACULO_CLEANUP_ATTACH_PAGES and pages >= ORACULO_CLEANUP_ATTACH_PAGES:
+                                if (
+                                    ORACULO_CLEANUP_ATTACH_PAGES
+                                    and pages >= ORACULO_CLEANUP_ATTACH_PAGES
+                                ):
                                     break
                                 fetched_any = False
                                 async for msg in ch.history(limit=100, before=before_msg):
                                     fetched_any = True
                                     before_msg = msg
-                                    if ORACULO_CLEANUP_ATTACH_MAX and a_deleted_channel >= ORACULO_CLEANUP_ATTACH_MAX:
+                                    if (
+                                        ORACULO_CLEANUP_ATTACH_MAX
+                                        and a_deleted_channel >= ORACULO_CLEANUP_ATTACH_MAX
+                                    ):
                                         break
                                     if msg.attachments:
                                         try:
@@ -806,7 +842,7 @@ class Guardian(commands.Cog):
                             raw = orig_name
                             for pref in ("sellado-", "auto-", "resuelto-", "cerrado-"):
                                 if raw.startswith(pref):
-                                    raw = raw[len(pref):]
+                                    raw = raw[len(pref) :]
                             new_name = f"archivado-{raw}"
                         tok = ch.topic or ""
                         base = tok.split("||", 1)[0].strip() or "oraculo"
@@ -828,8 +864,12 @@ class Guardian(commands.Cog):
                     try:
                         c = self._daily_counts.setdefault(guild.id, {})
                         c["oraculo_cleaned"] = c.get("oraculo_cleaned", 0) + cleaned
-                        c["oraculo_threads_deleted"] = c.get("oraculo_threads_deleted", 0) + threads_deleted
-                        c["oraculo_attachments_deleted"] = c.get("oraculo_attachments_deleted", 0) + attach_deleted
+                        c["oraculo_threads_deleted"] = (
+                            c.get("oraculo_threads_deleted", 0) + threads_deleted
+                        )
+                        c["oraculo_attachments_deleted"] = (
+                            c.get("oraculo_attachments_deleted", 0) + attach_deleted
+                        )
                     except Exception:
                         pass
                     alert = discord.utils.get(guild.text_channels, name=ALERT_CHANNEL)
@@ -839,7 +879,7 @@ class Guardian(commands.Cog):
                                 embed=discord.Embed(
                                     title="Limpieza de Oráculos",
                                     description=f"Canales archivados: {cleaned}\nHilos eliminados: {threads_deleted}\nAdjuntos eliminados: {attach_deleted}",
-                                    color=Theme.get_color(guild.id, 'warning'),
+                                    color=Theme.get_color(guild.id, "warning"),
                                 )
                             )
                         except Exception:
@@ -878,7 +918,7 @@ class Guardian(commands.Cog):
             embed = discord.Embed(
                 title="🏺 Despedida del templo",
                 description=desc,
-                color=Theme.get_color(member.guild.id, 'secondary'),
+                color=Theme.get_color(member.guild.id, "secondary"),
             )
             try:
                 embed.set_image(
@@ -886,7 +926,9 @@ class Guardian(commands.Cog):
                 )
             except Exception:
                 pass
-            embed.set_footer(text=f"{Theme.get_footer_text(member.guild.id)} • El Oráculo guarda silencio ante su partida")
+            embed.set_footer(
+                text=f"{Theme.get_footer_text(member.guild.id)} • El Oráculo guarda silencio ante su partida"
+            )
             await canal.send(embed=embed)
 
     @app_commands.command(
@@ -898,8 +940,7 @@ class Guardian(commands.Cog):
             "⚡ Favor divino": "Los dioses sonríen sobre ti. Que tus pasos sean firmes.",
             "🗡️ Prueba del destino": "Camina sin miedo: cada sombra guarda un aprendizaje.",
             "🌫️ Silencio ritual": (
-                "Hoy calla y observa. En el silencio se revelan "
-                "los hilos del destino."
+                "Hoy calla y observa. En el silencio se revelan " "los hilos del destino."
             ),
             "🔥 Forja del espíritu": "Acepta el calor de la prueba: saldrás templado.",
             "🌌 Visión del Oráculo": "Una estrella te guía. No la pierdas de vista.",
@@ -914,9 +955,11 @@ class Guardian(commands.Cog):
         embed = discord.Embed(
             title=f"🔱 Juicio de los Dioses: {titulo}",
             description=f"{usuario.mention}\n{mensaje}",
-            color=Theme.get_color(interaction.guild.id, 'primary'),
+            color=Theme.get_color(interaction.guild.id, "primary"),
         )
-        embed.set_footer(text=f"{Theme.get_footer_text(interaction.guild.id)} • Invocado por {interaction.user.display_name}")
+        embed.set_footer(
+            text=f"{Theme.get_footer_text(interaction.guild.id)} • Invocado por {interaction.user.display_name}"
+        )
         await interaction.response.send_message(embed=embed)
 
         if rol:
@@ -964,7 +1007,7 @@ class Guardian(commands.Cog):
                     embed=discord.Embed(
                         title="Log",
                         description="Bloqueo anti‑raid aplicado",
-                        color=Theme.get_color(guild.id, 'error'),
+                        color=Theme.get_color(guild.id, "error"),
                     ),
                 )
             except Exception:
@@ -1005,7 +1048,7 @@ class Guardian(commands.Cog):
                         embed=discord.Embed(
                             title="Fin de bloqueo anti‑raid",
                             description="Permisos restaurados",
-                            color=Theme.get_color(guild.id, 'success'),
+                            color=Theme.get_color(guild.id, "success"),
                         )
                     )
                 except Exception:
@@ -1016,7 +1059,7 @@ class Guardian(commands.Cog):
                     embed=discord.Embed(
                         title="Log",
                         description="Bloqueo anti‑raid finalizado",
-                        color=Theme.get_color(guild.id, 'success'),
+                        color=Theme.get_color(guild.id, "success"),
                     ),
                 )
             except Exception:
@@ -1027,6 +1070,7 @@ class Guardian(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(Guardian(bot))
+
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         try:
@@ -1041,7 +1085,11 @@ async def setup(bot):
             elif isinstance(ch, discord.Thread):
                 try:
                     parent = ch.parent
-                    if isinstance(parent, discord.TextChannel) and parent.category and parent.category.name == ORACULO_ABIERTOS_NAME:
+                    if (
+                        isinstance(parent, discord.TextChannel)
+                        and parent.category
+                        and parent.category.name == ORACULO_ABIERTOS_NAME
+                    ):
                         key_id = parent.id
                 except Exception:
                     key_id = None

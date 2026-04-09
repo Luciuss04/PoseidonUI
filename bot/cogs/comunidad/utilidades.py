@@ -13,28 +13,32 @@ class UtilidadesComunidad(commands.Cog):
     # Grupo de comandos de utilidad para ahorrar espacio global
     util_group = app_commands.Group(name="utilidad", description="Herramientas de utilidad varias")
 
-    @util_group.command(
-        name="sugerencia", description="Envía una sugerencia al equipo"
-    )
+    @util_group.command(name="sugerencia", description="Envía una sugerencia al equipo")
     async def sugerencia(self, interaction: discord.Interaction, texto: str):
         channel = discord.utils.get(interaction.guild.text_channels, name="💡-sugerencias")
         if not channel:
             # Fallback si no existe el canal
             channel = interaction.channel
-        
+
         embed = discord.Embed(
-            title="💡 Nueva Sugerencia", 
-            description=texto, 
-            color=Theme.get_color(interaction.guild.id, 'primary')
+            title="💡 Nueva Sugerencia",
+            description=texto,
+            color=Theme.get_color(interaction.guild.id, "primary"),
         )
-        embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
-        embed.set_footer(text=f"ID: {interaction.user.id} | {Theme.get_footer_text(interaction.guild.id)}")
-        
+        embed.set_author(
+            name=interaction.user.display_name, icon_url=interaction.user.display_avatar.url
+        )
+        embed.set_footer(
+            text=f"ID: {interaction.user.id} | {Theme.get_footer_text(interaction.guild.id)}"
+        )
+
         if channel != interaction.channel:
             msg = await channel.send(embed=embed)
             await msg.add_reaction("✅")
             await msg.add_reaction("❌")
-            await interaction.response.send_message(f"✅ Sugerencia enviada a {channel.mention}", ephemeral=True)
+            await interaction.response.send_message(
+                f"✅ Sugerencia enviada a {channel.mention}", ephemeral=True
+            )
         else:
             msg = await interaction.response.send_message(embed=embed)
             # Recuperar mensaje para reaccionar si es respuesta directa es más complejo con slash commands
@@ -51,11 +55,11 @@ class UtilidadesComunidad(commands.Cog):
         await interaction.response.send_message(embed=embed)
 
     @util_group.command(name="anuncio", description="Publica un anuncio en el canal")
-    async def anuncio(
-        self, interaction: discord.Interaction, titulo: str, contenido: str
-    ):
+    async def anuncio(self, interaction: discord.Interaction, titulo: str, contenido: str):
         embed = discord.Embed(
-            title=f"📣 {titulo}", description=contenido, color=Theme.get_color(interaction.guild.id, 'primary')
+            title=f"📣 {titulo}",
+            description=contenido,
+            color=Theme.get_color(interaction.guild.id, "primary"),
         )
         embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
         await interaction.response.send_message(embed=embed)
@@ -75,7 +79,7 @@ class UtilidadesComunidad(commands.Cog):
         embed = discord.Embed(
             title=f"📅 Evento: {titulo}",
             description=desc,
-            color=Theme.get_color(interaction.guild.id, 'primary'),
+            color=Theme.get_color(interaction.guild.id, "primary"),
         )
         embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
         await interaction.response.send_message(embed=embed)
@@ -84,16 +88,12 @@ class UtilidadesComunidad(commands.Cog):
     async def tag(self, interaction: discord.Interaction, nombre: str):
         val = self.tags.get(nombre.lower())
         if not val:
-            await interaction.response.send_message(
-                "⚠️ No existe ese tag.", ephemeral=True
-            )
+            await interaction.response.send_message("⚠️ No existe ese tag.", ephemeral=True)
             return
         await interaction.response.send_message(val)
 
     @util_group.command(name="tag_set", description="Define o actualiza un tag")
-    async def tag_set(
-        self, interaction: discord.Interaction, nombre: str, contenido: str
-    ):
+    async def tag_set(self, interaction: discord.Interaction, nombre: str, contenido: str):
         self.tags[nombre.lower()] = contenido
         await interaction.response.send_message("✅ Tag guardado.", ephemeral=True)
 
@@ -101,9 +101,7 @@ class UtilidadesComunidad(commands.Cog):
     async def canal_temp(self, interaction: discord.Interaction, nombre: str):
         guild = interaction.guild
         if not guild:
-            await interaction.response.send_message(
-                "⚠️ Solo en servidores.", ephemeral=True
-            )
+            await interaction.response.send_message("⚠️ Solo en servidores.", ephemeral=True)
             return
         canal = await guild.create_text_channel(name=nombre)
         await interaction.response.send_message(f"🧪 Canal creado: {canal.mention}")
@@ -122,17 +120,26 @@ class UtilidadesComunidad(commands.Cog):
     async def userinfo(self, interaction: discord.Interaction, usuario: discord.Member = None):
         usuario = usuario or interaction.user
         roles = [r.mention for r in usuario.roles if r.name != "@everyone"]
-        
+
         embed = discord.Embed(
-            title=f"👤 Información de {usuario.display_name}",
-            color=usuario.color
+            title=f"👤 Información de {usuario.display_name}", color=usuario.color
         )
         embed.set_thumbnail(url=usuario.avatar.url if usuario.avatar else None)
         embed.add_field(name="🆔 ID", value=usuario.id, inline=True)
-        embed.add_field(name="📅 Creación", value=usuario.created_at.strftime("%d/%m/%Y"), inline=True)
-        embed.add_field(name="📥 Entrada", value=usuario.joined_at.strftime("%d/%m/%Y") if usuario.joined_at else "?", inline=True)
-        embed.add_field(name=f"🎭 Roles ({len(roles)})", value=", ".join(roles) if roles else "Sin roles", inline=False)
-        
+        embed.add_field(
+            name="📅 Creación", value=usuario.created_at.strftime("%d/%m/%Y"), inline=True
+        )
+        embed.add_field(
+            name="📥 Entrada",
+            value=usuario.joined_at.strftime("%d/%m/%Y") if usuario.joined_at else "?",
+            inline=True,
+        )
+        embed.add_field(
+            name=f"🎭 Roles ({len(roles)})",
+            value=", ".join(roles) if roles else "Sin roles",
+            inline=False,
+        )
+
         await interaction.response.send_message(embed=embed)
 
     @util_group.command(name="serverinfo", description="Información del servidor")
@@ -142,37 +149,59 @@ class UtilidadesComunidad(commands.Cog):
             await interaction.response.send_message("Solo en servidores.", ephemeral=True)
             return
 
-        embed = discord.Embed(title=f"🏰 {guild.name}", color=Theme.get_color(interaction.guild.id, 'primary'))
+        embed = discord.Embed(
+            title=f"🏰 {guild.name}", color=Theme.get_color(interaction.guild.id, "primary")
+        )
         if guild.icon:
             embed.set_thumbnail(url=guild.icon.url)
-        
+
         embed.add_field(name="🆔 ID", value=guild.id, inline=True)
         embed.add_field(name="👑 Dueño", value=guild.owner.mention, inline=True)
         embed.add_field(name="👥 Miembros", value=guild.member_count, inline=True)
-        embed.add_field(name="📅 Creación", value=guild.created_at.strftime("%d/%m/%Y"), inline=True)
-        embed.add_field(name="💬 Canales", value=f"Texto: {len(guild.text_channels)} | Voz: {len(guild.voice_channels)}", inline=False)
+        embed.add_field(
+            name="📅 Creación", value=guild.created_at.strftime("%d/%m/%Y"), inline=True
+        )
+        embed.add_field(
+            name="💬 Canales",
+            value=f"Texto: {len(guild.text_channels)} | Voz: {len(guild.voice_channels)}",
+            inline=False,
+        )
         embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
-        
+
         await interaction.response.send_message(embed=embed)
 
     @util_group.command(name="8ball", description="Pregúntale al oráculo mágico")
     async def eightball(self, interaction: discord.Interaction, pregunta: str):
         import random
+
         respuestas = [
-            "Sí, definitivamente.", "Es cierto.", "Sin duda.", "Sí.",
-            "Puede ser.", "Pregunta de nuevo más tarde.", "Mejor no decirte ahora.",
-            "No cuentes con ello.", "Mi respuesta es no.", "Mis fuentes dicen que no.", "Muy dudoso."
+            "Sí, definitivamente.",
+            "Es cierto.",
+            "Sin duda.",
+            "Sí.",
+            "Puede ser.",
+            "Pregunta de nuevo más tarde.",
+            "Mejor no decirte ahora.",
+            "No cuentes con ello.",
+            "Mi respuesta es no.",
+            "Mis fuentes dicen que no.",
+            "Muy dudoso.",
         ]
         respuesta = random.choice(respuestas)
-        color = Theme.get_color(interaction.guild.id, 'success') if "Sí" in respuesta or "cierto" in respuesta else (
-            Theme.get_color(interaction.guild.id, 'error') if "no" in respuesta or "dudoso" in respuesta else Theme.get_color(interaction.guild.id, 'warning')
+        color = (
+            Theme.get_color(interaction.guild.id, "success")
+            if "Sí" in respuesta or "cierto" in respuesta
+            else (
+                Theme.get_color(interaction.guild.id, "error")
+                if "no" in respuesta or "dudoso" in respuesta
+                else Theme.get_color(interaction.guild.id, "warning")
+            )
         )
         embed = discord.Embed(title="🎱 Oráculo Mágico", color=color)
         embed.add_field(name="❓ Pregunta", value=pregunta, inline=False)
         embed.add_field(name="🔮 Respuesta", value=respuesta, inline=False)
         embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
         await interaction.response.send_message(embed=embed)
-
 
 
 async def setup(bot):

@@ -27,31 +27,34 @@ class PiedraPapelTijeras(discord.ui.View):
 
     async def play(self, interaction: discord.Interaction, user_choice):
         bot_choice = random.choice(["Piedra", "Papel", "Tijeras"])
-        
+
         # Lógica de ganador
         if user_choice == bot_choice:
             result = "🤝 ¡Empate!"
-            color = Theme.get_color(interaction.guild.id, 'warning')
-        elif (user_choice == "Piedra" and bot_choice == "Tijeras") or \
-             (user_choice == "Papel" and bot_choice == "Piedra") or \
-             (user_choice == "Tijeras" and bot_choice == "Papel"):
+            color = Theme.get_color(interaction.guild.id, "warning")
+        elif (
+            (user_choice == "Piedra" and bot_choice == "Tijeras")
+            or (user_choice == "Papel" and bot_choice == "Piedra")
+            or (user_choice == "Tijeras" and bot_choice == "Papel")
+        ):
             result = "🎉 ¡Ganaste!"
-            color = Theme.get_color(interaction.guild.id, 'success')
+            color = Theme.get_color(interaction.guild.id, "success")
         else:
             result = "🤖 ¡Gané yo!"
-            color = Theme.get_color(interaction.guild.id, 'error')
+            color = Theme.get_color(interaction.guild.id, "error")
 
         embed = discord.Embed(title="Piedra, Papel o Tijeras", color=color)
         embed.add_field(name="Tu elección", value=f"**{user_choice}**", inline=True)
         embed.add_field(name="Mi elección", value=f"**{bot_choice}**", inline=True)
         embed.add_field(name="Resultado", value=result, inline=False)
         embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
-        
+
         # Deshabilitar botones
         for child in self.children:
             child.disabled = True
-        
+
         await interaction.response.edit_message(embed=embed, view=self)
+
 
 class Diversion(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -60,10 +63,14 @@ class Diversion(commands.Cog):
     @app_commands.command(name="dado", description="Lanza un dado de N caras")
     async def dado(self, interaction: discord.Interaction, caras: int = 6):
         if caras < 2:
-            await interaction.response.send_message("⚠️ El dado debe tener al menos 2 caras.", ephemeral=True)
+            await interaction.response.send_message(
+                "⚠️ El dado debe tener al menos 2 caras.", ephemeral=True
+            )
             return
         res = random.randint(1, caras)
-        embed = discord.Embed(title="🎲 Lanzamiento de Dado", color=Theme.get_color(interaction.guild.id, 'primary'))
+        embed = discord.Embed(
+            title="🎲 Lanzamiento de Dado", color=Theme.get_color(interaction.guild.id, "primary")
+        )
         embed.add_field(name="Caras", value=str(caras), inline=True)
         embed.add_field(name="Resultado", value=f"**{res}**", inline=True)
         embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
@@ -72,7 +79,9 @@ class Diversion(commands.Cog):
     @app_commands.command(name="moneda", description="Lanza una moneda al aire")
     async def moneda(self, interaction: discord.Interaction):
         res = random.choice(["Cara", "Cruz"])
-        embed = discord.Embed(title="🪙 Lanzamiento de Moneda", color=Theme.get_color(interaction.guild.id, 'primary'))
+        embed = discord.Embed(
+            title="🪙 Lanzamiento de Moneda", color=Theme.get_color(interaction.guild.id, "primary")
+        )
         embed.description = f"La moneda cayó en: **{res}**"
         embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
         await interaction.response.send_message(embed=embed)
@@ -80,7 +89,11 @@ class Diversion(commands.Cog):
     @app_commands.command(name="ppt", description="Juega Piedra, Papel o Tijeras contra el bot")
     async def ppt(self, interaction: discord.Interaction):
         view = PiedraPapelTijeras()
-        embed = discord.Embed(title="Piedra, Papel o Tijeras", description="Elige tu jugada:", color=Theme.get_color(interaction.guild.id, 'primary'))
+        embed = discord.Embed(
+            title="Piedra, Papel o Tijeras",
+            description="Elige tu jugada:",
+            color=Theme.get_color(interaction.guild.id, "primary"),
+        )
         embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
         await interaction.response.send_message(embed=embed, view=view)
 
@@ -89,11 +102,15 @@ class Diversion(commands.Cog):
         """Separa las opciones por comas. Ejemplo: Pizza, Hamburguesa, Tacos"""
         lista = [x.strip() for x in opciones.split(",") if x.strip()]
         if len(lista) < 2:
-            await interaction.response.send_message("⚠️ Dame al menos 2 opciones separadas por comas.", ephemeral=True)
+            await interaction.response.send_message(
+                "⚠️ Dame al menos 2 opciones separadas por comas.", ephemeral=True
+            )
             return
-        
+
         elegido = random.choice(lista)
-        embed = discord.Embed(title="🤔 Decisión Difícil", color=Theme.get_color(interaction.guild.id, 'primary'))
+        embed = discord.Embed(
+            title="🤔 Decisión Difícil", color=Theme.get_color(interaction.guild.id, "primary")
+        )
         embed.add_field(name="Opciones", value=", ".join(lista), inline=False)
         embed.add_field(name="Elijo...", value=f"✨ **{elegido}** ✨", inline=False)
         embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
@@ -105,60 +122,69 @@ class Diversion(commands.Cog):
             minas = 20
         if minas < 1:
             minas = 1
-        
+
         rows, cols = 8, 8
         grid = [[0 for _ in range(cols)] for _ in range(rows)]
         mines_placed = 0
-        
+
         while mines_placed < minas:
-            r, c = random.randint(0, rows-1), random.randint(0, cols-1)
+            r, c = random.randint(0, rows - 1), random.randint(0, cols - 1)
             if grid[r][c] != -1:
                 grid[r][c] = -1
                 mines_placed += 1
-        
+
         for r in range(rows):
             for c in range(cols):
                 if grid[r][c] == -1:
                     continue
                 count = 0
-                for i in range(max(0, r-1), min(rows, r+2)):
-                    for j in range(max(0, c-1), min(cols, c+2)):
+                for i in range(max(0, r - 1), min(rows, r + 2)):
+                    for j in range(max(0, c - 1), min(cols, c + 2)):
                         if grid[i][j] == -1:
                             count += 1
                 grid[r][c] = count
 
-        emojis = {
-            0: "🟦", 1: "1️⃣", 2: "2️⃣", 3: "3️⃣", 4: "4️⃣", 
-            5: "5️⃣", 6: "6️⃣", 7: "7️⃣", 8: "8️⃣", -1: "💥"
-        }
-        
+        emojis = {0: "🟦", 1: "1️⃣", 2: "2️⃣", 3: "3️⃣", 4: "4️⃣", 5: "5️⃣", 6: "6️⃣", 7: "7️⃣", 8: "8️⃣", -1: "💥"}
+
         text = ""
         for r in range(rows):
             for c in range(cols):
                 val = grid[r][c]
                 text += f"||{emojis.get(val, '🟦')}||"
             text += "\n"
-        
-        embed = discord.Embed(title="💣 Buscaminas", description=f"**Minas:** {minas}\n¡Haz clic en los spoilers para revelar!", color=Theme.get_color(interaction.guild.id, 'secondary'))
+
+        embed = discord.Embed(
+            title="💣 Buscaminas",
+            description=f"**Minas:** {minas}\n¡Haz clic en los spoilers para revelar!",
+            color=Theme.get_color(interaction.guild.id, "secondary"),
+        )
         embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
         await interaction.response.send_message(content=text, embed=embed)
 
     @app_commands.command(name="ship", description="Calcula el porcentaje de amor entre usuarios")
-    async def ship(self, interaction: discord.Interaction, usuario1: discord.User, usuario2: discord.User = None):
+    async def ship(
+        self,
+        interaction: discord.Interaction,
+        usuario1: discord.User,
+        usuario2: discord.User = None,
+    ):
         u2 = usuario2 or interaction.user
         if usuario1.id == u2.id:
-            await interaction.response.send_message("💔 No puedes hacer ship contigo mismo (amor propio es importante, pero...).", ephemeral=True)
+            await interaction.response.send_message(
+                "💔 No puedes hacer ship contigo mismo (amor propio es importante, pero...).",
+                ephemeral=True,
+            )
             return
 
         # Seed based on IDs so it's consistent for the same pair
         random.seed(usuario1.id + u2.id)
         percent = random.randint(0, 100)
-        random.seed() # Reset seed
+        random.seed()  # Reset seed
 
         bar_len = 10
         filled = int(percent / 10)
         bar = "💖" * filled + "🖤" * (bar_len - filled)
-        
+
         msg = ""
         if percent < 20:
             msg = "💔 Ni lo intenten..."
@@ -171,16 +197,22 @@ class Diversion(commands.Cog):
         else:
             msg = "💍 ¡Boda inminente!"
 
-        embed = discord.Embed(title="💘 Love Calculator", description=f"{usuario1.mention} ❤️ {u2.mention}", color=Theme.get_color(interaction.guild.id, 'primary'))
+        embed = discord.Embed(
+            title="💘 Love Calculator",
+            description=f"{usuario1.mention} ❤️ {u2.mention}",
+            color=Theme.get_color(interaction.guild.id, "primary"),
+        )
         embed.add_field(name="Compatibilidad", value=f"**{percent}%**\n{bar}\n\n{msg}")
         embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="hack", description="Simula un hackeo a un usuario (Fake)")
     async def hack(self, interaction: discord.Interaction, usuario: discord.User):
-        await interaction.response.send_message(f"💻 Iniciando ataque a {usuario.name}...", ephemeral=False)
+        await interaction.response.send_message(
+            f"💻 Iniciando ataque a {usuario.name}...", ephemeral=False
+        )
         msg = await interaction.original_response()
-        
+
         pasos = [
             "🔍 Buscando dirección IP...",
             "🔓 IP Encontrada: 192.168.1.XX",
@@ -188,16 +220,16 @@ class Diversion(commands.Cog):
             "📂 Descargando historial de búsqueda...",
             "😳 ¡Madre mía! Qué historial...",
             "📤 Subiendo datos a la Dark Web...",
-            "✅ Hackeo completado. Se han robado 0 monedas."
+            "✅ Hackeo completado. Se han robado 0 monedas.",
         ]
-        
+
         for paso in pasos:
             await asyncio.sleep(2)
             try:
                 await msg.edit(content=f"💻 {paso}")
             except Exception:
                 pass
-        
+
         await msg.edit(content=f"💀 Hackeo a {usuario.mention} finalizado con éxito. (Es broma 🤡)")
 
     @app_commands.command(name="meme_txt", description="Genera un meme de texto aleatorio")
@@ -209,12 +241,17 @@ class Diversion(commands.Cog):
             "Mi código no funciona, no sé por qué.\nMi código funciona, no sé por qué.",
             "Git push --force\n*El equipo de desarrollo colapsa*",
             "Junior: Borré la base de datos de producción.\nSenior: ¿Que borraste QUÉ?",
-            "Yo a las 3 AM programando:\nSoy un dios.\nYo al día siguiente leyendo mi código:\n¿Quién escribió esta basura?"
+            "Yo a las 3 AM programando:\nSoy un dios.\nYo al día siguiente leyendo mi código:\n¿Quién escribió esta basura?",
         ]
         meme = random.choice(memes)
-        embed = discord.Embed(title="😂 Meme de Programador", description=meme, color=Theme.get_color(interaction.guild.id, 'secondary'))
+        embed = discord.Embed(
+            title="😂 Meme de Programador",
+            description=meme,
+            color=Theme.get_color(interaction.guild.id, "secondary"),
+        )
         embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
         await interaction.response.send_message(embed=embed)
+
 
 async def setup(bot):
     await bot.add_cog(Diversion(bot))

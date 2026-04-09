@@ -9,9 +9,7 @@ class About(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @app_commands.command(
-        name="botinfo", description="Resumen de funciones y módulos disponibles"
-    )
+    @app_commands.command(name="botinfo", description="Resumen de funciones y módulos disponibles")
     async def botinfo(self, interaction: discord.Interaction):
         features = (
             "⚡ Oráculo: creación y cierre de canales de ayuda"
@@ -22,9 +20,13 @@ class About(commands.Cog):
             "\n📊 Status: panel de diagnóstico y salud"
         )
         embed = discord.Embed(
-            title="PoseidonUI", description=features, color=Theme.get_color(interaction.guild.id, 'primary')
+            title="PoseidonUI",
+            description=features,
+            color=Theme.get_color(interaction.guild.id, "primary"),
         )
-        banner_url = "https://raw.githubusercontent.com/Luciuss04/PoseidonUI/main/BotDiscord4.0/banner.png"
+        banner_url = (
+            "https://raw.githubusercontent.com/Luciuss04/PoseidonUI/main/BotDiscord4.0/banner.png"
+        )
         embed.set_image(url=banner_url)
         embed.add_field(name="Prefijo", value="!", inline=True)
         embed.add_field(
@@ -51,16 +53,10 @@ class About(commands.Cog):
         ok = False
         if lic_file.exists():
             lines = lic_file.read_text(encoding="utf-8").splitlines()
-            valid = {
-                ln.strip()
-                for ln in lines
-                if ln.strip() and not ln.strip().startswith("#")
-            }
+            valid = {ln.strip() for ln in lines if ln.strip() and not ln.strip().startswith("#")}
             ok = key in valid
         if not ok:
-            await interaction.response.send_message(
-                "❌ Licencia no válida.", ephemeral=True
-            )
+            await interaction.response.send_message("❌ Licencia no válida.", ephemeral=True)
             return
         guild_id = interaction.guild.id if interaction.guild else 0
         guild_name = interaction.guild.name if interaction.guild else "DM"
@@ -88,9 +84,7 @@ class About(commands.Cog):
             return
 
         pathlib.Path("license_active.txt").write_text(key, encoding="utf-8")
-        entry = (
-            f"{key}|{guild_id}|{guild_name}|{datetime.utcnow().isoformat()}|PERM|PERM"
-        )
+        entry = f"{key}|{guild_id}|{guild_name}|{datetime.utcnow().isoformat()}|PERM|PERM"
         bind_path.open("a", encoding="utf-8").write(entry + "\n")
         await interaction.response.send_message(
             "✅ Licencia activada y vinculada (permanente).", ephemeral=True
@@ -106,9 +100,7 @@ class About(commands.Cog):
                 f"Fecha: {when}\n"
                 "Estado: PERMANENTE"
             )
-            pathlib.Path("activations.log").open("a", encoding="utf-8").write(
-                msg + "\n"
-            )
+            pathlib.Path("activations.log").open("a", encoding="utf-8").write(msg + "\n")
         except Exception:
             pass
 
@@ -118,13 +110,9 @@ class BuyView(discord.ui.View):
         super().__init__(timeout=None)
         self.bot = bot
 
-    @discord.ui.button(
-        label="Comprar licencia", style=discord.ButtonStyle.success, emoji="💳"
-    )
+    @discord.ui.button(label="Comprar licencia", style=discord.ButtonStyle.success, emoji="💳")
     async def buy(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message(
-            "Contáctame por Discord: Luciuss04", ephemeral=True
-        )
+        await interaction.response.send_message("Contáctame por Discord: Luciuss04", ephemeral=True)
 
 
 async def setup(bot: commands.Bot):

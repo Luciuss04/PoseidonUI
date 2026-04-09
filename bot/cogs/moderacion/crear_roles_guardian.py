@@ -56,16 +56,12 @@ class CrearRolesGuardian(commands.Cog):
         embed = discord.Embed(
             title="🛡️ Roles del Guardian",
             description="Los roles rituales han sido revisados.",
-            color=Theme.get_color(interaction.guild.id, 'primary'),
+            color=Theme.get_color(interaction.guild.id, "primary"),
         )
         if creados:
-            embed.add_field(
-                name="✅ Roles creados", value="\n".join(creados), inline=False
-            )
+            embed.add_field(name="✅ Roles creados", value="\n".join(creados), inline=False)
         if ya_existentes:
-            embed.add_field(
-                name="ℹ️ Ya existentes", value=", ".join(ya_existentes), inline=False
-            )
+            embed.add_field(name="ℹ️ Ya existentes", value=", ".join(ya_existentes), inline=False)
 
         embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
         await interaction.response.send_message(embed=embed)

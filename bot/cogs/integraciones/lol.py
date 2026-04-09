@@ -11,10 +11,11 @@ from bot.themes import Theme
 load_dotenv()
 RIOT_API_KEY = os.getenv("RIOT_API_KEY")
 
+
 class LoLCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.base_url = "https://euw1.api.riotgames.com" # Default region EUW
+        self.base_url = "https://euw1.api.riotgames.com"  # Default region EUW
 
     async def fetch(self, url):
         if not RIOT_API_KEY:
@@ -37,28 +38,34 @@ class LoLCog(commands.Cog):
 
     @app_commands.command(name="lol", description="Sistema de integración con League of Legends")
     @app_commands.describe(accion="perfil, ranked", nombre="Nombre de invocador (Riot ID)")
-    @app_commands.choices(accion=[
-        app_commands.Choice(name="Ver Perfil", value="perfil"),
-        app_commands.Choice(name="Ver Ranked", value="ranked")
-    ])
+    @app_commands.choices(
+        accion=[
+            app_commands.Choice(name="Ver Perfil", value="perfil"),
+            app_commands.Choice(name="Ver Ranked", value="ranked"),
+        ]
+    )
     async def lol(self, interaction: discord.Interaction, accion: str, nombre: str):
         if not RIOT_API_KEY:
-            await interaction.response.send_message("⚠️ Falta configurar `RIOT_API_KEY` en el archivo .env.", ephemeral=True)
+            await interaction.response.send_message(
+                "⚠️ Falta configurar `RIOT_API_KEY` en el archivo .env.", ephemeral=True
+            )
             return
 
         # Nota: La API de Riot ha cambiado a Riot ID (Name#Tag).
         # Este código usa la API v4 de Summoner por nombre, que puede estar deprecada o requerir ajustes.
         # Se mantiene la estructura para cuando se tenga una Key válida.
-        
+
         # Intentamos limpiar el nombre
         summoner_name = nombre.replace(" ", "%20")
-        
+
         if accion == "perfil":
             summoner_url = f"{self.base_url}/lol/summoner/v4/summoners/by-name/{summoner_name}"
             data = await self.fetch(summoner_url)
 
             if not data:
-                await interaction.response.send_message(f"⚠️ No se encontró al invocador **{nombre}** (o la API falló).", ephemeral=True)
+                await interaction.response.send_message(
+                    f"⚠️ No se encontró al invocador **{nombre}** (o la API falló).", ephemeral=True
+                )
                 return
 
             nivel = data.get("summonerLevel", "Unknown")
@@ -67,7 +74,7 @@ class LoLCog(commands.Cog):
             embed = discord.Embed(
                 title=f"⚔️ Invocador: {nombre}",
                 description=f"Nivel {nivel} — Guardián del Olimpo digital",
-                color=Theme.get_color(interaction.guild.id, 'secondary'),
+                color=Theme.get_color(interaction.guild.id, "secondary"),
             )
             embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
             embed.set_thumbnail(
@@ -81,7 +88,9 @@ class LoLCog(commands.Cog):
             summoner = await self.fetch(summoner_url)
 
             if not summoner:
-                await interaction.response.send_message(f"⚠️ No se encontró al invocador **{nombre}**.", ephemeral=True)
+                await interaction.response.send_message(
+                    f"⚠️ No se encontró al invocador **{nombre}**.", ephemeral=True
+                )
                 return
 
             summoner_id = summoner["id"]
@@ -89,7 +98,10 @@ class LoLCog(commands.Cog):
             ranked_data = await self.fetch(ranked_url)
 
             if not ranked_data:
-                await interaction.response.send_message(f"⚠️ No se encontraron datos de clasificatoria para **{nombre}**.", ephemeral=True)
+                await interaction.response.send_message(
+                    f"⚠️ No se encontraron datos de clasificatoria para **{nombre}**.",
+                    ephemeral=True,
+                )
                 return
 
             # Buscar Solo/Duo queue
@@ -98,9 +110,9 @@ class LoLCog(commands.Cog):
                 if e["queueType"] == "RANKED_SOLO_5x5":
                     entry = e
                     break
-            
+
             if not entry and ranked_data:
-                entry = ranked_data[0] # Fallback
+                entry = ranked_data[0]  # Fallback
 
             if entry:
                 tier = entry["tier"]
@@ -108,16 +120,19 @@ class LoLCog(commands.Cog):
                 wins = entry["wins"]
                 losses = entry["losses"]
                 lp = entry["leaguePoints"]
-                
+
                 embed = discord.Embed(
                     title=f"🏆 Clasificatoria de {nombre}",
                     description=f"**{tier} {rank}** - {lp} LP\nVictorias: {wins} ⚔️ — Derrotas: {losses} 💀",
-                    color=Theme.get_color(interaction.guild.id, 'primary'),
+                    color=Theme.get_color(interaction.guild.id, "primary"),
                 )
                 embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
                 await interaction.response.send_message(embed=embed)
             else:
-                await interaction.response.send_message(f"⚠️ **{nombre}** no tiene clasificación visible.", ephemeral=True)
+                await interaction.response.send_message(
+                    f"⚠️ **{nombre}** no tiene clasificación visible.", ephemeral=True
+                )
+
 
 async def setup(bot):
     await bot.add_cog(LoLCog(bot))

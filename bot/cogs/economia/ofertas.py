@@ -46,9 +46,7 @@ class Ofertas(commands.Cog):
     def cog_unload(self):
         self.publicar_ofertas.cancel()
 
-    @app_commands.command(
-        name="ofertas", description="Muestra al menos 30 ofertas de juegos de PC"
-    )
+    @app_commands.command(name="ofertas", description="Muestra al menos 30 ofertas de juegos de PC")
     @app_commands.describe(
         tienda="Filtra por tienda (Steam, Epic, GOG, Humble, Fanatical)",
         descuento_min="Mínimo descuento (0-90)",
@@ -63,9 +61,7 @@ class Ofertas(commands.Cog):
         fecha = datetime.now().strftime("%d-%m-%Y")
         nombre_thread = f"🌌 Profecías del Olimpo — {fecha}"
         try:
-            existentes = [
-                t for t in interaction.channel.threads if t.name == nombre_thread
-            ]
+            existentes = [t for t in interaction.channel.threads if t.name == nombre_thread]
             if existentes:
                 await interaction.followup.send(
                     "🕒 Ya se han publicado las ofertas de hoy en este canal.",
@@ -96,19 +92,13 @@ class Ofertas(commands.Cog):
             juegos = [
                 d
                 for d in juegos
-                if (
-                    d.get("storeName") or STORE_MAP.get(str(d.get("storeID")), "")
-                ).strip()
+                if (d.get("storeName") or STORE_MAP.get(str(d.get("storeID")), "")).strip()
                 == tienda_norm
             ]
         if descuento_min is not None:
-            juegos = [
-                d for d in juegos if int(float(d.get("savings", 0))) >= descuento_min
-            ]
+            juegos = [d for d in juegos if int(float(d.get("savings", 0))) >= descuento_min]
         if not juegos:
-            await interaction.followup.send(
-                "⚡ Hoy el Olimpo no encontró tesoros.", ephemeral=True
-            )
+            await interaction.followup.send("⚡ Hoy el Olimpo no encontró tesoros.", ephemeral=True)
             return
 
         juegos.sort(key=lambda j: float(j.get("savings", 0)), reverse=True)
@@ -133,7 +123,7 @@ class Ofertas(commands.Cog):
             resumen = discord.Embed(
                 title=f"✨ Ofertas del día — {fecha}",
                 description="Selección curada de 30 ofertas destacadas",
-                color=Theme.get_color(interaction.guild.id, 'primary'),
+                color=Theme.get_color(interaction.guild.id, "primary"),
             )
             resumen.set_footer(text=Theme.get_footer_text(interaction.guild.id))
             if dist:
@@ -150,14 +140,10 @@ class Ofertas(commands.Cog):
                     filtros.append(f"Tienda: {tienda_norm}")
                 if descuento_min is not None:
                     filtros.append(f"Min desc: −{descuento_min}%")
-                resumen.add_field(
-                    name="Filtros", value=" · ".join(filtros), inline=False
-                )
+                resumen.add_field(name="Filtros", value=" · ".join(filtros), inline=False)
             # cache y vista interactiva
             self.cache[thread.id] = juegos
-            msg_head = await thread.send(
-                embed=resumen, view=OfertasFilterView(self, thread.id)
-            )
+            msg_head = await thread.send(embed=resumen, view=OfertasFilterView(self, thread.id))
             try:
                 e = interaction.client.build_log_embed(
                     "Economía/Ofertas",
@@ -232,7 +218,7 @@ class Ofertas(commands.Cog):
             resumen = discord.Embed(
                 title=f"✨ Ofertas del día — {fecha}",
                 description="Selección curada de 30 ofertas destacadas",
-                color=Theme.get_color(canal.guild.id, 'primary'),
+                color=Theme.get_color(canal.guild.id, "primary"),
             )
             resumen.set_footer(text=Theme.get_footer_text(canal.guild.id))
             if dist:
@@ -245,9 +231,7 @@ class Ofertas(commands.Cog):
             resumen.add_field(name="Fuente", value="CheapShark", inline=True)
             # cache y vista interactiva
             self.cache[thread.id] = juegos
-            msg_head = await thread.send(
-                embed=resumen, view=OfertasFilterView(self, thread.id)
-            )
+            msg_head = await thread.send(embed=resumen, view=OfertasFilterView(self, thread.id))
             try:
                 e = self.bot.build_log_embed(
                     "Economía/Ofertas",
@@ -305,23 +289,21 @@ class Ofertas(commands.Cog):
 
         if cut >= 75:
             emoji = "🔥"
-            color = Theme.get_color(guild_id, 'warning')
+            color = Theme.get_color(guild_id, "warning")
         elif cut >= 60:
             emoji = "💎"
-            color = Theme.get_color(guild_id, 'success')
+            color = Theme.get_color(guild_id, "success")
         elif cut >= 45:
             emoji = "⭐"
-            color = Theme.get_color(guild_id, 'primary')
+            color = Theme.get_color(guild_id, "primary")
         else:
             emoji = "🌙"
-            color = Theme.get_color(guild_id, 'secondary')
+            color = Theme.get_color(guild_id, "secondary")
 
         numeros = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"]
         contador = "".join(numeros[int(d)] for d in str(idx))
 
-        embed = discord.Embed(
-            title=f"{contador} {emoji} {title}", color=color, url=link
-        )
+        embed = discord.Embed(title=f"{contador} {emoji} {title}", color=color, url=link)
         if compact:
             embed.add_field(
                 name="Precio", value=f"~~{price_old}€~~ → **{price_new}€**", inline=True
@@ -406,9 +388,7 @@ class OfertasFilterView(discord.ui.View):
         ],
         custom_id="ofertas_tienda_select",
     )
-    async def seleccionar_tienda(
-        self, interaction: discord.Interaction, select: discord.ui.Select
-    ):
+    async def seleccionar_tienda(self, interaction: discord.Interaction, select: discord.ui.Select):
         val = select.values[0]
         if val == "Todas":
             self.tienda_norm = None
@@ -421,9 +401,7 @@ class OfertasFilterView(discord.ui.View):
         style=discord.ButtonStyle.primary,
         custom_id="ofertas_min_desc",
     )
-    async def set_min_desc(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ):
+    async def set_min_desc(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_modal(OfertasDescuentoModal(self))
 
     @discord.ui.button(
@@ -431,40 +409,24 @@ class OfertasFilterView(discord.ui.View):
         style=discord.ButtonStyle.secondary,
         custom_id="ofertas_clean_toggle",
     )
-    async def toggle_clean(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ):
+    async def toggle_clean(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.clean_before = not self.clean_before
         await interaction.response.send_message(
-            (
-                "🧹 Limpieza: activada"
-                if self.clean_before
-                else "🧹 Limpieza: desactivada"
-            ),
+            ("🧹 Limpieza: activada" if self.clean_before else "🧹 Limpieza: desactivada"),
             ephemeral=True,
         )
 
     @discord.ui.select(
         placeholder="Ordenar por",
         options=[
-            discord.SelectOption(
-                label="Descuento", description="Mayor primero", emoji="🔥"
-            ),
-            discord.SelectOption(
-                label="Precio", description="Menor primero", emoji="💰"
-            ),
-            discord.SelectOption(
-                label="Metacritic", description="Mayor primero", emoji="📊"
-            ),
-            discord.SelectOption(
-                label="Steam rating", description="Mayor primero", emoji="🧪"
-            ),
+            discord.SelectOption(label="Descuento", description="Mayor primero", emoji="🔥"),
+            discord.SelectOption(label="Precio", description="Menor primero", emoji="💰"),
+            discord.SelectOption(label="Metacritic", description="Mayor primero", emoji="📊"),
+            discord.SelectOption(label="Steam rating", description="Mayor primero", emoji="🧪"),
         ],
         custom_id="ofertas_sort_select",
     )
-    async def seleccionar_orden(
-        self, interaction: discord.Interaction, select: discord.ui.Select
-    ):
+    async def seleccionar_orden(self, interaction: discord.Interaction, select: discord.ui.Select):
         val = select.values[0]
         self.offset = 0
         if val == "Descuento":
@@ -477,12 +439,8 @@ class OfertasFilterView(discord.ui.View):
             self.sort_by = "steam"
         await self.publicar_filtradas(interaction)
 
-    @discord.ui.button(
-        label="Ver más", style=discord.ButtonStyle.success, custom_id="ofertas_more"
-    )
-    async def ver_mas(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ):
+    @discord.ui.button(label="Ver más", style=discord.ButtonStyle.success, custom_id="ofertas_more")
+    async def ver_mas(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.offset += 10
         await self.publicar_filtradas(interaction)
 
@@ -491,9 +449,7 @@ class OfertasFilterView(discord.ui.View):
         style=discord.ButtonStyle.secondary,
         custom_id="ofertas_prev",
     )
-    async def ver_prev(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ):
+    async def ver_prev(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.offset = max(0, int(self.offset) - 10)
         await self.publicar_filtradas(interaction)
 
@@ -502,9 +458,7 @@ class OfertasFilterView(discord.ui.View):
         style=discord.ButtonStyle.secondary,
         custom_id="ofertas_compact_toggle",
     )
-    async def toggle_compact(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ):
+    async def toggle_compact(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.compact = not self.compact
         await interaction.response.send_message(
             "🗜️ Compacto: activado" if self.compact else "🗜️ Compacto: desactivado",
@@ -514,9 +468,7 @@ class OfertasFilterView(discord.ui.View):
     async def publicar_filtradas(self, interaction: discord.Interaction):
         juegos = self.cog.cache.get(self.thread_id, [])
         if not juegos:
-            await interaction.response.send_message(
-                "⚠️ No hay datos para filtrar.", ephemeral=True
-            )
+            await interaction.response.send_message("⚠️ No hay datos para filtrar.", ephemeral=True)
             return
         if self.clean_before:
             try:
@@ -557,9 +509,7 @@ class OfertasFilterView(discord.ui.View):
             filtrados = [
                 d
                 for d in filtrados
-                if (
-                    d.get("storeName") or STORE_MAP.get(str(d.get("storeID")), "")
-                ).strip()
+                if (d.get("storeName") or STORE_MAP.get(str(d.get("storeID")), "")).strip()
                 == self.tienda_norm
             ]
         if self.descuento_min is not None:
@@ -568,21 +518,15 @@ class OfertasFilterView(discord.ui.View):
             except Exception:
                 m = None
             if m is not None:
-                filtrados = [
-                    d for d in filtrados if int(float(d.get("savings", 0))) >= m
-                ]
+                filtrados = [d for d in filtrados if int(float(d.get("savings", 0))) >= m]
         if self.sort_by == "savings":
             filtrados.sort(key=lambda j: float(j.get("savings", 0)), reverse=True)
         elif self.sort_by == "price":
             filtrados.sort(key=lambda j: float(j.get("salePrice", 0)))
         elif self.sort_by == "metacritic":
-            filtrados.sort(
-                key=lambda j: int(j.get("metacriticScore") or 0), reverse=True
-            )
+            filtrados.sort(key=lambda j: int(j.get("metacriticScore") or 0), reverse=True)
         else:
-            filtrados.sort(
-                key=lambda j: int(j.get("steamRatingPercent") or 0), reverse=True
-            )
+            filtrados.sort(key=lambda j: int(j.get("steamRatingPercent") or 0), reverse=True)
         total = len(filtrados)
         start = max(0, min(int(self.offset), max(0, total - 10)))
         out = filtrados[start : start + 10]
@@ -602,9 +546,7 @@ class OfertasFilterView(discord.ui.View):
             thread = interaction.channel
             last_msg = None
             for idx, j in enumerate(out, start=1):
-                m = await thread.send(
-                    embed=self.cog.crear_embed(j, idx, compact=self.compact)
-                )
+                m = await thread.send(embed=self.cog.crear_embed(j, idx, compact=self.compact))
                 last_msg = m
             if self.compact and last_msg:
                 try:

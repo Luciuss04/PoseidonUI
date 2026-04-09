@@ -1,4 +1,3 @@
-import json
 import os
 import shutil
 from datetime import datetime
@@ -8,6 +7,7 @@ from discord import app_commands
 from discord.ext import commands, tasks
 
 from bot.config import DATA_FILE, GUILD_CONFIG_FILE
+from bot.themes import Theme
 
 
 class HerramientasModeracion(commands.Cog):
@@ -16,7 +16,7 @@ class HerramientasModeracion(commands.Cog):
         self.backup_loop.start()
         # Registro de Message Command (Context Menu)
         self.ctx_report = app_commands.ContextMenu(
-            name='Reportar al Olimpo',
+            name="Reportar al Olimpo",
             callback=self.reportar_mensaje,
         )
         self.bot.tree.add_command(self.ctx_report)
@@ -29,39 +29,45 @@ class HerramientasModeracion(commands.Cog):
         """Permite reportar un mensaje directamente desde el menú de contexto."""
         # Evitar auto-reportes o reportar al propio bot
         if message.author == interaction.user:
-            await interaction.response.send_message("❌ No puedes reportar tus propios mensajes.", ephemeral=True)
+            await interaction.response.send_message(
+                "❌ No puedes reportar tus propios mensajes.", ephemeral=True
+            )
             return
-            
+
         embed = discord.Embed(
             title="🚨 Reporte del Olimpo",
             description=f"Se ha recibido un reporte sobre un mensaje en {message.channel.mention}.",
             color=Theme.get_color(interaction.guild.id, "error"),
-            timestamp=discord.utils.utcnow()
+            timestamp=discord.utils.utcnow(),
         )
-        
-        embed.add_field(name="Autor del mensaje", value=f"{message.author} (`{message.author.id}`)", inline=True)
-        embed.add_field(name="Reportado por", value=f"{interaction.user} (`{interaction.user.id}`)", inline=True)
-        
+
+        embed.add_field(
+            name="Autor del mensaje", value=f"{message.author} (`{message.author.id}`)", inline=True
+        )
+        embed.add_field(
+            name="Reportado por", value=f"{interaction.user} (`{interaction.user.id}`)", inline=True
+        )
+
         content = message.content[:1000] or "*[Sin contenido de texto]* "
         if message.attachments:
             content += f"\n\n📎 *Contiene {len(message.attachments)} adjuntos*"
-            
+
         embed.add_field(name="Contenido reportado", value=content, inline=False)
-        embed.add_field(name="Enlace directo", value=f"[Ir al mensaje]({message.jump_url})", inline=False)
-        
+        embed.add_field(
+            name="Enlace directo", value=f"[Ir al mensaje]({message.jump_url})", inline=False
+        )
+
         embed.set_footer(text=f"ID del Mensaje: {message.id}")
-        
+
         # Enviar al canal de logs del servidor
         try:
             await interaction.client.log(embed=embed, guild=interaction.guild)
             await interaction.response.send_message(
-                "✅ Gracias. El reporte ha sido enviado al Staff para su revisión.", 
-                ephemeral=True
+                "✅ Gracias. El reporte ha sido enviado al Staff para su revisión.", ephemeral=True
             )
         except Exception:
             await interaction.response.send_message(
-                "❌ Error al enviar el reporte. Contacta con un administrador.", 
-                ephemeral=True
+                "❌ Error al enviar el reporte. Contacta con un administrador.", ephemeral=True
             )
 
     # Grupo de comandos de moderación
@@ -95,11 +101,15 @@ class HerramientasModeracion(commands.Cog):
         for f in files_to_backup:
             if os.path.exists(f):
                 shutil.copy2(f, os.path.join(backup_path, f))
-        
+
         # Mantener solo los últimos 7 backups
         all_backups = sorted(
-            [os.path.join(backup_dir, d) for d in os.listdir(backup_dir) if os.path.isdir(os.path.join(backup_dir, d))],
-            key=os.path.getmtime
+            [
+                os.path.join(backup_dir, d)
+                for d in os.listdir(backup_dir)
+                if os.path.isdir(os.path.join(backup_dir, d))
+            ],
+            key=os.path.getmtime,
         )
         if len(all_backups) > 7:
             for old_backup in all_backups[:-7]:
@@ -134,32 +144,30 @@ class HerramientasModeracion(commands.Cog):
     async def list_backups(self, interaction: discord.Interaction):
         backup_dir = "backups"
         if not os.path.exists(backup_dir) or not os.listdir(backup_dir):
-            await interaction.response.send_message("📂 No hay backups disponibles.", ephemeral=True)
+            await interaction.response.send_message(
+                "📂 No hay backups disponibles.", ephemeral=True
+            )
             return
 
         backups = sorted(
             [d for d in os.listdir(backup_dir) if os.path.isdir(os.path.join(backup_dir, d))],
             key=lambda x: os.path.getmtime(os.path.join(backup_dir, x)),
-            reverse=True
+            reverse=True,
         )
-        
+
         txt = "**Últimos backups disponibles:**\n"
         for b in backups[:10]:
             txt += f"• `{b}`\n"
-        
+
         await interaction.response.send_message(txt, ephemeral=True)
 
     @mod_group.command(name="clear", description="Borra mensajes recientes")
     async def clear(self, interaction: discord.Interaction, cantidad: int):
         if cantidad < 1 or cantidad > 100:
-            await interaction.response.send_message(
-                "⚠️ Cantidad inválida (1-100).", ephemeral=True
-            )
+            await interaction.response.send_message("⚠️ Cantidad inválida (1-100).", ephemeral=True)
             return
         await interaction.channel.purge(limit=cantidad)
-        await interaction.response.send_message(
-            f"✅ Borrados {cantidad} mensajes.", ephemeral=True
-        )
+        await interaction.response.send_message(f"✅ Borrados {cantidad} mensajes.", ephemeral=True)
         try:
             e = interaction.client.build_log_embed(
                 "Moderación/Herramientas",
@@ -179,9 +187,7 @@ class HerramientasModeracion(commands.Cog):
             )
             return
         await interaction.channel.edit(slowmode_delay=segundos)
-        await interaction.response.send_message(
-            f"⏱️ Slowmode: {segundos}s.", ephemeral=True
-        )
+        await interaction.response.send_message(f"⏱️ Slowmode: {segundos}s.", ephemeral=True)
         try:
             e = interaction.client.build_log_embed(
                 "Moderación/Herramientas",
@@ -194,9 +200,7 @@ class HerramientasModeracion(commands.Cog):
             pass
 
     @mod_group.command(name="mute", description="Silencia a un usuario en minutos")
-    async def mute(
-        self, interaction: discord.Interaction, usuario: discord.Member, minutos: int
-    ):
+    async def mute(self, interaction: discord.Interaction, usuario: discord.Member, minutos: int):
         if minutos < 1 or minutos > 10080:
             await interaction.response.send_message(
                 "⚠️ Minutos inválidos (1-10080).", ephemeral=True
@@ -204,8 +208,7 @@ class HerramientasModeracion(commands.Cog):
             return
         try:
             await usuario.edit(
-                timed_out_until=discord.utils.utcnow()
-                + discord.timedelta(minutes=minutos)
+                timed_out_until=discord.utils.utcnow() + discord.timedelta(minutes=minutos)
             )
             await interaction.response.send_message(
                 f"🔇 {usuario.mention} silenciado por {minutos} minutos."
@@ -229,17 +232,13 @@ class HerramientasModeracion(commands.Cog):
             except Exception:
                 pass
         except Exception:
-            await interaction.response.send_message(
-                "⚠️ No se pudo silenciar.", ephemeral=True
-            )
+            await interaction.response.send_message("⚠️ No se pudo silenciar.", ephemeral=True)
 
     @mod_group.command(name="unmute", description="Quita el silencio a un usuario")
     async def unmute(self, interaction: discord.Interaction, usuario: discord.Member):
         try:
             await usuario.edit(timed_out_until=None)
-            await interaction.response.send_message(
-                f"🔊 {usuario.mention} ya no está silenciado."
-            )
+            await interaction.response.send_message(f"🔊 {usuario.mention} ya no está silenciado.")
             try:
                 e = interaction.client.build_log_embed(
                     "Moderación/Herramientas",
@@ -256,9 +255,7 @@ class HerramientasModeracion(commands.Cog):
             except Exception:
                 pass
         except Exception:
-            await interaction.response.send_message(
-                "⚠️ No se pudo desilenciar.", ephemeral=True
-            )
+            await interaction.response.send_message("⚠️ No se pudo desilenciar.", ephemeral=True)
 
     @mod_group.command(name="lock", description="Bloquea un canal para escribir")
     async def lock(
@@ -289,9 +286,7 @@ class HerramientasModeracion(commands.Cog):
         overwrite = canal.overwrites_for(interaction.guild.default_role)
         overwrite.send_messages = True
         await canal.set_permissions(interaction.guild.default_role, overwrite=overwrite)
-        await interaction.response.send_message(
-            f"🔓 Canal desbloqueado: {canal.mention}"
-        )
+        await interaction.response.send_message(f"🔓 Canal desbloqueado: {canal.mention}")
         try:
             e = interaction.client.build_log_embed(
                 "Moderación/Herramientas",
@@ -305,16 +300,12 @@ class HerramientasModeracion(commands.Cog):
             pass
 
     @mod_group.command(name="warn", description="Advierte a un usuario")
-    async def warn(
-        self, interaction: discord.Interaction, usuario: discord.Member, razon: str
-    ):
+    async def warn(self, interaction: discord.Interaction, usuario: discord.Member, razon: str):
         try:
             await usuario.send(f"⚠️ Advertencia en {interaction.guild.name}: {razon}")
         except Exception:
             pass
-        await interaction.response.send_message(
-            f"⚠️ Advertencia enviada a {usuario.mention}."
-        )
+        await interaction.response.send_message(f"⚠️ Advertencia enviada a {usuario.mention}.")
         try:
             e = interaction.client.build_log_embed(
                 "Moderación/Herramientas",

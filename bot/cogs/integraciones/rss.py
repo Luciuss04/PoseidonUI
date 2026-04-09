@@ -8,5 +8,6 @@ class RSSIntegration(commands.Cog):
     # Placeholder for RSS integration features
     # TODO: Implement actual RSS integration logic
 
+
 async def setup(bot):
     await bot.add_cog(RSSIntegration(bot))

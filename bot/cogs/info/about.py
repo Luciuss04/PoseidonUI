@@ -18,12 +18,13 @@ def _is_owner_check():
 
     return app_commands.check(predicate)
 
+
 class About(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         # Registro del User Command (Context Menu)
         self.ctx_menu = app_commands.ContextMenu(
-            name='Ver Perfil Divino',
+            name="Ver Perfil Divino",
             callback=self.perfil_divino,
         )
         self.bot.tree.add_command(self.ctx_menu)
@@ -37,17 +38,25 @@ class About(commands.Cog):
             title=f"🔱 Perfil Divino • {member.display_name}",
             color=Theme.get_color(interaction.guild.id, "info"),
         )
-        
+
         if member.avatar:
             embed.set_thumbnail(url=member.avatar.url)
-            
+
         embed.add_field(name="ID", value=f"`{member.id}`", inline=True)
-        embed.add_field(name="Cuenta creada", value=f"<t:{int(member.created_at.timestamp())}:R>", inline=True)
-        embed.add_field(name="Unión al servidor", value=f"<t:{int(member.joined_at.timestamp())}:R>", inline=True)
-        
+        embed.add_field(
+            name="Cuenta creada", value=f"<t:{int(member.created_at.timestamp())}:R>", inline=True
+        )
+        embed.add_field(
+            name="Unión al servidor",
+            value=f"<t:{int(member.joined_at.timestamp())}:R>",
+            inline=True,
+        )
+
         roles = [r.mention for r in reversed(member.roles) if r != interaction.guild.default_role]
-        embed.add_field(name=f"Roles ({len(roles)})", value=" ".join(roles[:10]) or "Ninguno", inline=False)
-        
+        embed.add_field(
+            name=f"Roles ({len(roles)})", value=" ".join(roles[:10]) or "Ninguno", inline=False
+        )
+
         embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
@@ -124,7 +133,7 @@ class About(commands.Cog):
         else:
             await interaction.response.send_message("❌ Error al cambiar el tema.", ephemeral=True)
 
-    @tema.autocomplete('nombre')
+    @tema.autocomplete("nombre")
     async def tema_autocomplete(
         self, interaction: discord.Interaction, current: str
     ) -> list[app_commands.Choice[str]]:
@@ -134,7 +143,7 @@ class About(commands.Cog):
             # Filtrar por búsqueda
             if current.lower() in data["name"].lower() or current.lower() in key.lower():
                 choices.append(app_commands.Choice(name=data["name"], value=key))
-        
+
         # Discord permite max 25 opciones
         return choices[:25]
 
@@ -149,7 +158,7 @@ class About(commands.Cog):
             is_trial = getattr(self.bot, "is_trial", False)
             revoked, expires_at, reason = self._license_control_state()
             trial_left = self._trial_days_left()
-            
+
             # Formatear Plan
             plan_emojis = {
                 "basic": "🥉 Básico",
@@ -157,12 +166,12 @@ class About(commands.Cog):
                 "elite": "🥇 Élite",
                 "custom": "👑 Custom",
                 "expired": "⛔ Restringido",
-                "unknown": "❓ Desconocido"
+                "unknown": "❓ Desconocido",
             }
             # Normalizar a string y minúsculas para búsqueda
             plan_str = str(plan).lower()
             plan_display = plan_emojis.get(plan_str, f"❓ {str(plan).capitalize()}")
-            
+
             if is_trial:
                 plan_display += " (Trial)"
             masked_key = self._mask_key(str(key))
@@ -172,11 +181,11 @@ class About(commands.Cog):
                 description="Información de tu suscripción y versión del sistema.",
                 color=Theme.get_color(interaction.guild.id, "primary"),
             )
-            
+
             embed.add_field(name="🤖 Versión del Bot", value=f"`v{BOT_VERSION}`", inline=True)
             embed.add_field(name="📦 Plan Activo", value=f"**{plan_display}**", inline=True)
             embed.add_field(name="🔑 Licencia", value=f"`{masked_key}`", inline=False)
-            
+
             # Estado
             if plan_str == "expired" or revoked:
                 status = "⛔ Restringido"
@@ -204,7 +213,7 @@ class About(commands.Cog):
                 embed.add_field(name="Vencimiento", value="Sin vencimiento", inline=True)
             if reason:
                 embed.add_field(name="Motivo", value=reason[:1024], inline=False)
-            
+
             # Footer
             embed.set_footer(
                 text=(
@@ -212,18 +221,16 @@ class About(commands.Cog):
                     f"ID Servidor: {interaction.guild.id}"
                 )
             )
-            
+
             await interaction.response.send_message(embed=embed)
-            
+
         except Exception as e:
             await interaction.response.send_message(
                 f"❌ Error al obtener info del plan: {e}",
                 ephemeral=True,
             )
 
-    @app_commands.command(
-        name="info", description="Resumen de funciones y módulos disponibles"
-    )
+    @app_commands.command(name="info", description="Resumen de funciones y módulos disponibles")
     async def info(self, interaction: discord.Interaction):
         try:
             features = (
@@ -255,6 +262,7 @@ class About(commands.Cog):
             await interaction.response.send_message(embed=embed, view=BuyView(self.bot))
         except Exception as e:
             import traceback
+
             traceback.print_exc()
             await interaction.response.send_message(f"❌ Error interno: {e}", ephemeral=True)
 
@@ -269,14 +277,14 @@ class About(commands.Cog):
         )
         if self.bot.user.avatar:
             embed.set_thumbnail(url=self.bot.user.avatar.url)
-        
+
         embed.add_field(
-            name="💰 Economía Divina", 
+            name="💰 Economía Divina",
             value=(
                 "• **`/transfer`**: ¡Envía monedas a otros usuarios!\n"
                 "• **`/slots`**: ¡Prueba tu suerte en las tragaperras divinas!"
             ),
-            inline=False
+            inline=False,
         )
         embed.add_field(
             name="🛠️ Diagnóstico y Estabilidad",
@@ -285,7 +293,7 @@ class About(commands.Cog):
                 "• **`/status`**: Arreglado y optimizado para admins/staff.\n"
                 "• **Logs**: Mejoras en el sistema de reporte de errores."
             ),
-            inline=False
+            inline=False,
         )
         embed.add_field(
             name="👥 Comunidad y Diversión",
@@ -297,20 +305,18 @@ class About(commands.Cog):
                 "• **`/dado` y `/moneda`**: Azar básico.\n"
                 "• **Sugerencias**: Sistema optimizado para feedback."
             ),
-            inline=False
+            inline=False,
         )
-        
+
         import datetime
-        fecha = datetime.datetime.utcnow().strftime('%d/%m/%Y')
+
+        fecha = datetime.datetime.utcnow().strftime("%d/%m/%Y")
         embed.set_footer(
             text=f"{Theme.get_footer_text(interaction.guild.id)} • Versión {BOT_VERSION} • {fecha}"
         )
         await interaction.response.send_message(embed=embed)
 
-
-    @app_commands.command(
-        name="admin_panel", description="[DESACTIVADO] Panel de administración"
-    )
+    @app_commands.command(name="admin_panel", description="[DESACTIVADO] Panel de administración")
     async def admin_panel(self, interaction: discord.Interaction, modo: str = "local"):
         await interaction.response.send_message("❌ Comando desactivado.", ephemeral=True)
 
@@ -326,9 +332,7 @@ class About(commands.Cog):
         key = key.strip()
 
         # Regex flexible: POSEIDON-XXXX-XXXX-XXXX o POSE-CUSTOM-XXXX
-        pattern = (
-            r"(POSEIDON-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4})|(POSE-CUSTOM-[A-Z0-9]+)"
-        )
+        pattern = r"(POSEIDON-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4})|(POSE-CUSTOM-[A-Z0-9]+)"
         if not re.fullmatch(pattern, key):
             await interaction.response.send_message(
                 (
@@ -338,16 +342,16 @@ class About(commands.Cog):
                 ephemeral=True,
             )
             return
-            
+
         # Usar ruta absoluta basada en la ubicación del bot para asegurar que encuentra el archivo
         base_path = pathlib.Path(__file__).parent.parent.parent.parent
         lic_files = [
             base_path / "licenses.txt",
             base_path / "licenses_plans.txt",
-            pathlib.Path("licenses.txt"),      # Fallback relativo
-            pathlib.Path("licenses_plans.txt") # Fallback relativo
+            pathlib.Path("licenses.txt"),  # Fallback relativo
+            pathlib.Path("licenses_plans.txt"),  # Fallback relativo
         ]
-        
+
         ok = False
         valid_plans = {}
 
@@ -370,15 +374,15 @@ class About(commands.Cog):
                                 valid_plans[key_part] = plan_part
                 except Exception as e:
                     print(f"Error leyendo {lic_file}: {e}")
-        
+
         ok = key in valid_plans
-        
+
         if not ok:
             await interaction.response.send_message(
                 "❌ Licencia no válida (no encontrada en el registro).", ephemeral=True
             )
             return
-        
+
         # Verificar binding
         guild_id = interaction.guild.id if interaction.guild else 0
         guild_name = interaction.guild.name if interaction.guild else "DM"
@@ -426,7 +430,7 @@ class About(commands.Cog):
             bind_path.write_text("\n".join(out).rstrip("\n") + "\n", encoding="utf-8")
         except Exception:
             bind_path.open("a", encoding="utf-8").write(entry + "\n")
-        
+
         # ACTUALIZAR ESTADO EN MEMORIA
         new_plan = valid_plans[key]
         self.bot.license_key = key
@@ -440,7 +444,7 @@ class About(commands.Cog):
                 await apply_plan(self.bot, new_plan, False)
         except Exception:
             pass
-        
+
         embed = discord.Embed(
             title="✅ Licencia activada",
             description="La licencia se ha validado y el plan ya está activo en este servidor.",
@@ -595,19 +599,17 @@ class BuyView(discord.ui.View):
         super().__init__(timeout=None)
         self.bot = bot
 
-    @discord.ui.button(
-        label="Comprar licencia", style=discord.ButtonStyle.success, emoji="💳"
-    )
+    @discord.ui.button(label="Comprar licencia", style=discord.ButtonStyle.success, emoji="💳")
     async def buy(self, interaction: discord.Interaction, button: discord.ui.Button):
         embed = discord.Embed(
             title="💎 Planes de Licencia PoseidonUI",
             description="Elige el poder que necesitas para tu servidor.",
-            color=Theme.get_color(interaction.guild.id, 'warning')
+            color=Theme.get_color(interaction.guild.id, "warning"),
         )
         embed.add_field(
             name="🥉 Básico — 19€",
             value="• Status y Guardian\n• Licencia Permanente\n• Soporte Básico",
-            inline=False
+            inline=False,
         )
         embed.add_field(
             name="🥈 Pro — 39€",
@@ -617,7 +619,7 @@ class BuyView(discord.ui.View):
                 "• Economía y Anti-Spam\n"
                 "• Soporte Prioritario"
             ),
-            inline=False
+            inline=False,
         )
         embed.add_field(
             name="🥇 Élite — 69€",
@@ -627,12 +629,12 @@ class BuyView(discord.ui.View):
                 "• Integraciones Web\n"
                 "• Soporte VIP 24/7"
             ),
-            inline=False
+            inline=False,
         )
         embed.add_field(
             name="👑 Custom — 99€+",
             value="• Desarrollo a medida\n• Funciones exclusivas\n• Branding personalizado",
-            inline=False
+            inline=False,
         )
         embed.set_footer(
             text=(
@@ -640,7 +642,7 @@ class BuyView(discord.ui.View):
                 "Para adquirir una licencia, contacta al desarrollador."
             )
         )
-        
+
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
 

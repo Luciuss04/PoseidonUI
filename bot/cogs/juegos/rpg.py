@@ -21,6 +21,7 @@ SPRITE_MOUNTAIN = "⛰️"
 # Mapas predefinidos o generación
 MAP_SIZE = 9  # 9x9 grid
 
+
 class RPGGame:
     def __init__(self, player_id):
         self.player_id = player_id
@@ -35,28 +36,28 @@ class RPGGame:
         self.map_data = self.generate_map()
         self.in_combat = False
         self.current_enemy = None
-        self.state = "EXPLORING" # EXPLORING, COMBAT, EVENT
+        self.state = "EXPLORING"  # EXPLORING, COMBAT, EVENT
 
     def generate_map(self):
         # Generar un mapa simple con bordes y obstáculos aleatorios
         grid = [[SPRITE_GRASS for _ in range(MAP_SIZE)] for _ in range(MAP_SIZE)]
-        
+
         # Bordes
         for i in range(MAP_SIZE):
             grid[0][i] = SPRITE_TREE
-            grid[MAP_SIZE-1][i] = SPRITE_TREE
+            grid[MAP_SIZE - 1][i] = SPRITE_TREE
             grid[i][0] = SPRITE_TREE
-            grid[i][MAP_SIZE-1] = SPRITE_TREE
+            grid[i][MAP_SIZE - 1] = SPRITE_TREE
 
         # Obstáculos aleatorios
         for _ in range(10):
-            rx, ry = random.randint(1, MAP_SIZE-2), random.randint(1, MAP_SIZE-2)
+            rx, ry = random.randint(1, MAP_SIZE - 2), random.randint(1, MAP_SIZE - 2)
             if (rx, ry) != (4, 4):
                 grid[ry][rx] = random.choice([SPRITE_MOUNTAIN, SPRITE_WATER, SPRITE_TREE])
 
         # Cofres
         for _ in range(3):
-            rx, ry = random.randint(1, MAP_SIZE-2), random.randint(1, MAP_SIZE-2)
+            rx, ry = random.randint(1, MAP_SIZE - 2), random.randint(1, MAP_SIZE - 2)
             if (rx, ry) != (4, 4) and grid[ry][rx] == SPRITE_GRASS:
                 grid[ry][rx] = SPRITE_CHEST
 
@@ -99,9 +100,10 @@ class RPGGame:
             self.hp = self.max_hp
             return "TOWN"
         elif tile == SPRITE_GRASS:
-            if random.random() < 0.2: # 20% chance encounter
+            if random.random() < 0.2:  # 20% chance encounter
                 return "ENCOUNTER"
         return "MOVE"
+
 
 class RPGView(discord.ui.View):
     def __init__(self, game: RPGGame, user_id: int):
@@ -130,6 +132,7 @@ class RPGView(discord.ui.View):
             return False
         return True
 
+
 class RPGButton(discord.ui.Button):
     def __init__(self, label, dx, dy, row):
         super().__init__(label=label, style=discord.ButtonStyle.primary, row=row)
@@ -139,7 +142,7 @@ class RPGButton(discord.ui.Button):
     async def callback(self, interaction: discord.Interaction):
         view: RPGView = self.view
         res = view.game.move(self.dx, self.dy)
-        
+
         msg_content = ""
         if res == "BLOCKED":
             msg_content = "🚫 Camino bloqueado."
@@ -150,12 +153,19 @@ class RPGButton(discord.ui.Button):
             msg_content = "🏰 Descansaste en la ciudad. HP restaurado."
         elif res == "ENCOUNTER":
             view.game.state = "COMBAT"
-            view.game.current_enemy = {"name": "Goblin", "hp": 30, "max_hp": 30, "atk": 5, "sprite": "https://i.imgur.com/8l6D0i3.png"} # Placeholder sprite
+            view.game.current_enemy = {
+                "name": "Goblin",
+                "hp": 30,
+                "max_hp": 30,
+                "atk": 5,
+                "sprite": "https://i.imgur.com/8l6D0i3.png",
+            }  # Placeholder sprite
             msg_content = "⚔️ ¡Un enemigo salvaje apareció!"
             view.update_buttons()
-        
+
         embed = create_rpg_embed(view.game, msg_content, interaction.guild.id)
         await interaction.response.edit_message(embed=embed, view=view)
+
 
 class RPGActionButton(discord.ui.Button):
     def __init__(self, label, action, style, row):
@@ -169,13 +179,13 @@ class RPGActionButton(discord.ui.Button):
 
         if self.action == "INFO":
             msg_content = f"📊 Nivel: {game.level} | XP: {game.xp} | Oro: {game.gold}"
-        
+
         elif self.action == "ATTACK":
             enemy = game.current_enemy
             dmg = random.randint(5, 15)
             enemy["hp"] -= dmg
             msg_content = f"⚔️ Atacaste al {enemy['name']} e hiciste **{dmg}** de daño."
-            
+
             if enemy["hp"] <= 0:
                 xp_gain = 20
                 gold_gain = 10
@@ -184,12 +194,16 @@ class RPGActionButton(discord.ui.Button):
                 game.state = "EXPLORING"
                 game.current_enemy = None
                 view.update_buttons()
-                msg_content += f"\n💀 ¡Derrotaste al enemigo! Ganaste {xp_gain} XP y {gold_gain} oro."
+                msg_content += (
+                    f"\n💀 ¡Derrotaste al enemigo! Ganaste {xp_gain} XP y {gold_gain} oro."
+                )
             else:
                 # Enemy turn
                 enemy_dmg = max(0, enemy["atk"] - random.randint(0, 2))
                 game.hp -= enemy_dmg
-                msg_content += f"\n👹 El {enemy['name']} contraataca e inflige **{enemy_dmg}** de daño."
+                msg_content += (
+                    f"\n👹 El {enemy['name']} contraataca e inflige **{enemy_dmg}** de daño."
+                )
                 if game.hp <= 0:
                     game.state = "GAME_OVER"
                     view.clear_items()
@@ -202,7 +216,9 @@ class RPGActionButton(discord.ui.Button):
             enemy = game.current_enemy
             enemy_dmg = max(0, int(enemy["atk"] * 0.5))
             game.hp -= enemy_dmg
-            msg_content += f"\n👹 El {enemy['name']} ataca pero bloqueas parte del daño (-{enemy_dmg} HP)."
+            msg_content += (
+                f"\n👹 El {enemy['name']} ataca pero bloqueas parte del daño (-{enemy_dmg} HP)."
+            )
             if game.hp <= 0:
                 game.state = "GAME_OVER"
                 view.clear_items()
@@ -227,50 +243,62 @@ class RPGActionButton(discord.ui.Button):
         embed = create_rpg_embed(game, msg_content, interaction.guild.id)
         await interaction.response.edit_message(embed=embed, view=view)
 
+
 def create_rpg_embed(game, status_msg="", guild_id=None):
     if game.state == "GAME_OVER":
-        embed = discord.Embed(title="💀 GAME OVER", description=status_msg, color=Theme.get_color(guild_id, 'error'))
+        embed = discord.Embed(
+            title="💀 GAME OVER", description=status_msg, color=Theme.get_color(guild_id, "error")
+        )
         embed.set_footer(text=Theme.get_footer_text(guild_id))
         return embed
 
-    embed = discord.Embed(title="🗺️ Poseidon RPG", color=Theme.get_color(guild_id, 'primary'))
-    
+    embed = discord.Embed(title="🗺️ Poseidon RPG", color=Theme.get_color(guild_id, "primary"))
+
     if game.state == "EXPLORING":
         map_str = game.render_map()
         embed.description = f"**Mundo Abierto**\n\n{map_str}\n\n{status_msg}"
-        embed.add_field(name="Estado", value=f"❤️ HP: {game.hp}/{game.max_hp}\n💰 Oro: {game.gold}\n📍 Pos: ({game.x}, {game.y})")
-    
+        embed.add_field(
+            name="Estado",
+            value=f"❤️ HP: {game.hp}/{game.max_hp}\n💰 Oro: {game.gold}\n📍 Pos: ({game.x}, {game.y})",
+        )
+
     elif game.state == "COMBAT":
         enemy = game.current_enemy
         embed.title = "⚔️ ¡En Combate!"
-        embed.color = Theme.get_color(guild_id, 'error')
+        embed.color = Theme.get_color(guild_id, "error")
         # Sprite visual del enemigo (usando imagen real o emoji grande)
         if enemy.get("sprite"):
             embed.set_thumbnail(url=enemy["sprite"])
-        
+
         embed.description = f"**🆚 {enemy['name']}**\n{SPRITE_ENEMY*3}\n\n{status_msg}"
-        
+
         embed.add_field(name="Tu Héroe", value=f"❤️ HP: {game.hp}/{game.max_hp}", inline=True)
         embed.add_field(name="Enemigo", value=f"❤️ HP: {enemy['hp']}/{enemy['max_hp']}", inline=True)
 
     embed.set_footer(text=Theme.get_footer_text(guild_id))
     return embed
 
+
 class RPG(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.games = {} # user_id -> RPGGame
+        self.games = {}  # user_id -> RPGGame
 
     @app_commands.command(name="rpg", description="Inicia una aventura RPG gráfica")
     async def start_rpg(self, interaction: discord.Interaction):
         # Iniciar nueva partida
         game = RPGGame(interaction.user.id)
         self.games[interaction.user.id] = game
-        
+
         view = RPGView(game, interaction.user.id)
-        embed = create_rpg_embed(game, "¡Bienvenido al mundo de Poseidon! Usa los botones para moverte.", interaction.guild.id)
-        
+        embed = create_rpg_embed(
+            game,
+            "¡Bienvenido al mundo de Poseidon! Usa los botones para moverte.",
+            interaction.guild.id,
+        )
+
         await interaction.response.send_message(embed=embed, view=view)
+
 
 async def setup(bot):
     await bot.add_cog(RPG(bot))

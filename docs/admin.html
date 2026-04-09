@@ -15,6 +15,7 @@
             --accent-blue: #3498db;
             --accent-green: #2ecc71;
             --accent-red: #e74c3c;
+            --accent-gold: #f1c40f;
             --text-main: #ffffff;
             --text-dim: #a0aec0;
         }
@@ -162,6 +163,23 @@
         .server-body { padding: 20px; }
         .server-info { margin-bottom: 15px; font-size: 0.9rem; color: var(--text-dim); }
         .server-actions { display: flex; gap: 10px; }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: .3px;
+            margin-left: 8px;
+            border: 1px solid var(--border-color);
+        }
+        .badge-plan.basic { color: #9bd8ff; border-color: #2b6cb0; }
+        .badge-plan.pro { color: var(--accent-green); border-color: #1f8a5b; }
+        .badge-plan.elite { color: var(--accent-gold); border-color: #b8860b; }
+        .badge-plan.custom { color: #ff9ee2; border-color: #a83279; }
+        .badge-plan.inherit { color: var(--text-dim); border-color: var(--border-color); }
 
         .btn {
             padding: 8px 15px;
@@ -391,8 +409,24 @@
             <form id="config-form">
                 <input type="hidden" id="edit-guild-id">
                 <div class="form-group">
+                    <label>Licencia del Servidor</label>
+                    <select id="select-license">
+                        <option value="">Heredar (Global)</option>
+                        <option value="basic">Basic</option>
+                        <option value="pro">Pro</option>
+                        <option value="elite">Elite</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label>Canal de Logs</label>
                     <select id="select-logs">
+                        <option value="">Desactivado</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Canal de Alertas</label>
+                    <select id="select-alerts">
                         <option value="">Desactivado</option>
                     </select>
                 </div>
@@ -400,6 +434,18 @@
                     <label>Rol de Staff</label>
                     <select id="select-staff">
                         <option value="">Ninguno</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Canal de Confesiones</label>
+                    <select id="select-confesiones">
+                        <option value="">Desactivado</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Canal Logs Moderación</label>
+                    <select id="select-modlogs">
+                        <option value="">Auto (📜-logs)</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -552,12 +598,19 @@
                 const list = document.getElementById('server-list');
                 const serverSelect = document.getElementById('analytics-server-select');
                 
-                list.innerHTML = guilds.map(g => `
+                list.innerHTML = guilds.map(g => {
+                    const plan = (g.config && g.config.license_plan) ? String(g.config.license_plan).toLowerCase() : "";
+                    const badge = plan 
+                        ? `<span class="badge badge-plan ${plan}">${plan.toUpperCase()}</span>`
+                        : `<span class="badge badge-plan inherit">HEREDADO</span>`;
+                    return `
                     <div class="server-card">
                         <div class="server-header">
                             ${g.icon ? `<img src="${g.icon}" class="server-icon">` : `<div class="server-icon">${g.name[0]}</div>`}
                             <div>
-                                <div style="font-weight: 700;">${g.name}</div>
+                                <div style="font-weight: 700; display:flex; align-items:center; gap:6px;">
+                                    <span>${g.name}</span>${badge}
+                                </div>
                                 <div style="font-size: 0.8rem; color: var(--text-dim);">${g.id}</div>
                             </div>
                         </div>
@@ -572,10 +625,16 @@
                             </div>
                         </div>
                     </div>
-                `).join('');
+                `}).join('');
 
-                serverSelect.innerHTML = guilds.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
-                document.getElementById('streaming-server-select').innerHTML = guilds.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+                serverSelect.innerHTML = guilds.map(g => {
+                    const plan = (g.config && g.config.license_plan) ? ` (${String(g.config.license_plan).toUpperCase()})` : "";
+                    return `<option value="${g.id}">${g.name}${plan}</option>`;
+                }).join('');
+                document.getElementById('streaming-server-select').innerHTML = guilds.map(g => {
+                    const plan = (g.config && g.config.license_plan) ? ` (${String(g.config.license_plan).toUpperCase()})` : "";
+                    return `<option value="${g.id}">${g.name}${plan}</option>`;
+                }).join('');
                 
                 // Load Initial Global Analytics for Dashboard
                 loadDashboardChart(guilds[0]?.id);
@@ -885,16 +944,31 @@
             
             document.getElementById('edit-guild-id').value = guildId;
             document.getElementById('modal-guild-name').innerText = `Gestionar ${data.name}`;
+
+            document.getElementById('select-license').value = data.config.license_plan || "";
             
             // Llenar Canales
             const logSelect = document.getElementById('select-logs');
             logSelect.innerHTML = '<option value="">Desactivado</option>' + 
                 data.channels.map(c => `<option value="${c.id}" ${data.config.log_channel_id == c.id ? 'selected' : ''}>#${c.name}</option>`).join('');
+
+            const alertsSelect = document.getElementById('select-alerts');
+            alertsSelect.innerHTML = '<option value="">Desactivado</option>' + 
+                data.channels.map(c => `<option value="${c.id}" ${data.config.alert_channel_id == c.id ? 'selected' : ''}>#${c.name}</option>`).join('');
             
             // Llenar Roles
             const staffSelect = document.getElementById('select-staff');
+            const staffRoleId = (data.config.staff_role_ids && data.config.staff_role_ids.length) ? data.config.staff_role_ids[0] : (data.config.staff_role_id || "");
             staffSelect.innerHTML = '<option value="">Ninguno</option>' + 
-                data.roles.map(r => `<option value="${r.id}" ${data.config.staff_role_id == r.id ? 'selected' : ''}>@${r.name}</option>`).join('');
+                data.roles.map(r => `<option value="${r.id}" ${staffRoleId == r.id ? 'selected' : ''}>@${r.name}</option>`).join('');
+
+            const confesionesSelect = document.getElementById('select-confesiones');
+            confesionesSelect.innerHTML = '<option value="">Desactivado</option>' + 
+                data.channels.map(c => `<option value="${c.id}" ${data.config.confesiones_channel_id == c.id ? 'selected' : ''}>#${c.name}</option>`).join('');
+
+            const modlogsSelect = document.getElementById('select-modlogs');
+            modlogsSelect.innerHTML = '<option value="">Auto (📜-logs)</option>' + 
+                data.channels.map(c => `<option value="${c.id}" ${data.config.moderacion_logs_channel_id == c.id ? 'selected' : ''}>#${c.name}</option>`).join('');
             
             // Tema
             document.getElementById('select-theme').value = data.config.theme || 'default';
@@ -960,8 +1034,12 @@
             e.preventDefault();
             const guildId = document.getElementById('edit-guild-id').value;
             const updates = {
+                license_plan: document.getElementById('select-license').value,
                 log_channel_id: document.getElementById('select-logs').value,
+                alert_channel_id: document.getElementById('select-alerts').value,
                 staff_role_id: document.getElementById('select-staff').value,
+                confesiones_channel_id: document.getElementById('select-confesiones').value,
+                moderacion_logs_channel_id: document.getElementById('select-modlogs').value,
                 theme: document.getElementById('select-theme').value
             };
 

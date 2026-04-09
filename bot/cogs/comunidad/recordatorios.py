@@ -15,9 +15,7 @@ class Recordatorios(commands.Cog):
         name="recordatorio",
         description="Programa un recordatorio en minutos y el texto",
     )
-    async def recordatorio(
-        self, interaction: discord.Interaction, minutos: int, texto: str
-    ):
+    async def recordatorio(self, interaction: discord.Interaction, minutos: int, texto: str):
         if minutos < 1 or minutos > 10080:
             await interaction.response.send_message(
                 "⚠️ Minutos inválidos (1-10080).", ephemeral=True
@@ -31,7 +29,7 @@ class Recordatorios(commands.Cog):
             embed = discord.Embed(
                 title="⏰ Recordatorio",
                 description=texto,
-                color=Theme.get_color(interaction.guild.id, 'primary')
+                color=Theme.get_color(interaction.guild.id, "primary"),
             )
             embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
             await interaction.user.send(embed=embed)

@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-import json
 import os
 
 import discord
+
+from bot.config import load_json_file, save_json_file_atomic
 
 THEME_FILE = "theme_config.json"
 
@@ -11,73 +12,76 @@ THEMES = {
     "olimpo": {
         "name": "Olimpo (Default)",
         "colors": {
-            "primary": 0x00FFFF,      # Cyan/Aqua
-            "secondary": 0xFFD700,    # Gold
-            "success": 0x00FF00,      # Green
-            "error": 0xFF0000,        # Red
-            "warning": 0xFFA500,      # Orange
-            "info": 0x00BFFF         # Deep Sky Blue
+            "primary": 0x00FFFF,  # Cyan/Aqua
+            "secondary": 0xFFD700,  # Gold
+            "success": 0x00FF00,  # Green
+            "error": 0xFF0000,  # Red
+            "warning": 0xFFA500,  # Orange
+            "info": 0x00BFFF,  # Deep Sky Blue
         },
-        "footer": "🔱 PoseidonUI • El Poder del Olimpo"
+        "footer": "🔱 PoseidonUI • El Poder del Olimpo",
     },
     "hades": {
         "name": "Reino de Hades",
         "colors": {
-            "primary": 0xFF0000,      # Red
-            "secondary": 0x2C2F33,    # Dark Gray
-            "success": 0x8B0000,      # Dark Red
-            "error": 0x550000,        # Darker Red
-            "warning": 0xFF4500,      # Orange Red
-            "info": 0x808080          # Gray
+            "primary": 0xFF0000,  # Red
+            "secondary": 0x2C2F33,  # Dark Gray
+            "success": 0x8B0000,  # Dark Red
+            "error": 0x550000,  # Darker Red
+            "warning": 0xFF4500,  # Orange Red
+            "info": 0x808080,  # Gray
         },
-        "footer": "🔥 PoseidonUI • El Reino de las Sombras"
+        "footer": "🔥 PoseidonUI • El Reino de las Sombras",
     },
     "atenea": {
         "name": "Sabiduría de Atenea",
         "colors": {
-            "primary": 0xFFFFFF,      # White
-            "secondary": 0xC0C0C0,    # Silver
-            "success": 0xE6E6FA,      # Lavender
-            "error": 0xCD5C5C,        # Indian Red
-            "warning": 0xF0E68C,      # Khaki
-            "info": 0xF0F8FF          # Alice Blue
+            "primary": 0xFFFFFF,  # White
+            "secondary": 0xC0C0C0,  # Silver
+            "success": 0xE6E6FA,  # Lavender
+            "error": 0xCD5C5C,  # Indian Red
+            "warning": 0xF0E68C,  # Khaki
+            "info": 0xF0F8FF,  # Alice Blue
         },
-        "footer": "🦉 PoseidonUI • La Sabiduría Eterna"
+        "footer": "🦉 PoseidonUI • La Sabiduría Eterna",
     },
     "oceano": {
         "name": "Profundidades del Océano",
         "colors": {
-            "primary": 0x00008B,      # Dark Blue
-            "secondary": 0x008B8B,    # Dark Cyan
-            "success": 0x2E8B57,      # Sea Green
-            "error": 0x8B0000,        # Dark Red
-            "warning": 0xFF8C00,      # Dark Orange
-            "info": 0x4682B4          # Steel Blue
+            "primary": 0x00008B,  # Dark Blue
+            "secondary": 0x008B8B,  # Dark Cyan
+            "success": 0x2E8B57,  # Sea Green
+            "error": 0x8B0000,  # Dark Red
+            "warning": 0xFF8C00,  # Dark Orange
+            "info": 0x4682B4,  # Steel Blue
         },
-        "footer": "🌊 PoseidonUI • Las Profundidades"
-    }
+        "footer": "🌊 PoseidonUI • Las Profundidades",
+    },
 }
+
 
 class ThemeManager:
     def __init__(self):
         self.global_theme = "olimpo"
         self.guild_themes = {}  # guild_id -> theme_name
-        self.custom_themes = {} # theme_name -> theme_data
+        self.custom_themes = {}  # theme_name -> theme_data
         self.load_config()
 
     def load_config(self):
-        if os.path.exists(THEME_FILE):
-            try:
-                with open(THEME_FILE, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                    self.global_theme = data.get("global_theme", "olimpo")
-                    # Convertir claves a int para guild_ids
-                    self.guild_themes = {int(k): v for k, v in data.get("guild_themes", {}).items() if k.isdigit()}
-                    self.custom_themes = data.get("custom_themes", {})
-            except Exception:
-                self.global_theme = "olimpo"
+        data = load_json_file(THEME_FILE, {})
+        if isinstance(data, dict) and data:
+            self.global_theme = data.get("global_theme", "olimpo")
+            guild_themes = data.get("guild_themes", {})
+            if isinstance(guild_themes, dict):
+                self.guild_themes = {int(k): v for k, v in guild_themes.items() if str(k).isdigit()}
+            else:
                 self.guild_themes = {}
-                self.custom_themes = {}
+            custom = data.get("custom_themes", {})
+            self.custom_themes = custom if isinstance(custom, dict) else {}
+        elif os.path.exists(THEME_FILE):
+            self.global_theme = "olimpo"
+            self.guild_themes = {}
+            self.custom_themes = {}
         else:
             self.global_theme = "olimpo"
             self.guild_themes = {}
@@ -86,12 +90,15 @@ class ThemeManager:
 
     def save_config(self):
         try:
-            with open(THEME_FILE, "w", encoding="utf-8") as f:
-                json.dump({
+            save_json_file_atomic(
+                THEME_FILE,
+                {
                     "global_theme": self.global_theme,
                     "guild_themes": {str(k): v for k, v in self.guild_themes.items()},
-                    "custom_themes": self.custom_themes
-                }, f, indent=4)
+                    "custom_themes": self.custom_themes,
+                },
+                indent=4,
+            )
         except Exception:
             pass
 
@@ -99,12 +106,12 @@ class ThemeManager:
         # Verifica si el tema existe en los predefinidos o en los personalizados
         if theme_name not in THEMES and theme_name not in self.custom_themes:
             return False
-        
+
         if guild_id:
             self.guild_themes[int(guild_id)] = theme_name
         else:
             self.global_theme = theme_name
-            
+
         self.save_config()
         return True
 
@@ -112,11 +119,7 @@ class ThemeManager:
         """
         Crea o actualiza un tema personalizado.
         """
-        self.custom_themes[name] = {
-            "name": display_name,
-            "colors": colors,
-            "footer": footer
-        }
+        self.custom_themes[name] = {"name": display_name, "colors": colors, "footer": footer}
         self.save_config()
         return True
 
@@ -126,20 +129,20 @@ class ThemeManager:
         Retorna True si se eliminó, False si no existía o es built-in.
         """
         if theme_name in THEMES:
-            return False # No se pueden borrar los built-in
-            
+            return False  # No se pueden borrar los built-in
+
         if theme_name in self.custom_themes:
             del self.custom_themes[theme_name]
-            
+
             # Revertir uso si está activo
             if self.global_theme == theme_name:
                 self.global_theme = "olimpo"
-            
+
             # Revertir en guilds que lo usen
             for gid, t in list(self.guild_themes.items()):
                 if t == theme_name:
                     self.guild_themes[gid] = "olimpo"
-            
+
             self.save_config()
             return True
         return False
@@ -184,15 +187,16 @@ class ThemeManager:
         class ColorProxy:
             def __init__(self, manager):
                 self.manager = manager
-            
+
             def __getattr__(self, name):
                 return self.manager.get_color(None, name)
-                
+
         return ColorProxy(self)
 
     @property
     def footer_text(self):
         return self.get_footer_text(None)
+
 
 # Instancia global
 Theme = ThemeManager()

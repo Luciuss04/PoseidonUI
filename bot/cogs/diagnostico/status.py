@@ -1,3 +1,4 @@
+import datetime
 import platform
 import random
 import time
@@ -12,6 +13,16 @@ from bot.themes import Theme
 
 STAFF_ROLES = ["Semidios", "Discípulo de Atena"]
 ALERT_CHANNEL = "⚔️-alertas"
+DEFAULT_HEALTH_THRESHOLDS = {
+    "latency_warn_ms": 400,
+    "latency_crit_ms": 900,
+    "cpu_warn_percent": 85,
+    "cpu_crit_percent": 95,
+    "mem_warn_percent": 85,
+    "mem_crit_percent": 95,
+    "errors_warn_5m": 10,
+    "errors_crit_5m": 30,
+}
 
 
 class Status(commands.Cog):
@@ -23,10 +34,27 @@ class Status(commands.Cog):
         self.bot.unique_users = set()
         self.bot.raids_blocked = 0
         self.bot.spam_filtered = 0
+        self._health_alert_last: dict[tuple[int, str], float] = {}
         self.presence_task.start()
+        self.health_watch_task.start()
 
     def cog_unload(self):
         self.presence_task.cancel()
+        self.health_watch_task.cancel()
+
+    def _get_thresholds(self, guild_id: int) -> dict:
+        raw = get_guild_setting(guild_id, "health_thresholds", None)
+        if not isinstance(raw, dict):
+            raw = {}
+        merged = dict(DEFAULT_HEALTH_THRESHOLDS)
+        for k, v in raw.items():
+            if k not in merged:
+                continue
+            try:
+                merged[k] = int(v)
+            except Exception:
+                continue
+        return merged
 
     @tasks.loop(minutes=5)
     async def presence_task(self):
@@ -35,13 +63,151 @@ class Status(commands.Cog):
             discord.Activity(type=discord.ActivityType.listening, name="las plegarias"),
             discord.Activity(type=discord.ActivityType.competing, name="los Juegos Olímpicos"),
             discord.Activity(type=discord.ActivityType.playing, name="con el destino"),
-            discord.Activity(type=discord.ActivityType.watching, name=f"{len(self.bot.guilds)} servidores"),
+            discord.Activity(
+                type=discord.ActivityType.watching, name=f"{len(self.bot.guilds)} servidores"
+            ),
         ]
         await self.bot.change_presence(activity=random.choice(activities))
 
     @presence_task.before_loop
     async def before_presence(self):
         await self.bot.wait_until_ready()
+
+    @tasks.loop(minutes=1)
+    async def health_watch_task(self):
+        latency_ms = round(self.bot.latency * 1000)
+        cpu_percent = psutil.cpu_percent(interval=None)
+        memory_percent = psutil.virtual_memory().percent
+
+        now = datetime.datetime.utcnow()
+        logs = getattr(self.bot, "recent_logs", [])
+        error_by_guild: dict[str, int] = {}
+        for entry in logs:
+            try:
+                if entry.get("level") != "error":
+                    continue
+                ts = entry.get("timestamp")
+                if not isinstance(ts, str) or not ts:
+                    continue
+                dt = datetime.datetime.fromisoformat(ts)
+                if (now - dt).total_seconds() > 300:
+                    continue
+                gid = entry.get("guild_id") or "global"
+                error_by_guild[gid] = error_by_guild.get(gid, 0) + 1
+            except Exception:
+                continue
+
+        for guild in list(self.bot.guilds):
+            t = self._get_thresholds(guild.id)
+            gid = str(guild.id)
+            errors_5m = error_by_guild.get(gid, 0)
+            g_level = "ok"
+            if (
+                latency_ms >= t["latency_warn_ms"]
+                or cpu_percent >= t["cpu_warn_percent"]
+                or memory_percent >= t["mem_warn_percent"]
+                or errors_5m >= t["errors_warn_5m"]
+            ):
+                g_level = "degraded"
+            if (
+                latency_ms >= t["latency_crit_ms"]
+                or cpu_percent >= t["cpu_crit_percent"]
+                or memory_percent >= t["mem_crit_percent"]
+                or errors_5m >= t["errors_crit_5m"]
+            ):
+                g_level = "critical"
+            if g_level == "ok":
+                continue
+            await self._maybe_alert_guild(
+                guild,
+                g_level,
+                {
+                    "latency_ms": latency_ms,
+                    "cpu_percent": cpu_percent,
+                    "memory_percent": memory_percent,
+                    "errors_5m": errors_5m,
+                },
+            )
+
+    @health_watch_task.before_loop
+    async def before_health_watch(self):
+        await self.bot.wait_until_ready()
+
+    async def _maybe_alert_guild(self, guild: discord.Guild, level: str, metrics: dict):
+        cooldown = 600 if level == "degraded" else 300
+        key = (guild.id, level)
+        now = time.time()
+        last = self._health_alert_last.get(key, 0)
+        if now - last < cooldown:
+            return
+        self._health_alert_last[key] = now
+        await self._send_health_alert(guild, level, metrics)
+
+    async def _send_health_alert(self, guild: discord.Guild, level: str, metrics: dict):
+        alert_channel_id = get_guild_setting(guild.id, "alert_channel_id", None)
+        channel = None
+        if alert_channel_id:
+            try:
+                channel = guild.get_channel(int(alert_channel_id))
+            except Exception:
+                channel = None
+        if not channel:
+            channel = discord.utils.get(guild.text_channels, name=ALERT_CHANNEL)
+        if not channel:
+            log_channel_id = get_guild_setting(guild.id, "log_channel_id", None)
+            if log_channel_id:
+                try:
+                    channel = guild.get_channel(int(log_channel_id))
+                except Exception:
+                    channel = None
+        if not channel:
+            return
+
+        latency_ms = metrics.get("latency_ms")
+        cpu_percent = metrics.get("cpu_percent")
+        memory_percent = metrics.get("memory_percent")
+        errors_5m = metrics.get("errors_5m")
+
+        if level == "critical":
+            color = Theme.get_color(guild.id, "error")
+            title = "⚡ Alerta Crítica de Salud"
+        else:
+            color = Theme.get_color(guild.id, "warning")
+            title = "☁️ Alerta de Degradación"
+
+        e = discord.Embed(title=title, color=color)
+        e.add_field(name="Servidor", value=f"{guild.name} ({guild.id})", inline=False)
+        e.add_field(name="Latencia", value=f"{latency_ms} ms", inline=True)
+        e.add_field(name="CPU", value=f"{cpu_percent}%", inline=True)
+        e.add_field(name="Memoria", value=f"{memory_percent}%", inline=True)
+        e.add_field(name="Errores (5m)", value=str(errors_5m), inline=True)
+        e.set_footer(text=Theme.get_footer_text(guild.id))
+
+        mention = None
+        if level == "critical":
+            staff_role_ids = get_guild_setting(guild.id, "staff_role_ids", None)
+            staff_role_names = get_guild_setting(guild.id, "staff_role_names", STAFF_ROLES)
+            role = None
+            if isinstance(staff_role_ids, list) and staff_role_ids:
+                for rid in staff_role_ids:
+                    try:
+                        role = guild.get_role(int(rid))
+                    except Exception:
+                        role = None
+                    if role:
+                        break
+            if not role and isinstance(staff_role_names, list):
+                for name in staff_role_names:
+                    role = discord.utils.get(guild.roles, name=str(name))
+                    if role:
+                        break
+            if role:
+                mention = role.mention
+
+        try:
+            await channel.send(content=mention, embed=e)
+        except Exception:
+            pass
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -70,17 +236,13 @@ class Status(commands.Cog):
         miembro = interaction.user
 
         if not miembro.guild_permissions.administrator:
-            staff_role_ids = get_guild_setting(
-                interaction.guild.id, "staff_role_ids", None
-            )
+            staff_role_ids = get_guild_setting(interaction.guild.id, "staff_role_ids", None)
             staff_role_names = get_guild_setting(
                 interaction.guild.id, "staff_role_names", STAFF_ROLES
             )
             try:
                 staff_role_ids = (
-                    [int(x) for x in staff_role_ids]
-                    if isinstance(staff_role_ids, list)
-                    else None
+                    [int(x) for x in staff_role_ids] if isinstance(staff_role_ids, list) else None
                 )
             except Exception:
                 staff_role_ids = None
@@ -102,7 +264,7 @@ class Status(commands.Cog):
 
         embed = await self._generate_status_embed(interaction.guild)
         await interaction.response.send_message(embed=embed, ephemeral=True)
-        
+
         # Log logic
         await self._log_status(interaction, embed)
 
@@ -135,17 +297,22 @@ class Status(commands.Cog):
         memory_info = psutil.virtual_memory()
         memory_percent = memory_info.percent
 
-        if latency_ms < 200 and cpu_percent < 70 and memory_percent < 75:
+        t = self._get_thresholds(guild.id)
+        if latency_ms < (t["latency_warn_ms"] / 2) and cpu_percent < 70 and memory_percent < 75:
             health_status = "🕊️ Cielos despejados"
-            embed_color = Theme.get_color(guild.id, 'success')
+            embed_color = Theme.get_color(guild.id, "success")
             embed_title = "🔱 PoseidonUI: Estado Óptimo"
-        elif latency_ms < 400 and cpu_percent < 85 and memory_percent < 85:
+        elif (
+            latency_ms < t["latency_warn_ms"]
+            and cpu_percent < t["cpu_warn_percent"]
+            and memory_percent < t["mem_warn_percent"]
+        ):
             health_status = "☁️ Nubes en el horizonte"
-            embed_color = Theme.get_color(guild.id, 'warning')
+            embed_color = Theme.get_color(guild.id, "warning")
             embed_title = "🔱 PoseidonUI: Estado Alerta"
         else:
             health_status = "⚡ Ira de Zeus"
-            embed_color = Theme.get_color(guild.id, 'error')
+            embed_color = Theme.get_color(guild.id, "error")
             embed_title = "🔱 PoseidonUI: Estado Crítico"
 
         embed = discord.Embed(
@@ -155,9 +322,7 @@ class Status(commands.Cog):
         )
         embed.add_field(name="🤖 Bot", value=f"{self.bot.user}", inline=False)
         embed.add_field(name="📡 Latencia", value=latency_status, inline=True)
-        embed.add_field(
-            name="🌍 Servidores", value=f"{len(self.bot.guilds)}", inline=True
-        )
+        embed.add_field(name="🌍 Servidores", value=f"{len(self.bot.guilds)}", inline=True)
         embed.add_field(name="👥 Usuarios totales", value=f"{total_users}", inline=True)
         embed.add_field(name="📺 Canales", value=f"{total_channels}", inline=True)
         embed.add_field(name="🎭 Roles", value=f"{total_roles}", inline=True)
@@ -188,12 +353,8 @@ class Status(commands.Cog):
             inline=True,
         )
 
-        embed.add_field(
-            name="🛡️ Raids bloqueados", value=f"{self.bot.raids_blocked}", inline=True
-        )
-        embed.add_field(
-            name="🚫 Spam filtrado", value=f"{self.bot.spam_filtered}", inline=True
-        )
+        embed.add_field(name="🛡️ Raids bloqueados", value=f"{self.bot.raids_blocked}", inline=True)
+        embed.add_field(name="🚫 Spam filtrado", value=f"{self.bot.spam_filtered}", inline=True)
 
         embed.add_field(name="🌌 Salud global", value=health_status, inline=False)
 
@@ -210,11 +371,11 @@ class Status(commands.Cog):
                 if field.name == "🌌 Salud global":
                     health_status = field.value
                     break
-            
-            # Simple extraction of other metrics is hard from embed, 
+
+            # Simple extraction of other metrics is hard from embed,
             # so we might skip detailed extra fields or re-calculate them.
             # For simplicity, we just log basic info.
-            
+
             e = interaction.client.build_log_embed(
                 "Diagnóstico/Status",
                 "Panel de diagnóstico mostrado",
@@ -228,9 +389,7 @@ class Status(commands.Cog):
             mention = None
             if "🔴" in health_status:
                 try:
-                    staff_role_ids = get_guild_setting(
-                        interaction.guild.id, "staff_role_ids", None
-                    )
+                    staff_role_ids = get_guild_setting(interaction.guild.id, "staff_role_ids", None)
                     staff_role_names = get_guild_setting(
                         interaction.guild.id, "staff_role_names", STAFF_ROLES
                     )
@@ -251,9 +410,7 @@ class Status(commands.Cog):
                     mention = " ".join(mentions) if mentions else None
                 except Exception:
                     mention = None
-            await interaction.client.log(
-                content=mention, embed=e, guild=interaction.guild
-            )
+            await interaction.client.log(content=mention, embed=e, guild=interaction.guild)
             if "🔴" in health_status:
                 try:
                     alert_channel_id = get_guild_setting(
@@ -279,23 +436,17 @@ class Status(commands.Cog):
         except Exception:
             pass
 
-    @app_commands.command(
-        name="botperfil", description="Muestra plan activo y cogs cargados"
-    )
+    @app_commands.command(name="botperfil", description="Muestra plan activo y cogs cargados")
     async def botperfil(self, interaction: discord.Interaction):
         miembro = interaction.user
         if not miembro.guild_permissions.administrator:
-            staff_role_ids = get_guild_setting(
-                interaction.guild.id, "staff_role_ids", None
-            )
+            staff_role_ids = get_guild_setting(interaction.guild.id, "staff_role_ids", None)
             staff_role_names = get_guild_setting(
                 interaction.guild.id, "staff_role_names", STAFF_ROLES
             )
             try:
                 staff_role_ids = (
-                    [int(x) for x in staff_role_ids]
-                    if isinstance(staff_role_ids, list)
-                    else None
+                    [int(x) for x in staff_role_ids] if isinstance(staff_role_ids, list) else None
                 )
             except Exception:
                 staff_role_ids = None
@@ -322,11 +473,11 @@ class Status(commands.Cog):
             app_main = sys.modules.get("__main__")
             if not hasattr(app_main, "ACTIVE_PLAN"):
                 app_main = sys.modules.get("main")
-            
+
             # Safe defaults if not found
             plan = getattr(app_main, "ACTIVE_PLAN", "basic")
             trial = getattr(app_main, "IS_TRIAL", False)
-            
+
             # No mostrar flags internas del modo dueño
             enabled_only = os.getenv("ENABLED_COGS_ONLY", "")
             disabled = os.getenv("DISABLED_COGS", "")
@@ -334,7 +485,7 @@ class Status(commands.Cog):
             embed = discord.Embed(
                 title="📦 Perfil del Bot",
                 description="Configuración y módulos activos",
-                color=Theme.get_color(interaction.guild.id, 'primary'),
+                color=Theme.get_color(interaction.guild.id, "primary"),
             )
             embed.add_field(name="🔑 Plan", value=plan, inline=True)
             embed.add_field(name="🧪 Trial", value="sí" if trial else "no", inline=True)
@@ -344,9 +495,7 @@ class Status(commands.Cog):
                 value=enabled_only or "(vacío)",
                 inline=False,
             )
-            embed.add_field(
-                name="🚫 DISABLED_COGS", value=disabled or "(vacío)", inline=False
-            )
+            embed.add_field(name="🚫 DISABLED_COGS", value=disabled or "(vacío)", inline=False)
             lista = "\n".join(mods) if mods else "(sin cogs)"
             embed.add_field(name="📚 Cogs cargados", value=lista, inline=False)
             embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))

@@ -2,14 +2,14 @@ import os
 import platform
 import shutil
 import time
-from datetime import datetime
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 
-from bot.config import LOG_CHANNEL_ID, get_guild_setting, set_guild_setting
 from bot.auth import update_auth
+from bot.config import LOG_CHANNEL_ID, get_guild_setting, set_guild_setting
+from bot.themes import Theme
 
 
 class ToolsDiagnostico(commands.Cog):
@@ -17,9 +17,7 @@ class ToolsDiagnostico(commands.Cog):
         self.bot = bot
         self.start = time.time()
 
-    config_group = app_commands.Group(
-        name="config", description="Configuración por servidor"
-    )
+    config_group = app_commands.Group(name="config", description="Configuración por servidor")
 
     @config_group.command(name="ver", description="Ver configuración del servidor")
     @app_commands.guild_only()
@@ -75,7 +73,9 @@ class ToolsDiagnostico(commands.Cog):
                 ach = None
             embed.add_field(
                 name="⚔️ Canal de alertas (id)",
-                value=ach.mention if isinstance(ach, discord.TextChannel) else str(alert_channel_id),
+                value=(
+                    ach.mention if isinstance(ach, discord.TextChannel) else str(alert_channel_id)
+                ),
                 inline=False,
             )
         if alert_channel_name:
@@ -89,9 +89,7 @@ class ToolsDiagnostico(commands.Cog):
     @config_group.command(name="logcanal", description="Configura el canal de logs")
     @app_commands.guild_only()
     @app_commands.checks.has_permissions(administrator=True)
-    async def config_logcanal(
-        self, interaction: discord.Interaction, canal: discord.TextChannel
-    ):
+    async def config_logcanal(self, interaction: discord.Interaction, canal: discord.TextChannel):
         g = interaction.guild
         if not g:
             await interaction.response.send_message("⚠️ Solo en servidores.", ephemeral=True)
@@ -139,9 +137,7 @@ class ToolsDiagnostico(commands.Cog):
     @config_group.command(name="alertas", description="Configura el canal de alertas")
     @app_commands.guild_only()
     @app_commands.checks.has_permissions(administrator=True)
-    async def config_alertas(
-        self, interaction: discord.Interaction, canal: discord.TextChannel
-    ):
+    async def config_alertas(self, interaction: discord.Interaction, canal: discord.TextChannel):
         g = interaction.guild
         if not g:
             await interaction.response.send_message("⚠️ Solo en servidores.", ephemeral=True)
@@ -157,6 +153,66 @@ class ToolsDiagnostico(commands.Cog):
                 user=interaction.user,
                 guild=interaction.guild,
                 extra={"Canal": str(canal.id)},
+            )
+            await interaction.client.log(embed=e, guild=interaction.guild)
+        except Exception:
+            pass
+
+    @config_group.command(name="salud", description="Configura umbrales de salud (alertas)")
+    @app_commands.guild_only()
+    @app_commands.checks.has_permissions(administrator=True)
+    async def config_salud(
+        self,
+        interaction: discord.Interaction,
+        latencia_warn: int | None = None,
+        latencia_crit: int | None = None,
+        cpu_warn: int | None = None,
+        cpu_crit: int | None = None,
+        mem_warn: int | None = None,
+        mem_crit: int | None = None,
+        errores_warn: int | None = None,
+        errores_crit: int | None = None,
+    ):
+        g = interaction.guild
+        if not g:
+            await interaction.response.send_message("⚠️ Solo en servidores.", ephemeral=True)
+            return
+
+        current = get_guild_setting(g.id, "health_thresholds", {})
+        if not isinstance(current, dict):
+            current = {}
+
+        updates = {}
+        if latencia_warn is not None:
+            updates["latency_warn_ms"] = int(latencia_warn)
+        if latencia_crit is not None:
+            updates["latency_crit_ms"] = int(latencia_crit)
+        if cpu_warn is not None:
+            updates["cpu_warn_percent"] = int(cpu_warn)
+        if cpu_crit is not None:
+            updates["cpu_crit_percent"] = int(cpu_crit)
+        if mem_warn is not None:
+            updates["mem_warn_percent"] = int(mem_warn)
+        if mem_crit is not None:
+            updates["mem_crit_percent"] = int(mem_crit)
+        if errores_warn is not None:
+            updates["errors_warn_5m"] = int(errores_warn)
+        if errores_crit is not None:
+            updates["errors_crit_5m"] = int(errores_crit)
+
+        current.update(updates)
+        set_guild_setting(g.id, "health_thresholds", current)
+
+        await interaction.response.send_message(
+            "✅ Umbrales de salud actualizados.", ephemeral=True
+        )
+        try:
+            e = interaction.client.build_log_embed(
+                "Config",
+                "Umbrales de salud actualizados",
+                user=interaction.user,
+                guild=interaction.guild,
+                extra={k: str(v) for k, v in updates.items()} if updates else None,
             )
             await interaction.client.log(embed=e, guild=interaction.guild)
         except Exception:
@@ -196,9 +252,7 @@ class ToolsDiagnostico(commands.Cog):
             value=f"✅ {ffmpeg_path}" if ffmpeg_path else "❌ No encontrado en PATH",
             inline=False,
         )
-        embed.add_field(
-            name="🐍 Python", value=platform.python_version(), inline=True
-        )
+        embed.add_field(name="🐍 Python", value=platform.python_version(), inline=True)
         embed.add_field(name="📦 discord.py", value=discord.__version__, inline=True)
         embed.add_field(
             name="💻 Sistema",
@@ -207,7 +261,11 @@ class ToolsDiagnostico(commands.Cog):
         )
         embed.add_field(
             name="🧾 Canal de logs",
-            value=log_channel.mention if isinstance(log_channel, discord.TextChannel) else str(log_channel_id),
+            value=(
+                log_channel.mention
+                if isinstance(log_channel, discord.TextChannel)
+                else str(log_channel_id)
+            ),
             inline=False,
         )
         embed.add_field(
@@ -252,18 +310,27 @@ class ToolsDiagnostico(commands.Cog):
         except Exception:
             pass
 
-    @config_group.command(name="dashboard", description="Cambia las credenciales del panel web (Admin Bot)")
+    @config_group.command(
+        name="dashboard", description="Cambia las credenciales del panel web (Admin Bot)"
+    )
     @app_commands.checks.has_permissions(administrator=True)
     async def config_dashboard(self, interaction: discord.Interaction, usuario: str, clave: str):
         # Solo el dueño del bot debería poder cambiar esto por seguridad
         if not await self.bot.is_owner(interaction.user):
-            await interaction.response.send_message("⛔ Solo el dueño del bot puede cambiar las credenciales globales.", ephemeral=True)
+            await interaction.response.send_message(
+                "⛔ Solo el dueño del bot puede cambiar las credenciales globales.", ephemeral=True
+            )
             return
 
         if update_auth(usuario, clave):
-            await interaction.response.send_message(f"✅ Credenciales actualizadas.\n**Usuario:** `{usuario}`\n**Clave:** `{clave}`", ephemeral=True)
+            await interaction.response.send_message(
+                f"✅ Credenciales actualizadas.\n**Usuario:** `{usuario}`\n**Clave:** `{clave}`",
+                ephemeral=True,
+            )
         else:
-            await interaction.response.send_message("❌ Error al actualizar credenciales.", ephemeral=True)
+            await interaction.response.send_message(
+                "❌ Error al actualizar credenciales.", ephemeral=True
+            )
 
     @app_commands.command(name="uptime", description="Tiempo activo")
     async def uptime(self, interaction: discord.Interaction):
@@ -287,9 +354,7 @@ class ToolsDiagnostico(commands.Cog):
     async def servidor(self, interaction: discord.Interaction):
         g = interaction.guild
         if not g:
-            await interaction.response.send_message(
-                "⚠️ Solo en servidores.", ephemeral=True
-            )
+            await interaction.response.send_message("⚠️ Solo en servidores.", ephemeral=True)
             return
         await interaction.response.send_message(
             f"👥 {g.member_count} usuarios, {len(g.text_channels)} canales de texto"
@@ -309,9 +374,7 @@ class ToolsDiagnostico(commands.Cog):
     async def roles(self, interaction: discord.Interaction):
         g = interaction.guild
         if not g:
-            await interaction.response.send_message(
-                "⚠️ Solo en servidores.", ephemeral=True
-            )
+            await interaction.response.send_message("⚠️ Solo en servidores.", ephemeral=True)
             return
         names = [r.name for r in g.roles][-10:]
         await interaction.response.send_message("🔖 " + ", ".join(names))
@@ -330,9 +393,7 @@ class ToolsDiagnostico(commands.Cog):
     async def canales(self, interaction: discord.Interaction):
         g = interaction.guild
         if not g:
-            await interaction.response.send_message(
-                "⚠️ Solo en servidores.", ephemeral=True
-            )
+            await interaction.response.send_message("⚠️ Solo en servidores.", ephemeral=True)
             return
         await interaction.response.send_message(
             f"📚 texto: {len(g.text_channels)}, voz: {len(g.voice_channels)}"
@@ -405,9 +466,7 @@ class ToolsDiagnostico(commands.Cog):
 
     @app_commands.command(name="comandos", description="Total de comandos disponibles")
     async def comandos(self, interaction: discord.Interaction):
-        await interaction.response.send_message(
-            f"🧭 {len(self.bot.tree.get_commands())} comandos"
-        )
+        await interaction.response.send_message(f"🧭 {len(self.bot.tree.get_commands())} comandos")
         try:
             e = interaction.client.build_log_embed(
                 "Diagnóstico/Tools",

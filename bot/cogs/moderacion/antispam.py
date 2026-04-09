@@ -52,7 +52,7 @@ class AntiSpam(commands.Cog):
             await message.delete()
         except Exception:
             pass
-        
+
         try:
             await message.author.send(f"⚠️ **Anti-Spam**: {reason}.")
         except Exception:
@@ -64,7 +64,7 @@ class AntiSpam(commands.Cog):
                 embed = discord.Embed(
                     title="⚠️ Spam detectado",
                     description=f"**Razón:** {reason}",
-                    color=Theme.get_color(message.guild.id, 'warning')
+                    color=Theme.get_color(message.guild.id, "warning"),
                 )
                 embed.add_field(name="Usuario", value=message.author.mention, inline=True)
                 embed.add_field(name="Canal", value=message.channel.mention, inline=True)

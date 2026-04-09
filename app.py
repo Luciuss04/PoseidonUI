@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import asyncio
+import datetime
 import json
 import os
 import pathlib
@@ -43,9 +44,7 @@ try:
                     continue
                 parts = [x.strip() for x in s.split("|")]
                 if parts and parts[0] == LICENSE_KEY and len(parts) >= 3 and parts[2]:
-                    ACTIVE_PLAN = (
-                        parts[1].lower() if len(parts) > 1 and parts[1] else "basic"
-                    )
+                    ACTIVE_PLAN = parts[1].lower() if len(parts) > 1 and parts[1] else "basic"
                     break
 except Exception:
     pass
@@ -60,13 +59,46 @@ intents.members = True
 # ====== Crear bot con setup_hook ======
 class PoseidonUIBot(commands.Bot):
     async def setup_hook(self):
-        for modname in _allowed_cogs_for_plan(ACTIVE_PLAN):
+        allowed = _allowed_cogs_for_plan(ACTIVE_PLAN)
+        self.allowed_cogs = list(allowed)
+        self.extensions_loaded = []
+
+        # Registro de chequeo de licencia (slash)
+        async def _license_tree_check(interaction: discord.Interaction) -> bool:
+            try:
+                if not interaction.guild:
+                    return True
+                cmd = getattr(interaction, "command", None)
+                module = None
+                if cmd is not None:
+                    try:
+                        module = getattr(cmd, "callback", None)
+                        module = getattr(module, "__module__", None)
+                    except Exception:
+                        module = None
+                if module is None:
+                    return True
+                if self.plan_allows_module(interaction.guild.id, module):
+                    return True
+                await interaction.response.send_message(
+                    "⛔ Este comando no está disponible en el plan de tu servidor.", ephemeral=True
+                )
+                return False
+            except Exception:
+                return True
+
+        try:
+            self.tree.add_check(_license_tree_check)
+        except Exception:
+            pass
+        for modname in allowed:
             try:
                 m = __import__(modname, fromlist=["setup"])
                 if modname.endswith("integraciones.lol"):
                     if not os.getenv("RIOT_API_KEY"):
                         continue
                 await m.setup(self)
+                self.extensions_loaded.append(modname)
             except Exception as e:
                 print(f"Error loading cog {modname}: {e}")
                 pass
@@ -84,20 +116,92 @@ bot = PoseidonUIBot(command_prefix="!", intents=intents)
 bot.active_plan = ACTIVE_PLAN
 bot.license_key = LICENSE_KEY
 bot.is_trial = IS_TRIAL
-bot.recent_logs = [] # Buffer de logs recientes para el dashboard
+bot.recent_logs = []  # Buffer de logs recientes para el dashboard
 
 LOG_MIN_LEVEL = os.getenv("LOG_MIN_LEVEL", "info").strip().lower()
-LOG_INCLUDE = {
-    x.strip() for x in (os.getenv("LOG_INCLUDE", "").split(",")) if x.strip()
-}
-LOG_EXCLUDE = {
-    x.strip() for x in (os.getenv("LOG_EXCLUDE", "").split(",")) if x.strip()
-}
+LOG_INCLUDE = {x.strip() for x in (os.getenv("LOG_INCLUDE", "").split(",")) if x.strip()}
+LOG_EXCLUDE = {x.strip() for x in (os.getenv("LOG_EXCLUDE", "").split(",")) if x.strip()}
 try:
     LOG_DEBOUNCE_SECS = max(0, int(os.getenv("LOG_DEBOUNCE_SECS", "15")))
 except Exception:
     LOG_DEBOUNCE_SECS = 15
 _LEVEL_ORDER = {"debug": 0, "info": 1, "warn": 2, "error": 3}
+
+# === Reglas de licencia por módulo (mínimo plan requerido) ===
+_PLAN_ORDER = {"basic": 0, "pro": 1, "elite": 2, "custom": 3}
+_FEATURE_MIN_PLAN = {
+    # Comunidad
+    "bot.cogs.comunidad.musica": "pro",
+    "bot.cogs.comunidad.streaming": "pro",
+    "bot.cogs.comunidad.oraculo": "pro",
+    # Juegos / Economía premium
+    "bot.cogs.economia.casino": "pro",
+    "bot.cogs.economia.sorteos": "pro",
+    "bot.cogs.economia.ofertas": "pro",
+    "bot.cogs.juegos.rpg": "pro",
+    "bot.cogs.juegos.mascotas": "pro",
+    # Integraciones
+    "bot.cogs.integraciones.lol": "pro",
+    # Por defecto, todo lo no listado es 'basic'
+}
+
+
+def _plan_rank(name: str | None) -> int:
+    if not name:
+        return _PLAN_ORDER["basic"]
+    return _PLAN_ORDER.get(name.strip().lower(), _PLAN_ORDER["basic"])
+
+
+def _min_required_for_module(module: str) -> str:
+    return _FEATURE_MIN_PLAN.get(module, "basic")
+
+
+def _guild_plan(guild_id: int | None) -> str:
+    try:
+        if guild_id:
+            plan = get_guild_setting(guild_id, "license_plan", None)
+            if isinstance(plan, str) and plan.strip():
+                return plan.strip().lower()
+    except Exception:
+        pass
+    return (ACTIVE_PLAN or "basic").strip().lower()
+
+
+def _is_allowed(guild_id: int | None, module: str) -> bool:
+    gp = _guild_plan(guild_id)
+    if gp == "custom":
+        return True
+    need = _min_required_for_module(module)
+    return _plan_rank(gp) >= _plan_rank(need)
+
+
+# Bind helpers en bot
+bot.plan_allows_module = lambda gid, mod: _is_allowed(gid, mod)
+
+
+# Chequeo global para comandos prefijo
+@bot.check
+async def _license_prefix_check(ctx):
+    try:
+        guild = ctx.guild
+        if not guild:
+            return True
+        module = None
+        if ctx.cog:
+            module = getattr(ctx.cog, "__module__", None)
+        if not module and ctx.command:
+            try:
+                module = getattr(ctx.command.callback, "__module__", None)
+            except Exception:
+                module = None
+        if not module:
+            return True
+        if bot.plan_allows_module(guild.id, module):
+            return True
+        await ctx.send("⛔ Este comando no está disponible en el plan de tu servidor.")
+        return False
+    except Exception:
+        return True
 
 
 def _color_level(c: discord.Color | None, guild_id: int | None = None) -> str:
@@ -106,13 +210,13 @@ def _color_level(c: discord.Color | None, guild_id: int | None = None) -> str:
             return "info"
         val = c.value
         if guild_id:
-            if val == Theme.get_color(guild_id, 'error').value:
+            if val == Theme.get_color(guild_id, "error").value:
                 return "error"
-            if val == Theme.get_color(guild_id, 'warning').value:
+            if val == Theme.get_color(guild_id, "warning").value:
                 return "warn"
-        if val == Theme.get_color(None, 'error').value:
+        if val == Theme.get_color(None, "error").value:
             return "error"
-        if val == Theme.get_color(None, 'warning').value:
+        if val == Theme.get_color(None, "warning").value:
             return "warn"
         # green or default -> info
         return "info"
@@ -139,7 +243,7 @@ async def bot_log(
                 level = _color_level(embed.color, gid)
             except Exception:
                 level = "info"
-        
+
         # Guardar en buffer local para el dashboard
         log_entry = {
             "timestamp": datetime.datetime.utcnow().isoformat(),
@@ -147,10 +251,10 @@ async def bot_log(
             "kind": kind or "General",
             "content": content or (embed.description if embed else ""),
             "guild_id": str(guild.id) if guild else None,
-            "guild_name": guild.name if guild else "Global"
+            "guild_name": guild.name if guild else "Global",
         }
         bot.recent_logs.append(log_entry)
-        if len(bot.recent_logs) > 100: # Mantener solo los últimos 100
+        if len(bot.recent_logs) > 100:  # Mantener solo los últimos 100
             bot.recent_logs.pop(0)
 
         # Apply include/exclude filters
@@ -183,9 +287,7 @@ async def bot_log(
         log_channel_id = LOG_CHANNEL_ID
         if guild:
             try:
-                log_channel_id = int(
-                    get_guild_setting(guild.id, "log_channel_id", LOG_CHANNEL_ID)
-                )
+                log_channel_id = int(get_guild_setting(guild.id, "log_channel_id", LOG_CHANNEL_ID))
             except Exception:
                 log_channel_id = LOG_CHANNEL_ID
         ch = bot.get_channel(log_channel_id)
@@ -216,14 +318,12 @@ def build_log_embed(
         e = discord.Embed(
             title=f"LOG • {kind}",
             description=description,
-            color=color or Theme.get_color(gid, 'primary'),
+            color=color or Theme.get_color(gid, "primary"),
         )
         if user:
             try:
                 e.add_field(name="Usuario", value=str(user), inline=True)
-                e.add_field(
-                    name="UsuarioID", value=str(getattr(user, "id", "")), inline=True
-                )
+                e.add_field(name="UsuarioID", value=str(getattr(user, "id", "")), inline=True)
             except Exception:
                 pass
         if guild:
@@ -264,7 +364,7 @@ async def on_ready():
         e = discord.Embed(
             title="Inicio",
             description=f"Bot conectado como {bot.user}",
-            color=Theme.get_color(None, 'primary'),
+            color=Theme.get_color(None, "primary"),
         )
         await bot_log(embed=e)
     except Exception:
@@ -284,17 +384,17 @@ async def on_ready():
         # Actualizar registro local de clientes activos
         registry_file = pathlib.Path("client_registry.json")
         registry = {}
-        
+
         if registry_file.exists():
             try:
                 registry = json.loads(registry_file.read_text(encoding="utf-8"))
             except Exception:
                 registry = {}
-        
+
         # Datos de este cliente
         current_key = LICENSE_KEY or "NO-LICENSE"
         current_guild = bot.guilds[0] if bot.guilds else None
-        
+
         if current_guild:
             registry[str(current_guild.id)] = {
                 "name": current_guild.name,
@@ -305,7 +405,7 @@ async def on_ready():
                 "members": current_guild.member_count,
                 "last_seen": time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()),
             }
-            
+
             # Guardar
             registry_file.write_text(json.dumps(registry, indent=2), encoding="utf-8")
     except Exception as e:
@@ -357,9 +457,7 @@ async def on_command_error(ctx, error):
         if ctx.command:
             e.add_field(name="Comando", value=ctx.command.qualified_name, inline=True)
         if ctx.author:
-            e.add_field(
-                name="Autor", value=f"{ctx.author} ({ctx.author.id})", inline=True
-            )
+            e.add_field(name="Autor", value=f"{ctx.author} ({ctx.author.id})", inline=True)
         await bot_log(embed=e, guild=g)
     except Exception:
         pass
@@ -431,7 +529,7 @@ async def on_guild_join(guild: discord.Guild):
         e = discord.Embed(
             title="Servidor añadido",
             description=f"{guild.name} ({guild.id})",
-            color=Theme.get_color(guild.id, 'primary'),
+            color=Theme.get_color(guild.id, "primary"),
         )
         await bot_log(embed=e, guild=guild)
     except Exception:
@@ -444,7 +542,7 @@ async def on_guild_remove(guild: discord.Guild):
         e = discord.Embed(
             title="Servidor eliminado",
             description=f"{guild.name} ({guild.id})",
-            color=Theme.get_color(guild.id, 'warning'),
+            color=Theme.get_color(guild.id, "warning"),
         )
         await bot_log(embed=e, guild=guild)
     except Exception:
@@ -599,11 +697,7 @@ def _validate_license(key: str) -> tuple[bool, bool]:
             vals = asyncio.run(_fetch_remote_licenses(LICENSES_URL))
         except Exception:
             vals = None
-        if (
-            vals
-            and key in vals
-            and (ALLOW_PLAIN_LICENSES == "1" or not LICENSE_SIGNING_SECRET)
-        ):
+        if vals and key in vals and (ALLOW_PLAIN_LICENSES == "1" or not LICENSE_SIGNING_SECRET):
             ACTIVE_PLAN = "basic"
             return (True, True)
         if vals and key in vals:
@@ -631,9 +725,7 @@ def _validate_license(key: str) -> tuple[bool, bool]:
             lic_file = d / name
             if lic_file.exists():
                 vals = _parse_licenses_text(lic_file.read_text(encoding="utf-8"))
-                if key in vals and (
-                    ALLOW_PLAIN_LICENSES == "1" or not LICENSE_SIGNING_SECRET
-                ):
+                if key in vals and (ALLOW_PLAIN_LICENSES == "1" or not LICENSE_SIGNING_SECRET):
                     ACTIVE_PLAN = "basic"
                     return (True, True)
                 if key in vals:
@@ -706,15 +798,8 @@ def enforce_license_or_trial() -> None:
                     if not s or s.startswith("#"):
                         continue
                     parts = [x.strip() for x in s.split("|")]
-                    if (
-                        parts
-                        and parts[0] == LICENSE_KEY
-                        and len(parts) >= 3
-                        and parts[2]
-                    ):
-                        ACTIVE_PLAN = (
-                            parts[1].lower() if len(parts) > 1 and parts[1] else "basic"
-                        )
+                    if parts and parts[0] == LICENSE_KEY and len(parts) >= 3 and parts[2]:
+                        ACTIVE_PLAN = parts[1].lower() if len(parts) > 1 and parts[1] else "basic"
                         return
     except Exception:
         pass
@@ -728,15 +813,8 @@ def enforce_license_or_trial() -> None:
                     if not s or s.startswith("#"):
                         continue
                     parts = [x.strip() for x in s.split("|")]
-                    if (
-                        parts
-                        and parts[0] == LICENSE_KEY
-                        and len(parts) >= 3
-                        and parts[2]
-                    ):
-                        ACTIVE_PLAN = (
-                            parts[1].lower() if len(parts) > 1 and parts[1] else "basic"
-                        )
+                    if parts and parts[0] == LICENSE_KEY and len(parts) >= 3 and parts[2]:
+                        ACTIVE_PLAN = parts[1].lower() if len(parts) > 1 and parts[1] else "basic"
                         return
         except Exception:
             pass
@@ -746,9 +824,7 @@ def enforce_license_or_trial() -> None:
         if LICENSES_PATH:
             search_dirs.append(pathlib.Path(LICENSES_PATH))
         search_dirs.append(pathlib.Path("."))
-        if os.getenv("ALLOW_PLAIN_LICENSES", "0") != "1" and os.getenv(
-            "LICENSE_SIGNING_SECRET"
-        ):
+        if os.getenv("ALLOW_PLAIN_LICENSES", "0") != "1" and os.getenv("LICENSE_SIGNING_SECRET"):
             for d in search_dirs:
                 p = d / "licenses_plans.txt"
                 if p.exists():
@@ -788,9 +864,7 @@ def enforce_license_or_trial() -> None:
                     if parts and parts[0] == LICENSE_KEY:
                         if len(parts) >= 3 and parts[2]:
                             ACTIVE_PLAN = (
-                                parts[1].lower()
-                                if len(parts) > 1 and parts[1]
-                                else "basic"
+                                parts[1].lower() if len(parts) > 1 and parts[1] else "basic"
                             )
                             return
                         entry_plain_found = True
@@ -834,7 +908,8 @@ def _allowed_cogs_for_plan(plan: str) -> list[str]:
     base = [
         "bot.cogs.diagnostico.status",
         "bot.cogs.diagnostico.tools",
-        "bot.cogs.diagnostico.reporter", # Reporter added to base so all bots report status
+        "bot.cogs.diagnostico.reporter",  # Reporter added to base so all bots report status
+        "bot.cogs.diagnostico.hotreload",
         "bot.cogs.moderacion.guardian",
         "bot.cogs.moderacion.logs",
         "bot.cogs.info.about",
@@ -865,18 +940,18 @@ def _allowed_cogs_for_plan(plan: str) -> list[str]:
         "bot.cogs.moderacion.automod",
     ]
     elite_extra = [
-            "bot.cogs.economia.ofertas",
-            "bot.cogs.economia.sorteos",
-            "bot.cogs.integraciones.lol",
-            "bot.cogs.integraciones.web",
-            "bot.cogs.economia.tienda",
-            "bot.cogs.integraciones.rss",
-            "bot.cogs.comunidad.calendario",
-            "bot.cogs.juegos.mascotas",
-            "bot.cogs.comunidad.clanes",
-            "bot.cogs.comunidad.matrimonio",
-            "bot.cogs.economia.casino",
-        ]
+        "bot.cogs.economia.ofertas",
+        "bot.cogs.economia.sorteos",
+        "bot.cogs.integraciones.lol",
+        "bot.cogs.integraciones.web",
+        "bot.cogs.economia.tienda",
+        "bot.cogs.integraciones.rss",
+        "bot.cogs.comunidad.calendario",
+        "bot.cogs.juegos.mascotas",
+        "bot.cogs.comunidad.clanes",
+        "bot.cogs.comunidad.matrimonio",
+        "bot.cogs.economia.casino",
+    ]
     all_extra = []
     # OWNER MODE REMOVED
     if False:

@@ -3,7 +3,7 @@ import os
 
 import aiohttp
 import discord
-from discord.ext import commands, tasks
+from discord.ext import commands
 
 from bot.config import BOT_VERSION
 from bot.themes import Theme
@@ -35,12 +35,12 @@ class Reporter(commands.Cog):
 
             plan = getattr(self.bot, "active_plan", "Basic")
             key = getattr(self.bot, "license_key", "NO-LICENSE")
-            
+
             # Payload
             embed = discord.Embed(
                 title="💓 Bot Heartbeat",
-                color=Theme.get_color(guild.id, 'success'),
-                timestamp=discord.utils.utcnow()
+                color=Theme.get_color(guild.id, "success"),
+                timestamp=discord.utils.utcnow(),
             )
             embed.add_field(name="Server", value=guild.name, inline=True)
             embed.add_field(name="ID", value=str(guild.id), inline=True)
@@ -54,13 +54,14 @@ class Reporter(commands.Cog):
                 await webhook.send(
                     username=f"Poseidon Reporter - {guild.name}",
                     avatar_url=self.bot.user.avatar.url if self.bot.user.avatar else None,
-                    embed=embed
+                    embed=embed,
                 )
-            
+
             print(f"✅ [Reporter] Heartbeat sent for {guild.name}")
 
         except Exception as e:
             print(f"⚠️ [Reporter] Failed to send heartbeat: {e}")
+
 
 async def setup(bot: commands.Bot):
     # Only load if webhook is configured

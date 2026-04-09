@@ -10,15 +10,23 @@ class HelpSelect(discord.ui.Select):
         self.bot = bot
         options = [
             discord.SelectOption(label="General", emoji="🛠️", description="Utilidades básicas"),
-            discord.SelectOption(label="Economía", emoji="💰", description="Dinero, Tienda, Casino"),
-            discord.SelectOption(label="Comunidad", emoji="👥", description="Clanes, Matrimonios, Niveles"),
+            discord.SelectOption(
+                label="Economía", emoji="💰", description="Dinero, Tienda, Casino"
+            ),
+            discord.SelectOption(
+                label="Comunidad", emoji="👥", description="Clanes, Matrimonios, Niveles"
+            ),
             discord.SelectOption(label="Música", emoji="🎵", description="Reproducción de Música"),
-            discord.SelectOption(label="Juegos", emoji="🎮", description="Mascotas, Minijuegos, RPG"),
+            discord.SelectOption(
+                label="Juegos", emoji="🎮", description="Mascotas, Minijuegos, RPG"
+            ),
             discord.SelectOption(label="Integraciones", emoji="🌐", description="LoL, RSS, Web"),
             discord.SelectOption(label="Moderación", emoji="🛡️", description="Seguridad y Gestión"),
-            discord.SelectOption(label="Información", emoji="ℹ️", description="Acerca del bot")
+            discord.SelectOption(label="Información", emoji="ℹ️", description="Acerca del bot"),
         ]
-        super().__init__(placeholder="Selecciona una categoría...", min_values=1, max_values=1, options=options)
+        super().__init__(
+            placeholder="Selecciona una categoría...", min_values=1, max_values=1, options=options
+        )
 
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
@@ -26,41 +34,109 @@ class HelpSelect(discord.ui.Select):
             categoria = self.values[0]
             category_emojis = {
                 "General": "🛠️",
-                "Economía": "🔱", 
+                "Economía": "🔱",
                 "Comunidad": "👥",
                 "Música": "🎵",
                 "Juegos": "🎮",
                 "Integraciones": "🌐",
                 "Moderación": "🛡️",
-                "Información": "ℹ️"
+                "Información": "ℹ️",
             }
-            
+
             emoji_titulo = category_emojis.get(categoria, "📚")
             embed = discord.Embed(
-                title=f"{emoji_titulo} Ayuda: {categoria}", 
-                color=Theme.get_color(interaction.guild.id, 'secondary')
+                title=f"{emoji_titulo} Ayuda: {categoria}",
+                color=Theme.get_color(interaction.guild.id, "secondary"),
             )
-            
+
             cmds = []
             desc = ""
-            
+
             if categoria == "General":
-                cmds = ["ayuda", "status", "ping", "uptime", "servidor", "roles", "canales", "comandos", "perms", "avatar", "userinfo", "serverinfo", "anuncio"]
+                cmds = [
+                    "ayuda",
+                    "status",
+                    "ping",
+                    "uptime",
+                    "servidor",
+                    "roles",
+                    "canales",
+                    "comandos",
+                    "perms",
+                    "avatar",
+                    "userinfo",
+                    "serverinfo",
+                    "anuncio",
+                ]
                 desc = "Comandos de utilidad general y diagnóstico."
             elif categoria == "Economía":
-                cmds = ["balance", "daily", "work", "transferir", "top", "slots", "blackjack", "ruleta", "dar", "quitar", "comprar", "inventario", "regalar", "tienda_clear", "ofertas", "sorteo"]
+                cmds = [
+                    "balance",
+                    "daily",
+                    "work",
+                    "transferir",
+                    "top",
+                    "slots",
+                    "blackjack",
+                    "ruleta",
+                    "dar",
+                    "quitar",
+                    "comprar",
+                    "inventario",
+                    "regalar",
+                    "tienda_clear",
+                    "ofertas",
+                    "sorteo",
+                ]
                 desc = "Sistema completo de economía: monedas, tienda, casino y sorteos."
             elif categoria == "Comunidad":
-                cmds = ["clan", "love", "niveles", "leaderboard", "encuesta", "recordatorio", "oraculo_help", "evento_add", "evento_del", "evento_list", "tag", "tag_set", "canal_temp"]
+                cmds = [
+                    "clan",
+                    "love",
+                    "niveles",
+                    "leaderboard",
+                    "encuesta",
+                    "recordatorio",
+                    "oraculo_help",
+                    "evento_add",
+                    "evento_del",
+                    "evento_list",
+                    "tag",
+                    "tag_set",
+                    "canal_temp",
+                ]
                 desc = "Sistemas sociales: Clanes, Matrimonios, Niveles, Eventos y utilidades."
             elif categoria == "Música":
                 cmds = ["play", "stop", "skip", "queue", "pause", "resume"]
                 desc = "Sistema de música de alta calidad."
             elif categoria == "Juegos":
-                cmds = ["mascota", "rpg", "ship", "dado", "moneda", "ppt", "eleccion", "buscaminas", "hack", "meme_txt", "8ball"]
+                cmds = [
+                    "mascota",
+                    "rpg",
+                    "ship",
+                    "dado",
+                    "moneda",
+                    "ppt",
+                    "eleccion",
+                    "buscaminas",
+                    "hack",
+                    "meme_txt",
+                    "8ball",
+                ]
                 desc = "Diversión, mascotas evolutivas, RPG y minijuegos."
             elif categoria == "Moderación":
-                cmds = ["setup", "stats_olimpo", "clear", "slowmode", "mute", "unmute", "lock", "unlock", "warn", "crear_roles_guardian"]
+                cmds = [
+                    "setup",
+                    "stats_olimpo",
+                    "clear",
+                    "slowmode",
+                    "mute",
+                    "unmute",
+                    "lock",
+                    "unlock",
+                    "warn",
+                    "crear_roles_guardian",
+                ]
                 desc = "Herramientas de moderación y configuración del sistema Guardian."
             elif categoria == "Integraciones":
                 cmds = ["lol", "activar"]
@@ -72,30 +148,49 @@ class HelpSelect(discord.ui.Select):
             if desc:
                 desc += "\n\n"
 
+            allowed_count = 0
             for cmd_name in cmds:
                 cmd = self.bot.tree.get_command(cmd_name)
                 if cmd:
-                    desc += f"**/ {cmd.name}**: {cmd.description}\n"
+                    module = None
+                    try:
+                        module = getattr(cmd.callback, "__module__", None)
+                    except Exception:
+                        module = None
+                    is_allowed = True
+                    try:
+                        if interaction.guild and hasattr(self.bot, "plan_allows_module") and module:
+                            is_allowed = self.bot.plan_allows_module(interaction.guild.id, module)
+                    except Exception:
+                        is_allowed = True
+                    if is_allowed:
+                        allowed_count += 1
+                        desc += f"**/ {cmd.name}**: {cmd.description}\n"
                 else:
-                    # Fallback para comandos no encontrados en el tree (posiblemente no sincronizados aun o nombres incorrectos)
-                    desc += f"**/ {cmd_name}**: (Comando no sincronizado o no encontrado)\n"
+                    pass
 
-            
+            if allowed_count == 0:
+                desc = "No hay comandos disponibles en tu plan para esta categoría."
+
             if not desc:
                 desc = "No se encontraron comandos específicos o están en mantenimiento."
-                
+
             embed.description = desc
             embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
             await interaction.edit_original_response(embed=embed, view=self.view)
-        
+
         except Exception as e:
             print(f"Error en Ayuda callback: {e}")
-            await interaction.followup.send(f"❌ Error al cargar la ayuda: {str(e)}", ephemeral=True)
+            await interaction.followup.send(
+                f"❌ Error al cargar la ayuda: {str(e)}", ephemeral=True
+            )
+
 
 class HelpView(discord.ui.View):
     def __init__(self, bot: commands.Bot):
         super().__init__(timeout=120)
         self.add_item(HelpSelect(bot))
+
 
 class AyudaInfo(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -106,11 +201,14 @@ class AyudaInfo(commands.Cog):
         embed = discord.Embed(
             title="🏛️ Panel de Ayuda del Olimpo",
             description="Explora los dominios del Olimpo usando el menú desplegable.",
-            color=Theme.get_color(interaction.guild.id, 'secondary')
+            color=Theme.get_color(interaction.guild.id, "secondary"),
         )
         embed.set_thumbnail(url=self.bot.user.avatar.url if self.bot.user.avatar else None)
-        embed.set_footer(text=Theme.get_footer_text(interaction.guild.id), icon_url=self.bot.user.avatar.url if self.bot.user.avatar else None)
-        
+        embed.set_footer(
+            text=Theme.get_footer_text(interaction.guild.id),
+            icon_url=self.bot.user.avatar.url if self.bot.user.avatar else None,
+        )
+
         await interaction.response.send_message(embed=embed, view=HelpView(self.bot))
 
     @app_commands.command(name="planes", description="Planes y funcionalidades actualizados")
@@ -118,35 +216,37 @@ class AyudaInfo(commands.Cog):
         embed = discord.Embed(
             title="💎 Planes de Suscripción PoseidonUI",
             description="Elige el poder que necesita tu servidor. ¡Mejora tu comunidad hoy mismo!",
-            color=Theme.get_color(interaction.guild.id, 'primary')
+            color=Theme.get_color(interaction.guild.id, "primary"),
         )
 
         embed.add_field(
             name="🌑 Básico (19€/mes)",
             value="• Moderación Básica (Logs, Guardian)\n• Comandos de Utilidad\n• Información del Servidor",
-            inline=False
+            inline=False,
         )
-        
+
         embed.add_field(
             name="🌘 Pro (39€/mes)",
             value="• Todo lo del Básico\n• **Niveles y XP**\n• Oráculo (IA Básica)\n• Encuestas y Recordatorios\n• Economía Básica (Monedas)",
-            inline=False
+            inline=False,
         )
-        
+
         embed.add_field(
             name="🌕 Élite (69€/mes) - ¡RECOMENDADO!",
             value="• Todo lo del Pro\n• **Mascotas Evolutivas v2.0** 🐉\n• **Sistema de Música** 🎵\n• Economía Avanzada (Bolsa, Casino, Tienda)\n• Integraciones (LoL, RSS)\n• Clanes y Matrimonios",
-            inline=False
+            inline=False,
         )
-        
+
         embed.add_field(
             name="✨ Custom (99€+/mes)",
             value="• Bot de marca blanca (Tu nombre y foto)\n• Funciones a medida\n• Soporte prioritario 24/7",
-            inline=False
+            inline=False,
         )
 
-        embed.set_footer(text=f"{Theme.get_footer_text(interaction.guild.id)} • Contacta con soporte para adquirir una licencia.")
-        
+        embed.set_footer(
+            text=f"{Theme.get_footer_text(interaction.guild.id)} • Contacta con soporte para adquirir una licencia."
+        )
+
         await interaction.response.send_message(embed=embed)
         try:
             e = interaction.client.build_log_embed(
@@ -221,9 +321,7 @@ class AyudaInfo(commands.Cog):
 
     @app_commands.command(name="precio", description="Precios")
     async def precio(self, interaction: discord.Interaction):
-        await interaction.response.send_message(
-            "Básico 19€, Pro 39€, Élite 69€, Custom 99€+"
-        )
+        await interaction.response.send_message("Básico 19€, Pro 39€, Élite 69€, Custom 99€+")
         try:
             e = interaction.client.build_log_embed(
                 "Info/Ayuda",

@@ -38,12 +38,8 @@ class TestLicenseSecurity(unittest.TestCase):
         key = "POSE-CUSTOM-9999"
         plan = "custom"
         sig = make_sig(os.environ["LICENSE_SIGNING_SECRET"], key, plan)
-        (self.cwd / "licenses_plans.txt").write_text(
-            f"{key}|{plan}|{sig}\n", encoding="utf-8"
-        )
-        spec = importlib.util.spec_from_file_location(
-            "app_main_signed", str(self.cwd / "app.py")
-        )
+        (self.cwd / "licenses_plans.txt").write_text(f"{key}|{plan}|{sig}\n", encoding="utf-8")
+        spec = importlib.util.spec_from_file_location("app_main_signed", str(self.cwd / "app.py"))
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
         self.assertEqual(mod.ACTIVE_PLAN, "custom")
@@ -51,9 +47,7 @@ class TestLicenseSecurity(unittest.TestCase):
     def test_plain_license_rejected_without_allow(self):
         key = "POSE-PRO-2222"
         plan = "pro"
-        (self.cwd / "licenses_plans.txt").write_text(
-            f"{key}|{plan}\n", encoding="utf-8"
-        )
+        (self.cwd / "licenses_plans.txt").write_text(f"{key}|{plan}\n", encoding="utf-8")
         with self.assertRaises(SystemExit):
             spec = importlib.util.spec_from_file_location(
                 "app_main_plain", str(self.cwd / "app.py")

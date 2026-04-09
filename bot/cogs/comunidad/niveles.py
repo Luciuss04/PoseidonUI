@@ -11,6 +11,7 @@ from bot.themes import Theme
 
 SETTINGS_FILE = "niveles_settings.json"
 
+
 def cargar_niveles():
     try:
         with open(DATA_FILE, "r") as f:
@@ -83,29 +84,29 @@ class NivelesCog(commands.Cog):
     async def niveles(self, interaction: discord.Interaction, usuario: discord.User | None = None):
         target = usuario or interaction.user
         uid = str(target.id)
-        
+
         data = self.niveles.get(uid, {"xp": 0, "nivel": 1})
         nivel = data["nivel"]
         xp = data["xp"]
         xp_next = xp_necesaria(nivel)
         rango = obtener_rango(nivel)
-        
+
         # Calcular progreso
         porcentaje = int((xp / xp_next) * 10)
         barra = "🟦" * porcentaje + "⬜" * (10 - porcentaje)
-        
+
         embed = discord.Embed(
             title=f"⭐ Nivel de {target.display_name}",
-            color=Theme.get_color(interaction.guild.id, 'secondary')
+            color=Theme.get_color(interaction.guild.id, "secondary"),
         )
         embed.set_thumbnail(url=target.avatar.url if target.avatar else None)
-        
+
         embed.add_field(name="Nivel", value=f"**{nivel}**", inline=True)
         embed.add_field(name="Rango", value=f"**{rango or 'Mortal'}**", inline=True)
         embed.add_field(name="Progreso", value=f"`{xp}/{xp_next} XP`\n{barra}", inline=False)
-        
+
         embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
-        
+
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="leaderboard", description="Ranking global de niveles")
@@ -114,14 +115,16 @@ class NivelesCog(commands.Cog):
         lista = []
         for uid, data in self.niveles.items():
             lista.append((uid, data["nivel"], data["xp"]))
-            
+
         # Ordenar por nivel (desc) y luego XP (desc)
         lista.sort(key=lambda x: (x[1], x[2]), reverse=True)
-        
+
         top_10 = lista[:10]
-        
-        embed = discord.Embed(title="🏆 Ranking de Niveles", color=Theme.get_color(interaction.guild.id, 'primary'))
-        
+
+        embed = discord.Embed(
+            title="🏆 Ranking de Niveles", color=Theme.get_color(interaction.guild.id, "primary")
+        )
+
         desc = ""
         for i, (uid, nivel, xp) in enumerate(top_10, 1):
             try:
@@ -129,31 +132,35 @@ class NivelesCog(commands.Cog):
                 name = user.display_name
             except Exception:
                 name = f"Usuario {uid}"
-                
+
             medal = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else f"{i}."
             desc += f"**{medal} {name}** — Nivel {nivel} ({xp} XP)\n"
-            
+
         if not desc:
             desc = "No hay datos aún."
-            
+
         embed.description = desc
         await interaction.response.send_message(embed=embed)
 
-    @app_commands.command(name="niveles_toggle", description="Activar/desactivar el sistema de niveles (Admin-only)")
+    @app_commands.command(
+        name="niveles_toggle", description="Activar/desactivar el sistema de niveles (Admin-only)"
+    )
     @app_commands.checks.has_permissions(administrator=True)
     async def niveles_toggle(self, interaction: discord.Interaction):
         current_state = self.settings.get("enabled", True)
         new_state = not current_state
         self.settings["enabled"] = new_state
         guardar_settings(self.settings)
-        
+
         status = "✅ Activado" if new_state else "⛔ Desactivado"
         await interaction.response.send_message(f"Sistema de niveles {status}.")
 
     @niveles_toggle.error
     async def niveles_toggle_error(self, interaction: discord.Interaction, error):
         if isinstance(error, app_commands.MissingPermissions):
-            await interaction.response.send_message("❌ No tienes permisos de administrador para usar este comando.", ephemeral=True)
+            await interaction.response.send_message(
+                "❌ No tienes permisos de administrador para usar este comando.", ephemeral=True
+            )
         else:
             await interaction.response.send_message(f"❌ Error: {error}", ephemeral=True)
 

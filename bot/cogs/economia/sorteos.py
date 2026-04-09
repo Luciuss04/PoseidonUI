@@ -19,14 +19,10 @@ class SorteoView(discord.ui.View):
         emoji="🎟️",
         custom_id="sorteo_participar",
     )
-    async def participar(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ):
+    async def participar(self, interaction: discord.Interaction, button: discord.ui.Button):
         uid = interaction.user.id
         self.participantes.add(uid)
-        await interaction.response.send_message(
-            "🎟️ Te has apuntado al sorteo.", ephemeral=True
-        )
+        await interaction.response.send_message("🎟️ Te has apuntado al sorteo.", ephemeral=True)
         try:
             e = interaction.client.build_log_embed(
                 "Economía/Sorteos",
@@ -55,7 +51,7 @@ class Sorteos(commands.Cog):
         embed = discord.Embed(
             title="🎁 Sorteo activo",
             description=f"Premio: **{premio}**\nDuración: {minutos} min",
-            color=Theme.get_color(interaction.guild.id, 'success'),
+            color=Theme.get_color(interaction.guild.id, "success"),
         )
         embed.set_footer(text=Theme.get_footer_text(interaction.guild.id))
         view = SorteoView()
@@ -81,7 +77,7 @@ class Sorteos(commands.Cog):
         embed_fin = discord.Embed(
             title="🏆 Sorteo finalizado",
             description=f"Ganador: **{ganador.mention}**\nPremio: **{premio}**",
-            color=Theme.get_color(interaction.guild.id, 'primary'),
+            color=Theme.get_color(interaction.guild.id, "primary"),
         )
         embed_fin.set_footer(text=Theme.get_footer_text(interaction.guild.id))
         await msg.edit(embed=embed_fin, view=None)
@@ -95,7 +91,7 @@ class Sorteos(commands.Cog):
                 f"Sorteo finalizado: {premio}",
                 guild=interaction.guild,
                 extra={"Ganador": f"{ganador} ({ganador.id})"},
-                color=Theme.get_color(interaction.guild.id, 'primary'),
+                color=Theme.get_color(interaction.guild.id, "primary"),
             )
             await self.bot.log(embed=e, guild=interaction.guild)
         except Exception:

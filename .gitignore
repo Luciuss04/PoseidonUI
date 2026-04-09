@@ -5,6 +5,7 @@ guild_config.json
 theme_config.json
 admin_keygen.py
 backups/
+obsidian_vault/
 venv/
 __pycache__/
 *.pyc
