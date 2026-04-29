@@ -42,39 +42,74 @@
 
 ---
 
-## ¿Qué hace el bot? (Guía funcional)
+## ¿Qué hace el bot? (Guía funcional completa)
 
-PoseidonUI es un bot modular (por cogs) que combina moderación, entretenimiento y administración remota. La lista exacta de comandos puede variar según el plan de licencia: el comando **/ayuda** muestra solo los comandos disponibles para tu servidor.
+PoseidonUI es un bot modular (por cogs) que une **moderación**, **minijuegos**, **economía** e **integraciones**, con dos pilares extra: **configuración por servidor** (persistente) y **dashboard web** para administración remota. La lista exacta de comandos puede variar según el plan de licencia: **/ayuda** muestra solo los comandos disponibles para tu servidor.
 
-### 🧩 Módulos principales (por carpeta)
+### ✅ Puesta en marcha (checklist rápido para Admin)
 
-- **Moderación** (`/bot/cogs/moderacion`): antispam, automod, guardian, herramientas de staff y logs.
-- **Comunidad** (`/bot/cogs/comunidad`): confesiones, oráculo, streaming, encuestas, matrimonios, clanes, niveles y utilidades sociales.
-- **Economía** (`/bot/cogs/economia`): monedas, tienda, casino, ofertas y sorteos.
-- **Juegos** (`/bot/cogs/juegos`): trivia, ahorcado, rpg y mascotas/coliseo.
-- **Integraciones** (`/bot/cogs/integraciones`): RSS, LoL/gaming, sentimiento/analytics y servidor web del dashboard.
-- **Info** (`/bot/cogs/info`): about, ayuda y editor de temas.
-- **Diagnóstico** (`/bot/cogs/diagnostico`): salud/alertas, herramientas de diagnóstico y hot-reload seguro de cogs.
+1. Configura el canal de logs: `/config logcanal #tu-canal`
+2. Configura rol/es de staff: `/config staffrol @RolStaff`
+3. (Opcional) Configura canal de alertas: `/config alertas #alertas`
+4. Ajusta alertas de salud (opcional): `/config salud ...`
+5. Abre el dashboard (si lo usas) y revisa:
+   - `license_plan` del servidor
+   - canales de cada módulo (confesiones, logs de moderación, etc.)
 
-### 🧭 Comandos rápidos (los más usados)
+### 🔐 Permisos recomendados del bot (por canal)
 
-- **Ayuda**: `/ayuda` (categorías y comandos disponibles por plan).
-- **Configuración (Admin)**: `/config ver`, `/config logcanal`, `/config staffrol`, `/config alertas`, `/config salud`.
-- **Diagnóstico**: `/diagnostico`, `/comandos`, `/diagnostico_permisos`.
-- **Confesiones**: `/set_confesiones` y comandos de confesión (según configuración del canal).
-- **Minijuegos**: `/trivia`, `/ahorcado` (y otros según cogs activos).
+- Básicos: `View Channel`, `Send Messages`, `Embed Links`, `Read Message History`
+- Si el bot fija mensajes (pines): `Pin Messages`
+- Para moderación (según módulos): permisos típicos de moderación (mute/kick/ban, timeout, manage messages)
+
+Si algo falla por permisos: usa `/diagnostico_permisos` (admin-only) para ver exactamente qué falta por canal.
+
+### 🧩 Módulos (cogs) y qué aportan
+
+| Área | Carpeta | Qué incluye (resumen) |
+|---|---|---|
+| Moderación | `/bot/cogs/moderacion` | antispam, automod, guardian, herramientas de staff y logs |
+| Comunidad | `/bot/cogs/comunidad` | confesiones, oráculo, streaming, encuestas, matrimonios, clanes, niveles y utilidades |
+| Economía | `/bot/cogs/economia` | monedas, tienda, casino, ofertas y sorteos |
+| Juegos | `/bot/cogs/juegos` | trivia, ahorcado, rpg y mascotas/coliseo |
+| Integraciones | `/bot/cogs/integraciones` | RSS, LoL/gaming, sentimiento/analytics y servidor web del dashboard |
+| Info | `/bot/cogs/info` | about, ayuda y editor de temas |
+| Diagnóstico | `/bot/cogs/diagnostico` | salud/alertas, herramientas de diagnóstico y hot-reload seguro de cogs |
+
+### 🧭 “Top comandos” por uso
+
+- **Ayuda**: `/ayuda`
+- **Config (Admin)**: `/config ver`, `/config logcanal`, `/config staffrol`, `/config alertas`, `/config salud`
+- **Diagnóstico**: `/diagnostico`, `/comandos`, `/diagnostico_permisos`
+- **Hot-reload (Admin)**: `/cog list`, `/cog reload modulo:<...> sync:guild|global`
+- **Confesiones**: `/set_confesiones #canal` + comandos de confesión (según servidor/configuración)
+- **Minijuegos**: `/trivia`, `/ahorcado` (y otros según cogs activos)
+
+### 🔔 Salud y alertas de degradación
+
+- El bot monitoriza métricas básicas (latencia, CPU, RAM y pico de errores recientes).
+- Cuando detecta degradación/estado crítico, avisa en `alert_channel_id` (si está configurado) y aplica cooldown para no spamear.
+- Personaliza umbrales por servidor con `/config salud`:
+  - `latencia_warn/crit` (ms), `cpu_warn/crit` (%), `mem_warn/crit` (%), `errores_warn/crit` (conteo últimos 5 min)
 
 ### 🔒 Licencias (modo hard)
 
-- El bot puede bloquear comandos por servidor según `license_plan`.
-- También filtra la interfaz de ayuda para ocultar comandos no disponibles.
-- Planes válidos a nivel de configuración: `basic`, `pro`, `elite`, `custom`.
+- El bot puede bloquear comandos por servidor según `license_plan` (y también oculta comandos no disponibles en **/ayuda**).
+- Planes válidos: `basic`, `pro`, `elite`, `custom`.
+- Dónde se configura: dashboard (recomendado) o `guild_config.json` (clave `license_plan`).
 
 ---
 
 ## 🌐 Dashboard Web y API
 
 El bot expone un servidor web (AioHTTP) para el dashboard y la API.
+
+### Flujo de uso del dashboard (resumen)
+
+1. Levanta el bot (el servidor web se inicia junto al bot).
+2. Entra en `docs/admin.html` (GitHub Pages o local) y haz login.
+3. Selecciona tu servidor y ajusta configuración (canales/roles/tema/licencia).
+4. Verifica que los cambios impactan en el bot (comandos, logs, alertas).
 
 ### Endpoints públicos
 
@@ -114,6 +149,11 @@ Claves habituales:
 - `confesiones_channel_id`: canal donde se publican confesiones.
 - `moderacion_logs_channel_id`: canal específico para logs de moderación (si aplica).
 - `health_thresholds`: umbrales personalizados de alertas (latencia/cpu/mem/errores).
+
+Notas:
+
+- La escritura de JSON se realiza de forma atómica para evitar corrupción (guardado seguro).
+- El archivo de configuración por servidor incluye migraciones internas para mantener compatibilidad cuando cambian claves/formatos.
 
 ---
 
