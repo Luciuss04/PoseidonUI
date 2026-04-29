@@ -495,6 +495,130 @@ class ToolsDiagnostico(commands.Cog):
         except Exception:
             pass
 
+    @app_commands.command(
+        name="diagnostico_permisos",
+        description="Comprueba permisos críticos del bot (pins, escritura, lectura) por canal",
+    )
+    @app_commands.guild_only()
+    @app_commands.checks.has_permissions(administrator=True)
+    async def diagnostico_permisos(self, interaction: discord.Interaction):
+        g = interaction.guild
+        if not g:
+            await interaction.response.send_message("⚠️ Solo en servidores.", ephemeral=True)
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        bot_member = g.get_member(self.bot.user.id) if self.bot.user else None
+        if not bot_member:
+            await interaction.followup.send(
+                "❌ No pude obtener el miembro del bot.", ephemeral=True
+            )
+            return
+
+        def fmt_channel_result(
+            ch: discord.abc.GuildChannel, for_pin: bool = False
+        ) -> tuple[str, str]:
+            p = ch.permissions_for(bot_member)
+            missing = []
+            if not p.view_channel:
+                missing.append("VIEW_CHANNEL")
+            if isinstance(ch, discord.TextChannel):
+                if not p.read_message_history:
+                    missing.append("READ_MESSAGE_HISTORY")
+                if not p.send_messages:
+                    missing.append("SEND_MESSAGES")
+            if for_pin and isinstance(ch, discord.TextChannel):
+                if not p.pin_messages:
+                    missing.append("PIN_MESSAGES")
+            if missing:
+                return "🔴", ", ".join(missing)
+            return "🟢", "OK"
+
+        def safe_get_channel(channel_id) -> discord.TextChannel | None:
+            if not channel_id:
+                return None
+            try:
+                ch = g.get_channel(int(channel_id))
+                return ch if isinstance(ch, discord.TextChannel) else None
+            except Exception:
+                return None
+
+        log_channel = safe_get_channel(get_guild_setting(g.id, "log_channel_id", None))
+        alert_channel = safe_get_channel(get_guild_setting(g.id, "alert_channel_id", None))
+        confesiones_channel = safe_get_channel(
+            get_guild_setting(g.id, "confesiones_channel_id", None)
+        )
+        modlogs_channel = safe_get_channel(
+            get_guild_setting(g.id, "moderacion_logs_channel_id", None)
+        )
+
+        embed = discord.Embed(
+            title="🔐 Diagnóstico de permisos del bot",
+            description="Revisa permisos por canal. Para fijar mensajes ahora es necesario PIN_MESSAGES.",
+            color=Theme.get_color(g.id, "primary"),
+        )
+
+        embed.add_field(
+            name="Intents",
+            value=f"MESSAGE_CONTENT: {'✅' if self.bot.intents.message_content else '❌'}",
+            inline=False,
+        )
+
+        checks: list[tuple[str, discord.TextChannel | None, bool]] = [
+            ("Canal logs", log_channel, True),
+            ("Canal alertas", alert_channel, False),
+            ("Canal confesiones", confesiones_channel, False),
+            ("Canal logs moderación", modlogs_channel, True),
+        ]
+
+        current_ch = (
+            interaction.channel if isinstance(interaction.channel, discord.TextChannel) else None
+        )
+        checks.append(("Canal actual", current_ch, True))
+
+        for label, ch, needs_pin in checks:
+            if not ch:
+                embed.add_field(name=label, value="⚪ No configurado / no aplica", inline=False)
+                continue
+            icon, status = fmt_channel_result(ch, for_pin=needs_pin)
+            embed.add_field(name=label, value=f"{icon} {ch.mention} — {status}", inline=False)
+
+        oraculo_cat = discord.utils.get(g.categories, name="📂 Oráculos")
+        if oraculo_cat:
+            samples = [c for c in oraculo_cat.text_channels][:10]
+            if samples:
+                missing_any = 0
+                for ch in samples:
+                    icon, _ = fmt_channel_result(ch, for_pin=True)
+                    if icon == "🔴":
+                        missing_any += 1
+                if missing_any:
+                    embed.add_field(
+                        name="📂 Oráculos (muestra 10)",
+                        value=f"🔴 {missing_any}/10 canales con permisos incompletos (pins/lectura/escritura).",
+                        inline=False,
+                    )
+                else:
+                    embed.add_field(
+                        name="📂 Oráculos (muestra 10)",
+                        value="🟢 OK (pins/lectura/escritura).",
+                        inline=False,
+                    )
+
+        embed.set_footer(text=Theme.get_footer_text(g.id))
+        await interaction.followup.send(embed=embed, ephemeral=True)
+        try:
+            e = interaction.client.build_log_embed(
+                "Diagnóstico/Permisos",
+                "Diagnóstico de permisos del bot ejecutado",
+                user=interaction.user,
+                guild=interaction.guild,
+            )
+            await interaction.client.log(embed=e, guild=interaction.guild)
+        except Exception:
+            pass
+
 
 async def setup(bot):
     await bot.add_cog(ToolsDiagnostico(bot))
