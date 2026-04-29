@@ -42,13 +42,89 @@
 
 ---
 
-## 💎 Planes y Licencias
+## � ¿Qué hace el bot? (Guía funcional)
+
+PoseidonUI es un bot modular (por cogs) que combina moderación, entretenimiento y administración remota. La lista exacta de comandos puede variar según el plan de licencia: el comando **/ayuda** muestra solo los comandos disponibles para tu servidor.
+
+### 🧩 Módulos principales (por carpeta)
+
+- **Moderación** (`/bot/cogs/moderacion`): antispam, automod, guardian, herramientas de staff y logs.
+- **Comunidad** (`/bot/cogs/comunidad`): confesiones, oráculo, streaming, encuestas, matrimonios, clanes, niveles y utilidades sociales.
+- **Economía** (`/bot/cogs/economia`): monedas, tienda, casino, ofertas y sorteos.
+- **Juegos** (`/bot/cogs/juegos`): trivia, ahorcado, rpg y mascotas/coliseo.
+- **Integraciones** (`/bot/cogs/integraciones`): RSS, LoL/gaming, sentimiento/analytics y servidor web del dashboard.
+- **Info** (`/bot/cogs/info`): about, ayuda y editor de temas.
+- **Diagnóstico** (`/bot/cogs/diagnostico`): salud/alertas, herramientas de diagnóstico y hot-reload seguro de cogs.
+
+### 🧭 Comandos rápidos (los más usados)
+
+- **Ayuda**: `/ayuda` (categorías y comandos disponibles por plan).
+- **Configuración (Admin)**: `/config ver`, `/config logcanal`, `/config staffrol`, `/config alertas`, `/config salud`.
+- **Diagnóstico**: `/diagnostico`, `/comandos`, `/diagnostico_permisos`.
+- **Confesiones**: `/set_confesiones` y comandos de confesión (según configuración del canal).
+- **Minijuegos**: `/trivia`, `/ahorcado` (y otros según cogs activos).
+
+### 🔒 Licencias (modo hard)
+
+- El bot puede bloquear comandos por servidor según `license_plan`.
+- También filtra la interfaz de ayuda para ocultar comandos no disponibles.
+- Planes válidos a nivel de configuración: `basic`, `pro`, `elite`, `custom`.
+
+---
+
+## 🌐 Dashboard Web y API
+
+El bot expone un servidor web (AioHTTP) para el dashboard y la API.
+
+### Endpoints públicos
+
+- `GET /api/stats`: estado básico (online, versión, latencia, uptime, conteos).
+- `GET /api/health`: salud del bot (latencia, CPU, RAM, errores últimos 5 min) y estado `ok/degraded/critical`.
+
+### Endpoints privados (requieren login)
+
+- `POST /api/login` → devuelve `token` (sesión).
+- `GET /api/guilds` → lista de servidores + config.
+- `GET /api/config/{guild_id}` → config del servidor + canales/roles.
+- `POST /api/config/update` → actualiza claves permitidas del servidor (whitelist).
+- `GET /api/logs/{guild_id}` → logs recientes del servidor.
+- `GET /api/analytics/{guild_id}` → métricas/analytics.
+- `GET/POST /api/streaming/*` → configuración de streaming.
+- `GET/POST /api/custom_cmds/*` → comandos personalizados.
+- `POST /api/theme/update` → tema.
+- `POST /api/reboot` → reinicio controlado.
+
+### Variables típicas
+
+- `SERVER_PORT`: puerto del servidor web (dashboard/API).
+
+---
+
+## ⚙️ Configuración por servidor (guild_config.json)
+
+La configuración se guarda por servidor y se puede editar desde el dashboard o con `/config ...`.
+
+Claves habituales:
+
+- `log_channel_id`: canal principal de logs.
+- `alert_channel_id`: canal de alertas de salud/degradación.
+- `staff_role_ids`: lista de roles staff (IDs).
+- `theme`: tema visual (`default`, `ocean`, `fire`, `nature`).
+- `license_plan`: plan por servidor (`basic|pro|elite|custom`).
+- `confesiones_channel_id`: canal donde se publican confesiones.
+- `moderacion_logs_channel_id`: canal específico para logs de moderación (si aplica).
+- `health_thresholds`: umbrales personalizados de alertas (latencia/cpu/mem/errores).
+
+---
+
+## �💎 Planes y Licencias
 
 | Plan | Incluye | Ideal para |
 | :--- | :--- | :--- |
 | **Básico** | Moderación, Música, Minijuegos, Guardian | Servidores pequeños |
 | **Pro** | Todo Básico + Niveles, Economía, Oráculo, Confesiones | Comunidades activas |
 | **Élite** | Todo Pro + Mascotas v4.2, Dashboard Web, IA Atenea | Gaming / eSports |
+| **Custom** | Todo Élite + marca blanca + funciones a medida | Proyectos a medida |
 
 ---
 
