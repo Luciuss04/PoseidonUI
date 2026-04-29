@@ -42,7 +42,7 @@
 
 ---
 
-## � ¿Qué hace el bot? (Guía funcional)
+## ¿Qué hace el bot? (Guía funcional)
 
 PoseidonUI es un bot modular (por cogs) que combina moderación, entretenimiento y administración remota. La lista exacta de comandos puede variar según el plan de licencia: el comando **/ayuda** muestra solo los comandos disponibles para tu servidor.
 
@@ -117,7 +117,7 @@ Claves habituales:
 
 ---
 
-## �💎 Planes y Licencias
+## 💎 Planes y Licencias
 
 | Plan | Incluye | Ideal para |
 | :--- | :--- | :--- |
