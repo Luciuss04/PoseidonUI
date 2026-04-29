@@ -111,10 +111,27 @@ El bot expone un servidor web (AioHTTP) para el dashboard y la API.
 3. Selecciona tu servidor y ajusta configuración (canales/roles/tema/licencia).
 4. Verifica que los cambios impactan en el bot (comandos, logs, alertas).
 
+### Dashboard desde GitHub Pages (muy importante)
+
+Cuando abres el panel desde GitHub Pages, el frontend necesita saber la URL del bot (tu servidor local/VPS) para llamar a la API.
+
+- El panel te pedirá una URL y la guardará en el navegador como `poseidon_bot_url`.
+- Ejemplos de URL:
+  - `http://127.0.0.1:8080`
+  - `http://TU-IP:8080`
+  - `https://tu-dominio.com` (si pones proxy/SSL delante)
+
 ### Endpoints públicos
 
 - `GET /api/stats`: estado básico (online, versión, latencia, uptime, conteos).
 - `GET /api/health`: salud del bot (latencia, CPU, RAM, errores últimos 5 min) y estado `ok/degraded/critical`.
+
+Ejemplo rápido:
+
+```bash
+curl http://127.0.0.1:8080/api/stats
+curl http://127.0.0.1:8080/api/health
+```
 
 ### Endpoints privados (requieren login)
 
@@ -166,6 +183,27 @@ Notas:
 | **Élite** | Todo Pro + Mascotas v4.2, Dashboard Web, IA Atenea | Gaming / eSports |
 | **Custom** | Todo Élite + marca blanca + funciones a medida | Proyectos a medida |
 
+### Reglas reales (qué se bloquea por plan)
+
+Por defecto, todo módulo no listado es `basic`. Los módulos que requieren `pro` (mínimo) son:
+
+| Módulo (Python) | Plan mínimo |
+|---|---|
+| `bot.cogs.comunidad.musica` | `pro` |
+| `bot.cogs.comunidad.streaming` | `pro` |
+| `bot.cogs.comunidad.oraculo` | `pro` |
+| `bot.cogs.economia.casino` | `pro` |
+| `bot.cogs.economia.sorteos` | `pro` |
+| `bot.cogs.economia.ofertas` | `pro` |
+| `bot.cogs.juegos.rpg` | `pro` |
+| `bot.cogs.juegos.mascotas` | `pro` |
+| `bot.cogs.integraciones.lol` | `pro` |
+
+Prioridad de plan:
+
+1. Si el servidor tiene `license_plan` en `guild_config.json`, manda para ese servidor.
+2. Si no, se usa el plan global instalado en el host (según tu licencia/entorno).
+
 ---
 
 ## ⚙️ Instalación y Configuración
@@ -174,6 +212,30 @@ Notas:
 - Python 3.11+
 - FFmpeg (Instalado en el PATH)
 - Un puerto abierto para el Dashboard Web (Configurable en .env)
+
+### Variables de entorno (.env)
+
+Estas variables se cargan desde `.env` (ver `.env.example`) y controlan qué integraciones se activan.
+
+| Variable | Obligatoria | Para qué sirve |
+|---|---:|---|
+| `DISCORD_TOKEN` | Sí | Token del bot de Discord |
+| `SERVER_PORT` | No | Puerto del dashboard/API (por defecto `8080`) |
+| `LICENSE_KEY` | No | Clave/ID de licencia instalada en el host |
+| `LICENSES_URL` | No | URL remota de licencias (si aplica en tu flujo) |
+| `LICENSE_SIGNING_SECRET` | Recomendado | Firma/verificación de licencias (evita manipulación) |
+| `ALLOW_PLAIN_LICENSES` | No | Permite licencias sin firma (`1`) si lo necesitas temporalmente |
+| `RIOT_API_KEY` | No | Habilita el cog de LoL (si no está, se omite) |
+| `GENIUS_ACCESS_TOKEN` | No | Letras de canciones (si el módulo lo usa) |
+| `CANAL_OFERTAS_ID` | No | Canal para ofertas (si el módulo lo usa) |
+| `ORACULO_MAX_PARTICIPANTS` | No | Límite de participantes en oráculo |
+| `ENABLED_COGS_ONLY` | No | Lista blanca de cogs a cargar (override) |
+| `DISABLED_COGS` | No | Lista negra de cogs a NO cargar |
+| `LOG_MIN_LEVEL` | No | Nivel mínimo de log: `debug|info|warn|error` |
+| `LOG_INCLUDE` | No | Filtro por tipo de log (CSV), si se usa en tu setup |
+| `LOG_EXCLUDE` | No | Exclusión por tipo de log (CSV), si se usa en tu setup |
+| `LOG_DEBOUNCE_SECS` | No | Anti-spam de logs (segundos, por defecto `15`) |
+| `POSEIDON_SKIP_DOTENV` | No | Si es `1`, no carga `.env` (útil en algunos hostings) |
 
 ### Guía Rápida
 1. **Clonar y Entrar:**
@@ -200,6 +262,32 @@ Notas:
 ### 🔒 Seguridad Importante
 - Asegúrate de configurar `LICENSE_SIGNING_SECRET` para proteger la integridad de tus licencias.
 - El Dashboard requiere que el navegador permita "Contenido no seguro" si no se utiliza un certificado SSL en el host.
+
+---
+
+## 🧯 Solución de problemas (lo típico)
+
+### El dashboard “no muestra nada”
+
+- Verifica que el bot está levantado y el puerto responde:
+  - `http://127.0.0.1:8080/api/stats`
+- Si abres el dashboard desde GitHub Pages, asegúrate de que has configurado la URL correcta del bot (se guarda en `poseidon_bot_url`).
+- Si estás en una red distinta (móvil/otra WiFi), la URL `127.0.0.1` no sirve: usa la IP/DOMINIO del servidor donde corre el bot.
+
+### “Unauthorized” en endpoints `/api/*`
+
+- Solo `/api/stats` y `/api/health` son públicos.
+- El resto exige login para obtener `token` y enviarlo en `Authorization`.
+
+### Música no suena / FFmpeg
+
+- Asegura que `ffmpeg` está instalado y en el `PATH`.
+- Usa `/diagnostico` para confirmar si FFmpeg/Opus están OK en el host.
+
+### Un comando “no existe” o “no está disponible”
+
+- Mira `/ayuda`: si no aparece, o el cog no está cargado, o tu plan (`license_plan`) lo bloquea.
+- Si acabas de tocar cogs en caliente, puedes usar `/cog reload` y luego sincronizar (`sync:guild`).
 
 ---
 
