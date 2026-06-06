@@ -259,6 +259,7 @@ class WebServer(commands.Cog):
                 "license_plan",
                 "confesiones_channel_id",
                 "moderacion_logs_channel_id",
+                "enabled_modules",
             ]
 
             for key, value in updates.items():

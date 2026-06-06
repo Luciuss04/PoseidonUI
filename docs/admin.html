@@ -145,17 +145,36 @@
             border-radius: 10px;
         }
 
+        .side-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: #cbc3d9;
+            border-radius: 0.5rem;
+            transition: all 0.3s;
+        }
+        .side-nav-item:hover {
+            background: rgba(61, 46, 80, 0.4);
+            color: #eedbff;
+        }
         .side-nav-active {
             background: #6200ea;
             color: #cfbcff;
             font-weight: 700;
-            border-radius: 0.5rem;
         }
         
         #loading-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: #1a0c2c; display: flex; align-items: center;
             justify-content: center; z-index: 1000;
+        }
+
+        .view-section {
+            display: none;
+        }
+        .view-section.active {
+            display: block;
         }
     </style>
 </head>
@@ -164,7 +183,7 @@
         <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
     </div>
 
-    <!-- SideNavBar (Shared Component) -->
+    <!-- SideNavBar -->
     <aside class="h-screen w-64 fixed left-0 top-0 bg-surface-container-low backdrop-blur-xl border-r border-outline-variant/20 shadow-md flex flex-col p-md gap-sm z-50">
         <div class="flex items-center gap-sm mb-lg">
             <img alt="PoseidonUI Logo" class="w-10 h-10 object-contain" src="https://lh3.googleusercontent.com/aida/AP1WRLtV0Yc1NwwDmqsm1pRMrhJeW2exGBxpkdPPROy-aKCXp7I3tgeXjpwwpnpT4FkhA-EKt9v_21OYjqVtisosSiy5_3pMdBKiuti7E7HLiIEclswFn0iVL5f6yXu8WFNxkd10HPqBzJhG11lXMOxJbp4ZF-uvFQp8NgeJNh5ATThDmvceFVR2g4qdGPh9istkMwQhSeazVZzZTwiQ97QGIM_aIaSKc5Luobq0cIdgza1SP71VwIOZGIUK0BZF"/>
@@ -173,37 +192,37 @@
                 <p class="font-label-md text-[10px] uppercase tracking-widest text-outline">Premium Bot Control</p>
             </div>
         </div>
-        <nav class="flex-1 flex flex-col gap-xs">
-            <a class="flex items-center gap-sm px-md py-sm side-nav-active transition-all duration-300" href="#">
-                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+        <nav class="flex-1 flex flex-col gap-xs" id="sidebar-nav">
+            <button onclick="showView('overview')" class="side-nav-item side-nav-active" data-view="overview">
+                <span class="material-symbols-outlined">dashboard</span>
                 <span class="font-body-md">Overview</span>
-            </a>
-            <a class="flex items-center gap-sm px-md py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/30 rounded-lg transition-all duration-300" href="#">
+            </button>
+            <button onclick="showView('modules')" class="side-nav-item" data-view="modules">
+                <span class="material-symbols-outlined">extension</span>
+                <span class="font-body-md">Módulos</span>
+            </button>
+            <button onclick="showView('rpg')" class="side-nav-item" data-view="rpg">
                 <span class="material-symbols-outlined">pets</span>
                 <span class="font-body-md">RPG Pets</span>
-            </a>
-            <a class="flex items-center gap-sm px-md py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/30 rounded-lg transition-all duration-300" href="#">
+            </button>
+            <button onclick="showView('economy')" class="side-nav-item" data-view="economy">
                 <span class="material-symbols-outlined">payments</span>
                 <span class="font-body-md">Economy</span>
-            </a>
-            <a class="flex items-center gap-sm px-md py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/30 rounded-lg transition-all duration-300" href="#">
+            </button>
+            <button onclick="showView('music')" class="side-nav-item" data-view="music">
                 <span class="material-symbols-outlined">music_note</span>
                 <span class="font-body-md">Music</span>
-            </a>
-            <a class="flex items-center gap-sm px-md py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/30 rounded-lg transition-all duration-300" href="#">
+            </button>
+            <button onclick="showView('moderation')" class="side-nav-item" data-view="moderation">
                 <span class="material-symbols-outlined">gavel</span>
                 <span class="font-body-md">Moderation</span>
-            </a>
+            </button>
         </nav>
         <div class="mt-auto flex flex-col gap-xs pt-lg border-t border-outline-variant/10">
             <button class="w-full py-sm px-md mb-sm bg-primary-container text-on-primary-container font-bold rounded-lg shadow-lg hover:scale-[1.02] active:scale-95 transition-all">
                 Upgrade to VIP
             </button>
-            <a class="flex items-center gap-sm px-md py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/30 rounded-lg transition-all" href="#">
-                <span class="material-symbols-outlined">settings</span>
-                <span class="font-body-md">Settings</span>
-            </a>
-            <button onclick="logout()" class="flex items-center gap-sm px-md py-sm text-on-surface-variant hover:text-error hover:bg-error/10 rounded-lg transition-all text-left">
+            <button onclick="logout()" class="side-nav-item text-error hover:bg-error/10">
                 <span class="material-symbols-outlined">logout</span>
                 <span class="font-body-md">Logout</span>
             </button>
@@ -212,25 +231,17 @@
 
     <!-- Main Content Area -->
     <main class="ml-64 min-h-screen">
-        <!-- TopNavBar (Shared Component) -->
+        <!-- TopNavBar -->
         <header class="fixed top-0 right-0 w-[calc(100%-256px)] h-16 bg-surface/80 backdrop-blur-md border-b border-outline-variant/10 shadow-sm flex justify-between items-center px-margin-desktop z-40">
             <div class="flex items-center gap-md flex-1">
-                <div class="relative w-64 group">
-                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">search</span>
-                    <input class="w-full bg-surface-container-low border-none rounded-full py-2 pl-10 pr-4 text-body-sm focus:ring-1 focus:ring-primary placeholder:text-outline-variant" placeholder="Buscar módulos o comandos..." type="text"/>
-                </div>
-                <div class="hidden md:flex items-center gap-lg ml-md">
-                    <a class="font-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Docs</a>
-                    <a class="font-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Voters</a>
-                    <a class="font-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Status</a>
+                <div class="relative w-72 group">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">dns</span>
+                    <select id="server-selector" onchange="onServerChange()" class="w-full bg-surface-container-low border-none rounded-full py-2 pl-10 pr-8 text-body-sm focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                        <option value="">Cargando servidores...</option>
+                    </select>
                 </div>
             </div>
             <div class="flex items-center gap-md">
-                <button class="material-symbols-outlined p-2 text-on-surface-variant hover:text-primary transition-colors relative">
-                    notifications
-                    <span class="absolute top-2 right-2 w-2 h-2 bg-secondary-fixed rounded-full"></span>
-                </button>
-                <button class="material-symbols-outlined p-2 text-on-surface-variant hover:text-primary transition-colors">grid_view</button>
                 <div class="flex items-center gap-sm border-l border-outline-variant/20 pl-md">
                     <img alt="User Avatar" class="w-8 h-8 rounded-full border border-primary/30" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9UOxWgF9GI8gei82VV2zXmIsGX-7nZEf8hlgTvgBxf-r_nDUYJt3AYobyUerOZU4mfBxYX2LRton6mQ4TcL5jODUm_J4ddAqBFpJ6gCf3ER3B-2nqBuaBv5hBEjqkxv9lUvcTuoZ5Z47macweE83lmqvONa7Gmk9oamADlB5xhtqOgKC-lfRyUkBPnsvOhfH6TAbrNT0ZkMPnRXQ90qQDuzBw9fNK7SykH821Otr0zM7lXhLxow6gANymX0UYCiRGcmzVM7tVlOr3"/>
                     <span class="font-label-md text-on-surface hidden lg:block">Admin. Poseidon</span>
@@ -240,233 +251,306 @@
 
         <!-- Canvas -->
         <div class="pt-24 px-margin-desktop pb-xl max-w-7xl mx-auto">
-            <!-- Hero Header -->
-            <section class="mb-lg flex flex-col md:flex-row md:items-end justify-between gap-md">
-                <div>
-                    <h2 class="font-headline-lg text-headline-lg text-on-surface mb-xs">Bienvenido al Olimpo, <span class="gold-accent">Poseidon</span></h2>
-                    <div class="flex items-center gap-sm">
-                        <div class="flex items-center gap-xs px-sm py-xs bg-emerald-500/10 text-emerald-400 rounded-full text-label-md border border-emerald-500/20">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                            Sistemas Operativos
-                        </div>
-                        <span class="text-outline font-body-sm">•</span>
-                        <p class="text-outline font-body-sm" id="bot-version">V.4.2.0-STABLE | Latencia: ...</p>
-                    </div>
-                </div>
-                <div class="flex gap-sm">
-                    <button onclick="rebootBot()" class="flex items-center gap-xs px-md py-sm bg-surface-container-high text-on-surface font-label-md rounded-lg border border-outline-variant/20 hover:bg-surface-container-highest transition-all">
-                        <span class="material-symbols-outlined text-[18px]">refresh</span> Reiniciar Bot
-                    </button>
-                    <button class="flex items-center gap-xs px-md py-sm bg-primary-container text-on-primary-container font-label-md rounded-lg shadow-lg hover:shadow-primary/20 transition-all group">
-                        <span class="material-symbols-outlined text-[18px] group-hover:rotate-180 transition-transform duration-500">terminal</span> Iniciar Depuración
-                    </button>
-                </div>
-            </section>
-
-            <!-- Statistics Grid (Bento Style) -->
-            <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-md mb-lg">
-                <div class="glass-card p-md rounded-xl relative overflow-hidden group">
-                    <div class="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
-                    <div class="flex items-center justify-between mb-sm">
-                        <span class="material-symbols-outlined text-primary">dns</span>
-                        <span class="text-emerald-400 text-[10px] font-bold">+12%</span>
-                    </div>
-                    <p class="text-outline font-label-md mb-xs">Servidores Activos</p>
-                    <h3 class="font-headline-md text-headline-md text-on-surface" id="stat-guilds">...</h3>
-                </div>
-                <div class="glass-card p-md rounded-xl relative overflow-hidden group">
-                    <div class="absolute top-0 right-0 w-24 h-24 bg-secondary-fixed/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
-                    <div class="flex items-center justify-between mb-sm">
-                        <span class="material-symbols-outlined text-secondary-fixed">group</span>
-                        <span class="text-emerald-400 text-[10px] font-bold">+4.2k</span>
-                    </div>
-                    <p class="text-outline font-label-md mb-xs">Usuarios Totales</p>
-                    <h3 class="font-headline-md text-headline-md text-on-surface" id="stat-users">...</h3>
-                </div>
-                <div class="glass-card p-md rounded-xl relative overflow-hidden group">
-                    <div class="absolute top-0 right-0 w-24 h-24 bg-tertiary/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
-                    <div class="flex items-center justify-between mb-sm">
-                        <span class="material-symbols-outlined text-tertiary">bolt</span>
-                        <span class="text-outline text-[10px] font-bold">STABLE</span>
-                    </div>
-                    <p class="text-outline font-label-md mb-xs">Uptime Global</p>
-                    <h3 class="font-headline-md text-headline-md text-on-surface" id="stat-uptime">...</h3>
-                </div>
-                <div class="glass-card p-md rounded-xl relative overflow-hidden group">
-                    <div class="absolute top-0 right-0 w-24 h-24 bg-error/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
-                    <div class="flex items-center justify-between mb-sm">
-                        <span class="material-symbols-outlined text-error">function</span>
-                        <span class="text-secondary-fixed text-[10px] font-bold">AVG</span>
-                    </div>
-                    <p class="text-outline font-label-md mb-xs">Latencia API</p>
-                    <h3 class="font-headline-md text-headline-md text-on-surface" id="stat-ping">...<span class="text-body-sm text-outline">ms</span></h3>
-                </div>
-            </section>
-
-            <!-- Main Content Grid -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-md">
-                <!-- Active Modules (2/3 width) -->
-                <div class="lg:col-span-2 space-y-md">
-                    <div class="flex items-center justify-between mb-xs">
-                        <h4 class="font-headline-sm text-headline-sm text-on-surface">Módulos de Sistema</h4>
-                        <button class="text-primary font-label-md hover:underline">Ver todos</button>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
-                        <!-- Module Card -->
-                        <div class="glass-card p-md rounded-xl flex flex-col gap-md">
-                            <div class="flex justify-between items-start">
-                                <div class="flex items-center gap-sm">
-                                    <div class="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center">
-                                        <span class="material-symbols-outlined text-primary text-3xl">pets</span>
-                                    </div>
-                                    <div>
-                                        <h5 class="font-body-lg font-bold">Mascotas RPG</h5>
-                                        <p class="text-body-sm text-outline">Ecosistema interactivo</p>
-                                    </div>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input checked="" class="sr-only peer" type="checkbox"/>
-                                    <div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
-                                </label>
+            
+            <!-- VIEW: OVERVIEW -->
+            <div id="view-overview" class="view-section active">
+                <section class="mb-lg flex flex-col md:flex-row md:items-end justify-between gap-md">
+                    <div>
+                        <h2 class="font-headline-lg text-headline-lg text-on-surface mb-xs">Bienvenido al Olimpo, <span class="gold-accent">Poseidon</span></h2>
+                        <div class="flex items-center gap-sm">
+                            <div class="flex items-center gap-xs px-sm py-xs bg-emerald-500/10 text-emerald-400 rounded-full text-label-md border border-emerald-500/20">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                Sistemas Operativos
                             </div>
-                            <div class="grid grid-cols-2 gap-sm pt-sm border-t border-outline-variant/10">
-                                <div>
-                                    <p class="text-label-md text-outline">Nivel Promedio</p>
-                                    <p class="font-body-md font-bold">LVL 24</p>
-                                </div>
-                                <div>
-                                    <p class="text-label-md text-outline">Interacciones</p>
-                                    <p class="font-body-md font-bold">12.4k/día</p>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Module Card -->
-                        <div class="glass-card p-md rounded-xl flex flex-col gap-md">
-                            <div class="flex justify-between items-start">
-                                <div class="flex items-center gap-sm">
-                                    <div class="w-12 h-12 rounded-lg bg-secondary-fixed/20 flex items-center justify-center">
-                                        <span class="material-symbols-outlined text-secondary-fixed text-3xl">payments</span>
-                                    </div>
-                                    <div>
-                                        <h5 class="font-body-lg font-bold">Economía Global</h5>
-                                        <p class="text-body-sm text-outline">Mercado y transacciones</p>
-                                    </div>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input checked="" class="sr-only peer" type="checkbox"/>
-                                    <div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
-                                </label>
-                            </div>
-                            <div class="grid grid-cols-2 gap-sm pt-sm border-t border-outline-variant/10">
-                                <div>
-                                    <p class="text-label-md text-outline">Circulación</p>
-                                    <p class="font-body-md font-bold">4.2B POS</p>
-                                </div>
-                                <div>
-                                    <p class="text-label-md text-outline">Inflación</p>
-                                    <p class="font-body-md font-bold text-emerald-400">-0.2%</p>
-                                </div>
-                            </div>
+                            <span class="text-outline font-body-sm">•</span>
+                            <p class="text-outline font-body-sm" id="bot-version">V.4.2.0-STABLE | Latencia: ...</p>
                         </div>
                     </div>
-                </div>
-                <!-- Live Activity Feed (1/3 width) -->
-                <div class="space-y-md">
-                    <h4 class="font-headline-sm text-headline-sm text-on-surface">Actividad en Vivo</h4>
-                    <div class="glass-card rounded-xl p-md h-[432px] overflow-hidden flex flex-col">
-                        <div class="custom-scrollbar flex-1 overflow-y-auto space-y-sm pr-sm" id="logs-container">
-                            <p class="text-outline text-center py-4">Cargando actividad...</p>
-                        </div>
-                        <button class="w-full mt-md py-sm text-label-md text-primary font-bold hover:bg-primary/10 rounded-lg transition-colors border border-primary/20">
-                            Descargar Logs (.csv)
+                    <div class="flex gap-sm">
+                        <button onclick="rebootBot()" class="flex items-center gap-xs px-md py-sm bg-surface-container-high text-on-surface font-label-md rounded-lg border border-outline-variant/20 hover:bg-surface-container-highest transition-all">
+                            <span class="material-symbols-outlined text-[18px]">refresh</span> Reiniciar Bot
                         </button>
+                    </div>
+                </section>
+
+                <!-- Statistics Grid -->
+                <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-md mb-lg">
+                    <div class="glass-card p-md rounded-xl relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
+                        <div class="flex items-center justify-between mb-sm">
+                            <span class="material-symbols-outlined text-primary">dns</span>
+                        </div>
+                        <p class="text-outline font-label-md mb-xs">Servidores Activos</p>
+                        <h3 class="font-headline-md text-headline-md text-on-surface" id="stat-guilds">...</h3>
+                    </div>
+                    <div class="glass-card p-md rounded-xl relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-secondary-fixed/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
+                        <div class="flex items-center justify-between mb-sm">
+                            <span class="material-symbols-outlined text-secondary-fixed">group</span>
+                        </div>
+                        <p class="text-outline font-label-md mb-xs">Usuarios Totales</p>
+                        <h3 class="font-headline-md text-headline-md text-on-surface" id="stat-users">...</h3>
+                    </div>
+                    <div class="glass-card p-md rounded-xl relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-tertiary/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
+                        <div class="flex items-center justify-between mb-sm">
+                            <span class="material-symbols-outlined text-tertiary">bolt</span>
+                        </div>
+                        <p class="text-outline font-label-md mb-xs">Uptime Global</p>
+                        <h3 class="font-headline-md text-headline-md text-on-surface" id="stat-uptime">...</h3>
+                    </div>
+                    <div class="glass-card p-md rounded-xl relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-error/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
+                        <div class="flex items-center justify-between mb-sm">
+                            <span class="material-symbols-outlined text-error">speed</span>
+                        </div>
+                        <p class="text-outline font-label-md mb-xs">Latencia API</p>
+                        <h3 class="font-headline-md text-headline-md text-on-surface" id="stat-ping">...<span class="text-body-sm text-outline">ms</span></h3>
+                    </div>
+                </section>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-md">
+                    <div class="lg:col-span-2">
+                        <div class="flex items-center justify-between mb-xs">
+                            <h4 class="font-headline-sm text-headline-sm text-on-surface">Estado del Servidor Actual</h4>
+                        </div>
+                        <div id="guild-status-card" class="glass-card p-lg rounded-2xl flex items-center gap-lg">
+                            <img id="guild-icon" src="" class="w-20 h-20 rounded-2xl border border-primary/20 hidden" alt="Icon">
+                            <div id="guild-icon-placeholder" class="w-20 h-20 rounded-2xl bg-primary/20 flex items-center justify-center text-primary text-3xl font-bold">P</div>
+                            <div>
+                                <h3 id="guild-name" class="text-2xl font-bold text-on-surface">Selecciona un servidor</h3>
+                                <p id="guild-members" class="text-on-surface-variant">Para gestionar sus módulos</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-md">
+                        <h4 class="font-headline-sm text-headline-sm text-on-surface">Actividad en Vivo</h4>
+                        <div class="glass-card rounded-xl p-md h-[300px] overflow-hidden flex flex-col">
+                            <div class="custom-scrollbar flex-1 overflow-y-auto space-y-sm pr-sm" id="logs-container">
+                                <p class="text-outline text-center py-4 text-sm">Cargando actividad...</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <!-- VIEW: MODULES -->
+            <div id="view-modules" class="view-section">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-on-surface">Gestión de Módulos</h2>
+                    <p class="text-on-surface-variant">Activa o desactiva las funciones divinas para tu servidor</p>
+                </div>
+                <div id="modules-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-md">
+                    <!-- Modules will be rendered here -->
+                </div>
+            </div>
+
+            <!-- VIEW: OTHERS (Placeholder for now) -->
+            <div id="view-rpg" class="view-section">
+                <div class="glass-card p-xl rounded-3xl text-center">
+                    <span class="material-symbols-outlined text-6xl text-primary mb-4">pets</span>
+                    <h2 class="text-3xl font-bold">Mascotas RPG</h2>
+                    <p class="text-on-surface-variant mt-4">Panel detallado de mascotas en desarrollo.</p>
+                </div>
+            </div>
+            <div id="view-economy" class="view-section">
+                <div class="glass-card p-xl rounded-3xl text-center">
+                    <span class="material-symbols-outlined text-6xl text-secondary-fixed mb-4">payments</span>
+                    <h2 class="text-3xl font-bold">Economía Global</h2>
+                    <p class="text-on-surface-variant mt-4">Panel detallado de economía en desarrollo.</p>
+                </div>
+            </div>
+            <div id="view-music" class="view-section">
+                <div class="glass-card p-xl rounded-3xl text-center">
+                    <span class="material-symbols-outlined text-6xl text-tertiary mb-4">music_note</span>
+                    <h2 class="text-3xl font-bold">Música Hi-Fi</h2>
+                    <p class="text-on-surface-variant mt-4">Panel detallado de música en desarrollo.</p>
+                </div>
+            </div>
+            <div id="view-moderation" class="view-section">
+                <div class="glass-card p-xl rounded-3xl text-center">
+                    <span class="material-symbols-outlined text-6xl text-error mb-4">gavel</span>
+                    <h2 class="text-3xl font-bold">Moderación Guardian</h2>
+                    <p class="text-on-surface-variant mt-4">Panel detallado de moderación en desarrollo.</p>
+                </div>
+            </div>
+
         </div>
     </main>
 
     <script>
-        // Configuración y Auth
         let BOT_URL = localStorage.getItem('poseidon_bot_url') || '';
         const TOKEN = localStorage.getItem('poseidon_token');
+        let currentGuildId = null;
+        let guilds = [];
 
-        if (!TOKEN) {
-            window.location.href = 'login.html';
+        const AVAILABLE_MODULES = [
+            { id: 'pets', name: 'Mascotas RPG', desc: 'Ecosistema interactivo de mascotas', icon: 'pets', color: 'primary' },
+            { id: 'economy', name: 'Economía Global', desc: 'Mercado, trabajos y transacciones', icon: 'payments', color: 'secondary-fixed' },
+            { id: 'music', name: 'Música Hi-Fi', desc: 'Audio 320kbps sin lag', icon: 'music_note', color: 'tertiary' },
+            { id: 'moderation', name: 'Guardian v2', desc: 'Anti-spam y filtrado inteligente', icon: 'security', color: 'error' },
+            { id: 'social', name: 'Vida Social', desc: 'Matrimonios y confesiones', icon: 'forum', color: 'secondary-container' },
+            { id: 'oracle', name: 'Oráculo IA', desc: 'Respuestas inteligentes con IA', icon: 'auto_awesome', color: 'primary-container' }
+        ];
+
+        if (!TOKEN) window.location.href = 'login.html';
+        if (!BOT_URL) BOT_URL = window.location.origin;
+
+        async function fetchGuilds() {
+            try {
+                const response = await fetch(`${BOT_URL}/api/guilds`, { headers: {'Authorization': TOKEN} });
+                if (response.ok) {
+                    guilds = await response.json();
+                    const selector = document.getElementById('server-selector');
+                    selector.innerHTML = '<option value="">Selecciona un servidor</option>';
+                    guilds.forEach(g => {
+                        const opt = document.createElement('option');
+                        opt.value = g.id;
+                        opt.innerText = g.name;
+                        selector.appendChild(opt);
+                    });
+                }
+            } catch (err) { console.error('Error fetching guilds:', err); }
         }
 
-        if (!BOT_URL) {
-            BOT_URL = window.location.origin;
-        }
-
-        // Fetching Stats
         async function fetchStats() {
             try {
                 const response = await fetch(`${BOT_URL}/api/stats`);
                 if (response.ok) {
                     const data = await response.json();
-                    document.getElementById('stat-guilds').innerText = data.guilds_count.toLocaleString();
-                    document.getElementById('stat-users').innerText = (data.users_count / 1000000).toFixed(1) + 'M';
+                    document.getElementById('stat-guilds').innerText = data.guilds_count;
+                    document.getElementById('stat-users').innerText = (data.users_count / 1000).toFixed(1) + 'k';
                     document.getElementById('stat-ping').innerText = data.latency;
                     document.getElementById('bot-version').innerText = `${data.version} | Latencia: ${data.latency}ms`;
-                    
-                    // Format Uptime
-                    const uptime = data.uptime_secs;
-                    const days = Math.floor(uptime / 86400);
-                    const hours = Math.floor((uptime % 86400) / 3600);
-                    document.getElementById('stat-uptime').innerText = `${days}d ${hours}h`;
+                    const up = data.uptime_secs;
+                    document.getElementById('stat-uptime').innerText = `${Math.floor(up/86400)}d ${Math.floor((up%86400)/3600)}h`;
                 }
-            } catch (err) {
-                console.error('Error fetching stats:', err);
-            }
+            } catch (err) {}
         }
 
-        // Fetching Logs
         async function fetchLogs() {
             try {
-                const response = await fetch(`${BOT_URL}/api/logs/global`, {
-                    headers: {'Authorization': TOKEN}
-                });
+                const response = await fetch(`${BOT_URL}/api/logs/${currentGuildId || 'global'}`, { headers: {'Authorization': TOKEN} });
                 if (response.ok) {
                     const logs = await response.json();
                     const container = document.getElementById('logs-container');
                     container.innerHTML = '';
-                    
-                    logs.slice(0, 10).forEach(log => {
+                    logs.slice(0, 8).forEach(log => {
                         const div = document.createElement('div');
-                        div.className = 'flex gap-sm p-sm rounded-lg bg-surface-variant/20 border-l-2 border-primary transition-colors hover:bg-surface-variant/30';
-                        
-                        const time = new Date(log.timestamp).toLocaleTimeString();
-                        
-                        div.innerHTML = `
-                            <span class="material-symbols-outlined text-primary text-[20px]">info</span>
-                            <div>
-                                <p class="text-body-sm font-bold">${log.message}</p>
-                                <p class="text-[12px] text-outline">Servidor: ${log.guild_name || 'Global'}</p>
-                                <span class="text-[10px] text-primary/60">${time}</span>
-                            </div>
-                        `;
+                        div.className = 'flex gap-sm p-sm rounded-lg bg-surface-variant/20 border-l-2 border-primary transition-colors hover:bg-surface-variant/30 text-xs';
+                        div.innerHTML = `<div><p class="font-bold">${log.message}</p><p class="text-outline">${new Date(log.timestamp).toLocaleTimeString()}</p></div>`;
                         container.appendChild(div);
                     });
                 }
+            } catch (err) {}
+        }
+
+        function onServerChange() {
+            currentGuildId = document.getElementById('server-selector').value;
+            if (!currentGuildId) {
+                resetGuildInfo();
+                return;
+            }
+            const guild = guilds.find(g => g.id === currentGuildId);
+            if (guild) {
+                document.getElementById('guild-name').innerText = guild.name;
+                document.getElementById('guild-members').innerText = `${guild.members} miembros`;
+                if (guild.icon) {
+                    document.getElementById('guild-icon').src = guild.icon;
+                    document.getElementById('guild-icon').classList.remove('hidden');
+                    document.getElementById('guild-icon-placeholder').classList.add('hidden');
+                } else {
+                    document.getElementById('guild-icon').classList.add('hidden');
+                    document.getElementById('guild-icon-placeholder').classList.remove('hidden');
+                    document.getElementById('guild-icon-placeholder').innerText = guild.name.charAt(0);
+                }
+                renderModules(guild);
+            }
+            fetchLogs();
+        }
+
+        function resetGuildInfo() {
+            document.getElementById('guild-name').innerText = 'Selecciona un servidor';
+            document.getElementById('guild-members').innerText = 'Para gestionar sus módulos';
+            document.getElementById('guild-icon').classList.add('hidden');
+            document.getElementById('guild-icon-placeholder').classList.remove('hidden');
+            document.getElementById('guild-icon-placeholder').innerText = 'P';
+            document.getElementById('modules-grid').innerHTML = '<div class="col-span-full text-center py-12 text-outline">Selecciona un servidor para ver los módulos</div>';
+        }
+
+        function renderModules(guild) {
+            const grid = document.getElementById('modules-grid');
+            grid.innerHTML = '';
+            const enabled = guild.config.enabled_modules || AVAILABLE_MODULES.map(m => m.id);
+
+            AVAILABLE_MODULES.forEach(m => {
+                const isEnabled = enabled.includes(m.id);
+                const card = document.createElement('div');
+                card.className = `glass-card p-md rounded-xl flex flex-col gap-md ${!isEnabled ? 'opacity-60' : ''}`;
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center gap-sm">
+                            <div class="w-12 h-12 rounded-lg bg-${m.color}/20 flex items-center justify-center text-${m.color}">
+                                <span class="material-symbols-outlined text-3xl">${m.icon}</span>
+                            </div>
+                            <div>
+                                <h5 class="font-body-lg font-bold">${m.name}</h5>
+                                <p class="text-xs text-outline">${m.desc}</p>
+                            </div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" ${isEnabled ? 'checked' : ''} onchange="toggleModule('${m.id}', this)" class="sr-only peer">
+                            <div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+                        </label>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        async function toggleModule(moduleId, checkbox) {
+            if (!currentGuildId) return;
+            const guild = guilds.find(g => g.id === currentGuildId);
+            let enabled = guild.config.enabled_modules || AVAILABLE_MODULES.map(m => m.id);
+
+            if (checkbox.checked) {
+                if (!enabled.includes(moduleId)) enabled.push(moduleId);
+            } else {
+                enabled = enabled.filter(id => id !== moduleId);
+            }
+
+            try {
+                const response = await fetch(`${BOT_URL}/api/config/update`, {
+                    method: 'POST',
+                    headers: { 'Authorization': TOKEN, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        guild_id: currentGuildId,
+                        updates: { enabled_modules: enabled }
+                    })
+                });
+                if (response.ok) {
+                    guild.config.enabled_modules = enabled;
+                    renderModules(guild);
+                } else {
+                    checkbox.checked = !checkbox.checked;
+                }
             } catch (err) {
-                console.error('Error fetching logs:', err);
+                checkbox.checked = !checkbox.checked;
             }
         }
 
+        function showView(viewId) {
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(`view-${viewId}`).classList.add('active');
+            
+            document.querySelectorAll('.side-nav-item').forEach(i => i.classList.remove('side-nav-active'));
+            document.querySelector(`[data-view="${viewId}"]`).classList.add('side-nav-active');
+        }
+
         async function rebootBot() {
-            if (!confirm('¿Estás seguro de que quieres reiniciar el bot?')) return;
-            try {
-                const response = await fetch(`${BOT_URL}/api/reboot`, {
-                    method: 'POST',
-                    headers: {'Authorization': TOKEN}
-                });
-                if (response.ok) {
-                    alert('Reinicio iniciado...');
-                }
-            } catch (err) {
-                alert('Error al reiniciar');
-            }
+            if (!confirm('¿Reiniciar el bot?')) return;
+            await fetch(`${BOT_URL}/api/reboot`, { method: 'POST', headers: {'Authorization': TOKEN} });
+            alert('Reinicio enviado');
         }
 
         function logout() {
@@ -474,25 +558,13 @@
             window.location.href = 'login.html';
         }
 
-        // Initialize
-        window.addEventListener('load', () => {
-            document.getElementById('loading-overlay').style.display = 'none';
+        window.addEventListener('load', async () => {
+            await fetchGuilds();
             fetchStats();
             fetchLogs();
+            document.getElementById('loading-overlay').style.display = 'none';
             setInterval(fetchStats, 30000);
             setInterval(fetchLogs, 10000);
-        });
-
-        // Floating effect for active elements
-        document.querySelectorAll('.glass-card').forEach(card => {
-            card.addEventListener('mousemove', (e) => {
-                const rect = card.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                
-                card.style.setProperty('--mouse-x', `${x}px`);
-                card.style.setProperty('--mouse-y', `${y}px`);
-            });
         });
     </script>
 </body>

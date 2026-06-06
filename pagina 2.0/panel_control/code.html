@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PoseidonUI - Centro de Comando</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary-container": "#cfbcff",
+                    "surface-variant": "#3d2e50",
+                    "surface-container-highest": "#3d2e50",
+                    "surface-container-high": "#322344",
+                    "tertiary": "#cdbdff",
+                    "on-error": "#690005",
+                    "error-container": "#93000a",
+                    "outline-variant": "#494456",
+                    "primary": "#cfbcff",
+                    "on-tertiary": "#361288",
+                    "inverse-primary": "#6e25f6",
+                    "secondary-container": "#ffdb3c",
+                    "primary-container": "#6200ea",
+                    "tertiary-fixed-dim": "#cdbdff",
+                    "on-surface": "#eedbff",
+                    "tertiary-container": "#5a3eab",
+                    "on-tertiary-fixed-variant": "#4d309f",
+                    "secondary-fixed": "#ffe16d",
+                    "background": "#1a0c2c",
+                    "secondary-fixed-dim": "#e9c400",
+                    "on-background": "#eedbff",
+                    "inverse-on-surface": "#39294b",
+                    "surface": "#1a0c2c",
+                    "primary-fixed-dim": "#cfbcff",
+                    "on-secondary-container": "#725f00",
+                    "on-tertiary-fixed": "#20005f",
+                    "inverse-surface": "#eedbff",
+                    "primary-fixed": "#e9ddff",
+                    "surface-container-low": "#231435",
+                    "outline": "#958da2",
+                    "on-primary": "#3a0092",
+                    "surface-container": "#271839",
+                    "surface-tint": "#cfbcff",
+                    "on-secondary-fixed": "#221b00",
+                    "on-error-container": "#ffdad6",
+                    "surface-dim": "#1a0c2c",
+                    "on-secondary-fixed-variant": "#544600",
+                    "error": "#ffb4ab",
+                    "tertiary-fixed": "#e8deff",
+                    "surface-bright": "#423255",
+                    "secondary": "#fff9ef",
+                    "surface-container-lowest": "#150627",
+                    "on-tertiary-container": "#cdbdff",
+                    "on-primary-fixed": "#22005d",
+                    "on-secondary": "#3a3000",
+                    "on-surface-variant": "#cbc3d9",
+                    "on-primary-fixed-variant": "#5400cc"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-desktop": "64px",
+                    "xl": "80px",
+                    "lg": "48px",
+                    "md": "24px",
+                    "xs": "4px",
+                    "gutter": "24px",
+                    "sm": "12px",
+                    "margin-mobile": "16px",
+                    "base": "8px"
+            },
+            "fontFamily": {
+                    "headline-lg-mobile": ["Plus Jakarta Sans"],
+                    "body-md": ["Plus Jakarta Sans"],
+                    "label-md": ["Plus Jakarta Sans"],
+                    "headline-lg": ["Plus Jakarta Sans"],
+                    "body-sm": ["Plus Jakarta Sans"],
+                    "headline-sm": ["Plus Jakarta Sans"],
+                    "body-lg": ["Plus Jakarta Sans"],
+                    "headline-md": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+                    "headline-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-lg": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-sm": ["22px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-md": ["28px", {"lineHeight": "36px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #1a0c2c;
+            color: #eedbff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .glass-card {
+            background: rgba(39, 24, 57, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(207, 188, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(233, 196, 0, 0.4); /* Metallic Gold Hint */
+            background: rgba(39, 24, 57, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px -10px rgba(110, 37, 246, 0.3);
+        }
+
+        .gold-accent {
+            background: linear-gradient(135deg, #ffe16d 0%, #e9c400 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status-glow {
+            box-shadow: 0 0 15px rgba(207, 188, 255, 0.5);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #494456;
+            border-radius: 10px;
+        }
+
+        .side-nav-active {
+            background: #6200ea;
+            color: #cfbcff;
+            font-weight: 700;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background">
+<!-- SideNavBar (Shared Component) -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-surface-container-low backdrop-blur-xl border-r border-outline-variant/20 shadow-md flex flex-col p-md gap-sm z-50">
+<div class="flex items-center gap-sm mb-lg">
+<img alt="PoseidonUI Logo" class="w-10 h-10 object-contain" src="https://lh3.googleusercontent.com/aida/AP1WRLtV0Yc1NwwDmqsm1pRMrhJeW2exGBxpkdPPROy-aKCXp7I3tgeXjpwwpnpT4FkhA-EKt9v_21OYjqVtisosSiy5_3pMdBKiuti7E7HLiIEclswFn0iVL5f6yXu8WFNxkd10HPqBzJhG11lXMOxJbp4ZF-uvFQp8NgeJNh5ATThDmvceFVR2g4qdGPh9istkMwQhSeazVZzZTwiQ97QGIM_aIaSKc5Luobq0cIdgza1SP71VwIOZGIUK0BZF"/>
+<div>
+<h1 class="font-headline-md text-headline-sm font-bold text-primary">PoseidonUI</h1>
+<p class="font-label-md text-[10px] uppercase tracking-widest text-outline">Premium Bot Control</p>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-xs">
+<a class="flex items-center gap-sm px-md py-sm side-nav-active transition-all duration-300" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-body-md">Overview</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/30 rounded-lg transition-all duration-300" href="#">
+<span class="material-symbols-outlined">pets</span>
+<span class="font-body-md">RPG Pets</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/30 rounded-lg transition-all duration-300" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-body-md">Economy</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/30 rounded-lg transition-all duration-300" href="#">
+<span class="material-symbols-outlined">music_note</span>
+<span class="font-body-md">Music</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/30 rounded-lg transition-all duration-300" href="#">
+<span class="material-symbols-outlined">gavel</span>
+<span class="font-body-md">Moderation</span>
+</a>
+</nav>
+<div class="mt-auto flex flex-col gap-xs pt-lg border-t border-outline-variant/10">
+<button class="w-full py-sm px-md mb-sm bg-primary-container text-on-primary-container font-bold rounded-lg shadow-lg hover:scale-[1.02] active:scale-95 transition-all">
+                Upgrade to VIP
+            </button>
+<a class="flex items-center gap-sm px-md py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/30 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-md">Settings</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/30 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-body-md">Support</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 min-h-screen">
+<!-- TopNavBar (Shared Component) -->
+<header class="fixed top-0 right-0 w-[calc(100%-256px)] h-16 bg-surface/80 backdrop-blur-md border-b border-outline-variant/10 shadow-sm flex justify-between items-center px-margin-desktop z-40">
+<div class="flex items-center gap-md flex-1">
+<div class="relative w-64 group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-full py-2 pl-10 pr-4 text-body-sm focus:ring-1 focus:ring-primary placeholder:text-outline-variant" placeholder="Buscar módulos o comandos..." type="text"/>
+</div>
+<div class="hidden md:flex items-center gap-lg ml-md">
+<a class="font-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Docs</a>
+<a class="font-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Voters</a>
+<a class="font-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Status</a>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="material-symbols-outlined p-2 text-on-surface-variant hover:text-primary transition-colors relative">
+                    notifications
+                    <span class="absolute top-2 right-2 w-2 h-2 bg-secondary-fixed rounded-full"></span>
+</button>
+<button class="material-symbols-outlined p-2 text-on-surface-variant hover:text-primary transition-colors">grid_view</button>
+<div class="flex items-center gap-sm border-l border-outline-variant/20 pl-md">
+<img alt="User Avatar" class="w-8 h-8 rounded-full border border-primary/30" data-alt="A professional headshot of a modern software engineer in a dark studio setting with soft purple rim lighting, reflecting the premium tech aesthetic of the PoseidonUI brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9UOxWgF9GI8gei82VV2zXmIsGX-7nZEf8hlgTvgBxf-r_nDUYJt3AYobyUerOZU4mfBxYX2LRton6mQ4TcL5jODUm_J4ddAqBFpJ6gCf3ER3B-2nqBuaBv5hBEjqkxv9lUvcTuoZ5Z47macweE83lmqvONa7Gmk9oamADlB5xhtqOgKC-lfRyUkBPnsvOhfH6TAbrNT0ZkMPnRXQ90qQDuzBw9fNK7SykH821Otr0zM7lXhLxow6gANymX0UYCiRGcmzVM7tVlOr3"/>
+<span class="font-label-md text-on-surface hidden lg:block">Admin. Poseidon</span>
+</div>
+</div>
+</header>
+<!-- Canvas -->
+<div class="pt-24 px-margin-desktop pb-xl max-w-7xl mx-auto">
+<!-- Hero Header -->
+<section class="mb-lg flex flex-col md:flex-row md:items-end justify-between gap-md">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-xs">Bienvenido al Olimpo, <span class="gold-accent">Poseidon</span></h2>
+<div class="flex items-center gap-sm">
+<div class="flex items-center gap-xs px-sm py-xs bg-emerald-500/10 text-emerald-400 rounded-full text-label-md border border-emerald-500/20">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            Sistemas Operativos
+                        </div>
+<span class="text-outline font-body-sm">•</span>
+<p class="text-outline font-body-sm">V.4.2.0-STABLE | Latencia: 24ms</p>
+</div>
+</div>
+<div class="flex gap-sm">
+<button class="flex items-center gap-xs px-md py-sm bg-surface-container-high text-on-surface font-label-md rounded-lg border border-outline-variant/20 hover:bg-surface-container-highest transition-all">
+<span class="material-symbols-outlined text-[18px]">refresh</span> Reiniciar Bot
+                    </button>
+<button class="flex items-center gap-xs px-md py-sm bg-primary-container text-on-primary-container font-label-md rounded-lg shadow-lg hover:shadow-primary/20 transition-all group">
+<span class="material-symbols-outlined text-[18px] group-hover:rotate-180 transition-transform duration-500">terminal</span> Iniciar Depuración
+                    </button>
+</div>
+</section>
+<!-- Statistics Grid (Bento Style) -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-md mb-lg">
+<div class="glass-card p-md rounded-xl relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
+<div class="flex items-center justify-between mb-sm">
+<span class="material-symbols-outlined text-primary">dns</span>
+<span class="text-emerald-400 text-[10px] font-bold">+12%</span>
+</div>
+<p class="text-outline font-label-md mb-xs">Servidores Activos</p>
+<h3 class="font-headline-md text-headline-md text-on-surface">12,482</h3>
+</div>
+<div class="glass-card p-md rounded-xl relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-24 h-24 bg-secondary-fixed/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
+<div class="flex items-center justify-between mb-sm">
+<span class="material-symbols-outlined text-secondary-fixed">group</span>
+<span class="text-emerald-400 text-[10px] font-bold">+4.2k</span>
+</div>
+<p class="text-outline font-label-md mb-xs">Usuarios Totales</p>
+<h3 class="font-headline-md text-headline-md text-on-surface">1.2M</h3>
+</div>
+<div class="glass-card p-md rounded-xl relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-24 h-24 bg-tertiary/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
+<div class="flex items-center justify-between mb-sm">
+<span class="material-symbols-outlined text-tertiary">bolt</span>
+<span class="text-outline text-[10px] font-bold">STABLE</span>
+</div>
+<p class="text-outline font-label-md mb-xs">Uptime Global</p>
+<h3 class="font-headline-md text-headline-md text-on-surface">99.98%</h3>
+</div>
+<div class="glass-card p-md rounded-xl relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-24 h-24 bg-error/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
+<div class="flex items-center justify-between mb-sm">
+<span class="material-symbols-outlined text-error">function</span>
+<span class="text-secondary-fixed text-[10px] font-bold">AVG</span>
+</div>
+<p class="text-outline font-label-md mb-xs">Comandos Ejecutados</p>
+<h3 class="font-headline-md text-headline-md text-on-surface">45.2k<span class="text-body-sm text-outline">/h</span></h3>
+</div>
+</section>
+<!-- Main Content Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-md">
+<!-- Active Modules (2/3 width) -->
+<div class="lg:col-span-2 space-y-md">
+<div class="flex items-center justify-between mb-xs">
+<h4 class="font-headline-sm text-headline-sm text-on-surface">Módulos de Sistema</h4>
+<button class="text-primary font-label-md hover:underline">Ver todos</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<!-- Module Card -->
+<div class="glass-card p-md rounded-xl flex flex-col gap-md">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-sm">
+<div class="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-3xl">pets</span>
+</div>
+<div>
+<h5 class="font-body-lg font-bold">Mascotas RPG</h5>
+<p class="text-body-sm text-outline">Ecosistema interactivo</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+<div class="grid grid-cols-2 gap-sm pt-sm border-t border-outline-variant/10">
+<div>
+<p class="text-label-md text-outline">Nivel Promedio</p>
+<p class="font-body-md font-bold">LVL 24</p>
+</div>
+<div>
+<p class="text-label-md text-outline">Interacciones</p>
+<p class="font-body-md font-bold">12.4k/día</p>
+</div>
+</div>
+</div>
+<!-- Module Card -->
+<div class="glass-card p-md rounded-xl flex flex-col gap-md">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-sm">
+<div class="w-12 h-12 rounded-lg bg-secondary-fixed/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary-fixed text-3xl">payments</span>
+</div>
+<div>
+<h5 class="font-body-lg font-bold">Economía Global</h5>
+<p class="text-body-sm text-outline">Mercado y transacciones</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+<div class="grid grid-cols-2 gap-sm pt-sm border-t border-outline-variant/10">
+<div>
+<p class="text-label-md text-outline">Circulación</p>
+<p class="font-body-md font-bold">4.2B POS</p>
+</div>
+<div>
+<p class="text-label-md text-outline">Inflación</p>
+<p class="font-body-md font-bold text-emerald-400">-0.2%</p>
+</div>
+</div>
+</div>
+<!-- Module Card -->
+<div class="glass-card p-md rounded-xl flex flex-col gap-md">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-sm">
+<div class="w-12 h-12 rounded-lg bg-tertiary/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary text-3xl">music_note</span>
+</div>
+<div>
+<h5 class="font-body-lg font-bold">Música Hi-Fi</h5>
+<p class="text-body-sm text-outline">Audio 320kbps lossless</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+<div class="grid grid-cols-2 gap-sm pt-sm border-t border-outline-variant/10">
+<div>
+<p class="text-label-md text-outline">Streams Activos</p>
+<p class="font-body-md font-bold">1,024</p>
+</div>
+<div>
+<p class="text-label-md text-outline">Top Género</p>
+<p class="font-body-md font-bold">Synthwave</p>
+</div>
+</div>
+</div>
+<!-- Module Card -->
+<div class="glass-card p-md rounded-xl flex flex-col gap-md">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-sm">
+<div class="w-12 h-12 rounded-lg bg-error/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-error text-3xl">security</span>
+</div>
+<div>
+<h5 class="font-body-lg font-bold">Guardian v2</h5>
+<p class="text-body-sm text-outline">Anti-spam y filtrado AI</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+<div class="grid grid-cols-2 gap-sm pt-sm border-t border-outline-variant/10">
+<div>
+<p class="text-label-md text-outline">Bloqueos Hoy</p>
+<p class="font-body-md font-bold">842</p>
+</div>
+<div>
+<p class="text-label-md text-outline">Seguridad</p>
+<p class="font-body-md font-bold text-secondary-fixed">NIVEL MÁX.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Live Activity Feed (1/3 width) -->
+<div class="space-y-md">
+<h4 class="font-headline-sm text-headline-sm text-on-surface">Actividad en Vivo</h4>
+<div class="glass-card rounded-xl p-md h-[432px] overflow-hidden flex flex-col">
+<div class="custom-scrollbar flex-1 overflow-y-auto space-y-sm pr-sm">
+<!-- Log Item -->
+<div class="flex gap-sm p-sm rounded-lg bg-surface-variant/20 border-l-2 border-primary transition-colors hover:bg-surface-variant/30">
+<span class="material-symbols-outlined text-primary text-[20px]">auto_awesome</span>
+<div>
+<p class="text-body-sm font-bold">Mascota evolucionada</p>
+<p class="text-[12px] text-outline">Usuario: @Artemis_01 en Servidor #GamerX</p>
+<span class="text-[10px] text-primary/60">Hace 2 min</span>
+</div>
+</div>
+<!-- Log Item -->
+<div class="flex gap-sm p-sm rounded-lg bg-surface-variant/20 border-l-2 border-error transition-colors hover:bg-surface-variant/30">
+<span class="material-symbols-outlined text-error text-[20px]">shield</span>
+<div>
+<p class="text-body-sm font-bold">Filtro anti-spam activado</p>
+<p class="text-[12px] text-outline">Razón: Enlace malicioso detectado en Canal #General</p>
+<span class="text-[10px] text-error/60">Hace 5 min</span>
+</div>
+</div>
+<!-- Log Item -->
+<div class="flex gap-sm p-sm rounded-lg bg-surface-variant/20 border-l-2 border-secondary-fixed transition-colors hover:bg-surface-variant/30">
+<span class="material-symbols-outlined text-secondary-fixed text-[20px]">music_note</span>
+<div>
+<p class="text-body-sm font-bold">Nueva Playlist Cargada</p>
+<p class="text-[12px] text-outline">Cargado en: Servidor #ZenVibes - "Midnight Jazz"</p>
+<span class="text-[10px] text-secondary-fixed/60">Hace 12 min</span>
+</div>
+</div>
+<!-- Log Item -->
+<div class="flex gap-sm p-sm rounded-lg bg-surface-variant/20 border-l-2 border-primary transition-colors hover:bg-surface-variant/30">
+<span class="material-symbols-outlined text-primary text-[20px]">rocket_launch</span>
+<div>
+<p class="text-body-sm font-bold">Bot unido a nuevo servidor</p>
+<p class="text-[12px] text-outline">Bienvenida al Servidor #PoseidonFans (5.4k Miembros)</p>
+<span class="text-[10px] text-primary/60">Hace 18 min</span>
+</div>
+</div>
+<!-- Log Item -->
+<div class="flex gap-sm p-sm rounded-lg bg-surface-variant/20 border-l-2 border-outline transition-colors hover:bg-surface-variant/30">
+<span class="material-symbols-outlined text-outline text-[20px]">update</span>
+<div>
+<p class="text-body-sm font-bold">Parche de seguridad aplicado</p>
+<p class="text-[12px] text-outline">Hotfix v4.2.0.1 - Optimización de Base de Datos</p>
+<span class="text-[10px] text-outline/60">Hace 45 min</span>
+</div>
+</div>
+</div>
+<button class="w-full mt-md py-sm text-label-md text-primary font-bold hover:bg-primary/10 rounded-lg transition-colors border border-primary/20">
+                            Descargar Logs (.csv)
+                        </button>
+</div>
+</div>
+</div>
+<!-- Quick Actions Section -->
+<section class="mt-lg">
+<div class="glass-card p-lg rounded-2xl flex flex-col md:flex-row items-center justify-between gap-lg bg-gradient-to-r from-primary-container/20 to-surface-variant/40 border-primary/20">
+<div class="flex items-center gap-md">
+<div class="w-16 h-16 rounded-full bg-secondary-fixed/10 flex items-center justify-center border border-secondary-fixed/30 shadow-[0_0_20px_rgba(255,225,109,0.2)]">
+<span class="material-symbols-outlined text-secondary-fixed text-4xl">workspace_premium</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-secondary-fixed">Soporte VIP Poseidon</h4>
+<p class="text-body-md text-outline">Acceso prioritario a ingenieros y comandos personalizados.</p>
+</div>
+</div>
+<div class="flex flex-wrap justify-center gap-md">
+<a class="flex items-center gap-xs px-lg py-sm bg-white/5 text-on-surface font-label-md rounded-full border border-white/10 hover:bg-white/10 transition-all" href="#">
+<span class="material-symbols-outlined text-[18px]">menu_book</span> Ver Documentación
+                        </a>
+<a class="flex items-center gap-xs px-lg py-sm bg-secondary-fixed text-on-secondary-fixed font-bold rounded-full shadow-lg shadow-secondary-fixed/20 hover:scale-105 active:scale-95 transition-all" href="#">
+<span class="material-symbols-outlined text-[18px]">support_agent</span> Contactar Soporte
+                        </a>
+</div>
+</div>
+</section>
+</div>
+</main>
+<script>
+        // Floating effect for active elements
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+
+        // Simple Toggle interaction
+        document.querySelectorAll('input[type="checkbox"]').forEach(toggle => {
+            toggle.addEventListener('change', function() {
+                const card = this.closest('.glass-card');
+                if (this.checked) {
+                    card.style.borderColor = 'rgba(207, 188, 255, 0.4)';
+                } else {
+                    card.style.borderColor = 'rgba(233, 196, 0, 0.1)';
+                    card.style.opacity = '0.7';
+                }
+            });
+        });
+    </script>
+</body></html>

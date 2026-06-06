@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PoseidonUI - Gobierna tu servidor con el poder del Olimpo</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed-dim": "#e9c400",
+                        "primary-container": "#6200ea",
+                        "on-surface-variant": "#cbc3d9",
+                        "surface-container": "#271839",
+                        "on-tertiary-fixed-variant": "#4d309f",
+                        "on-primary-container": "#cfbcff",
+                        "on-error": "#690005",
+                        "secondary": "#fff9ef",
+                        "on-error-container": "#ffdad6",
+                        "surface": "#1a0c2c",
+                        "tertiary-fixed": "#e8deff",
+                        "on-tertiary-container": "#cdbdff",
+                        "inverse-surface": "#eedbff",
+                        "secondary-fixed": "#ffe16d",
+                        "outline": "#958da2",
+                        "on-tertiary": "#361288",
+                        "error-container": "#93000a",
+                        "tertiary-fixed-dim": "#cdbdff",
+                        "background": "#1a0c2c",
+                        "surface-container-lowest": "#150627",
+                        "on-primary-fixed": "#22005d",
+                        "tertiary-container": "#5a3eab",
+                        "on-background": "#eedbff",
+                        "surface-container-high": "#322344",
+                        "tertiary": "#cdbdff",
+                        "surface-variant": "#3d2e50",
+                        "surface-container-highest": "#3d2e50",
+                        "outline-variant": "#494456",
+                        "on-secondary-container": "#725f00",
+                        "surface-container-low": "#231435",
+                        "primary": "#cfbcff",
+                        "on-surface": "#eedbff",
+                        "on-primary-fixed-variant": "#5400cc",
+                        "on-secondary-fixed-variant": "#544600",
+                        "inverse-on-surface": "#39294b",
+                        "error": "#ffb4ab",
+                        "on-primary": "#3a0092",
+                        "primary-fixed": "#e9ddff",
+                        "primary-fixed-dim": "#cfbcff",
+                        "surface-bright": "#423255",
+                        "secondary-container": "#ffdb3c",
+                        "surface-tint": "#cfbcff",
+                        "surface-dim": "#1a0c2c",
+                        "on-secondary-fixed": "#221b00",
+                        "inverse-primary": "#6e25f6",
+                        "on-tertiary-fixed": "#20005f",
+                        "on-secondary": "#3a3000"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "base": "8px",
+                        "xs": "4px",
+                        "sm": "12px",
+                        "md": "24px",
+                        "lg": "48px",
+                        "margin-desktop": "64px",
+                        "margin-mobile": "16px",
+                        "xl": "80px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"],
+                        "label-md": ["Plus Jakarta Sans"],
+                        "headline-sm": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "body-sm": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-sm": ["22px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "headline-md": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                        "headline-lg": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #1a0c2c;
+            color: #eedbff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+        }
+        .glass-card {
+            background: rgba(39, 24, 57, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(207, 188, 255, 0.1);
+        }
+        .glass-card-premium {
+            background: rgba(39, 24, 57, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(233, 196, 0, 0.3);
+        }
+        .gold-glow {
+            box-shadow: 0 0 20px rgba(233, 196, 0, 0.15);
+        }
+        .purple-glow {
+            box-shadow: 0 0 30px rgba(98, 0, 234, 0.2);
+        }
+        .hero-gradient {
+            background: radial-gradient(circle at center, rgba(98, 0, 234, 0.15) 0%, transparent 70%);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="selection:bg-primary-container selection:text-white">
+<!-- Header / TopNavBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/60 backdrop-blur-md border-b border-outline-variant">
+<nav class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<img alt="PoseidonUI Logo" class="h-10 w-auto" src="https://lh3.googleusercontent.com/aida/AP1WRLtV0Yc1NwwDmqsm1pRMrhJeW2exGBxpkdPPROy-aKCXp7I3tgeXjpwwpnpT4FkhA-EKt9v_21OYjqVtisosSiy5_3pMdBKiuti7E7HLiIEclswFn0iVL5f6yXu8WFNxkd10HPqBzJhG11lXMOxJbp4ZF-uvFQp8NgeJNh5ATThDmvceFVR2g4qdGPh9istkMwQhSeazVZzZTwiQ97QGIM_aIaSKc5Luobq0cIdgza1SP71VwIOZGIUK0BZF"/>
+<span class="font-headline-md text-headline-md font-black text-primary tracking-tight">PoseidonUI</span>
+</div>
+<div class="hidden md:flex items-center gap-8 font-label-md text-label-md">
+<a class="text-on-surface-variant hover:text-on-surface transition-colors" href="#features">Características</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors" href="#stats">Estadísticas</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors" href="#pricing">Planes</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors" href="#faq">FAQ</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="bg-primary-container text-white px-6 py-2 rounded-lg font-bold hover:scale-105 transition-transform purple-glow active:scale-95">
+                    Ver Planes
+                </button>
+</div>
+</nav>
+</header>
+<main>
+<!-- Hero Section -->
+<section class="relative min-h-screen flex items-center pt-20 overflow-hidden">
+<div class="absolute inset-0 z-0">
+<img alt="Poseidon Banner" class="w-full h-full object-cover opacity-40 mix-blend-lighten" src="https://lh3.googleusercontent.com/aida/AP1WRLtxV6K3E8Gg11hHkgfT1QcBmrisukD852hfjEc6uj3D5pcbrP3qR1F0xbfsMPWL_tyeDFDYk3u0fgyv5E5nTIGcckrdA0JM1HkZOmNpzCgpZhjkE2yPEtE3X0BnIVIRVnprhP_8M26UJ_VxvO07gxam2dDrX53seMGBQb3flLe-bkoPwAlL7PxvnTNhfWSJSFdYYDmBqAuBbA19Rw_S_v8A7uRpcfRupijpswCueH3is-v_4c8NcDLhGz8"/>
+<div class="absolute inset-0 bg-gradient-to-b from-surface/20 via-surface to-surface"></div>
+<div class="hero-gradient absolute inset-0"></div>
+</div>
+<div class="relative z-10 max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
+<div class="space-y-8">
+<div class="inline-flex items-center gap-2 px-4 py-1 rounded-full border border-primary/30 bg-primary/10 text-primary font-label-md text-label-md">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+</span>
+                        ✨ Nueva Versión 5.1 Disponible
+                    </div>
+<h1 class="font-headline-lg text-headline-lg md:text-6xl text-on-surface leading-tight font-extrabold">
+                        Gobierna tu servidor con el poder del <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary-fixed-dim to-primary">Olimpo</span>
+</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl">
+                        El bot todo-en-uno definitivo: Mascotas RPG, Economía Avanzada, Música Hi-Fi y Moderación Automatizada con la precisión de los dioses.
+                    </p>
+<div class="flex flex-wrap gap-4 pt-4">
+<a class="bg-primary-container text-white px-8 py-4 rounded-xl font-bold flex items-center gap-2 hover:scale-105 transition-all purple-glow" href="#pricing">
+                            Ver Planes
+                            <span class="material-symbols-outlined">arrow_forward</span>
+</a>
+<a class="border border-outline-variant hover:border-primary/50 px-8 py-4 rounded-xl font-bold transition-colors" href="#features">
+                            Ver Funciones
+                        </a>
+</div>
+</div>
+<div class="hidden md:block">
+<div class="glass-card-premium p-1 rounded-3xl gold-glow animate-pulse-slow">
+<div class="bg-surface-container rounded-[22px] overflow-hidden">
+<img class="w-full aspect-video object-cover" data-alt="A high-tech digital dashboard display showing glowing purple and gold data visualizations of server statistics and RPG character profiles. The interface has a futuristic glassmorphism style with soft light flares and a dark cosmic background, reflecting a professional and elite gaming brand identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAve8f27fVSTmKhUtOY5q1cIFBemPEwqsXr1WJ--Md8goJ9R1Gnj3bpJ3kJeFLYRiaVZ0XzWK9ib5wjgVCfqSNxtS8LPgpY0Y2lOpvNfhnq7_c9tzgA8X9qldxSqtPPVzqDwnBUTOL3UyWfvM1S-e7rHu6XDfamM_-zzb27y1Mizpuwyf0drOVC3HxgXRxChoMVT5ly2y2QrBhJOBfyHJZki7VhCm2_l4_yT4-ERCaMKysEdbEFw_o7BcuwoPBZ2Eqk30ifcvbsOpMa"/>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Stats Section -->
+<section class="py-20 bg-surface-container-lowest" id="stats">
+<div class="max-w-7xl mx-auto px-6">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+<div class="p-8 border-r border-outline-variant/30 last:border-0">
+<h3 class="font-headline-lg text-headline-lg text-secondary-fixed-dim font-black">50+</h3>
+<p class="font-label-md text-label-md uppercase tracking-widest text-outline">Usuarios Satisfechos</p>
+</div>
+<div class="p-8 border-r border-outline-variant/30 last:border-0">
+<h3 class="font-headline-lg text-headline-lg text-primary font-black">2</h3>
+<p class="font-label-md text-label-md uppercase tracking-widest text-outline">Servidores Élite</p>
+</div>
+<div class="p-8 border-r border-outline-variant/30 last:border-0">
+<h3 class="font-headline-lg text-headline-lg text-secondary-fixed-dim font-black">99.9%</h3>
+<p class="font-label-md text-label-md uppercase tracking-widest text-outline">Uptime Garantizado</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Features Bento Grid -->
+<section class="py-24 bg-surface" id="features">
+<div class="max-w-7xl mx-auto px-6">
+<div class="text-center mb-16 space-y-4">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Poderes Divinos</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl mx-auto">
+                        Descubre por qué miles de servidores eligen a Poseidon para llevar su comunidad al siguiente nivel.
+                    </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Feature 1: Large -->
+<div class="md:col-span-2 glass-card rounded-3xl p-8 group hover:bg-surface-container-high transition-all">
+<div class="flex flex-col md:flex-row gap-8 items-center">
+<div class="flex-1 space-y-4">
+<div class="w-12 h-12 bg-primary-container/20 rounded-xl flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">pets</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Mascotas RPG v2.1</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+                                    Adopta, entrena y evoluciona 10 tipos de mascotas únicas. Nuevo sistema de batallas estratégicas con habilidades especiales y recompensas exclusivas.
+                                </p>
+</div>
+<div class="w-full md:w-64 aspect-square rounded-2xl overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-500">
+<img class="w-full h-full object-cover" data-alt="Stylized 3D digital art of a mythical neon purple sea creature sitting in a high-tech training chamber. The aesthetic is futuristic and gaming-oriented, with bioluminescent accents and a dark, atmospheric purple background consistent with a luxury RPG brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSgRIX5wpIgdDuka38lwrqwOgFL2dLWcbyOvCl7Gp41e3NbhNcqESEkay4bSAAnSvabd6yd6imu5527iSYOA1IZCYhwSG_dtQfEBHS4DHTMjGRs0S8h5vB4hc4SuEmYFsaDn49oYCzQuQI7MrODzAMSWATffyXP7Zv6QlWDcE81b0aSnpcyw76dNAGWB8LmJdbd34huC7R1N3N-kNO86QZpd1BscQXUk6tgVnRzVuwbQqmramixCvc_gZIYMFr2MvVkYtn43Al3hoZ"/>
+</div>
+</div>
+</div>
+<!-- Feature 2: Small -->
+<div class="glass-card rounded-3xl p-8 hover:bg-surface-container-high transition-all">
+<div class="space-y-4">
+<div class="w-12 h-12 bg-secondary-container/20 rounded-xl flex items-center justify-center text-secondary-fixed-dim">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">music_note</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Música Pro Studio</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                                Audio de alta fidelidad sin lag. Filtros en tiempo real (Bassboost, Nightcore) y visualización de letras dinámicas.
+                            </p>
+</div>
+</div>
+<!-- Feature 3: Small -->
+<div class="glass-card rounded-3xl p-8 hover:bg-surface-container-high transition-all">
+<div class="space-y-4">
+<div class="w-12 h-12 bg-primary-container/20 rounded-xl flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">trending_up</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Economía Wall Street</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                                Sistema financiero completo con Bolsa de Valores dinámica, trabajos personalizados y tienda global competitiva.
+                            </p>
+</div>
+</div>
+<!-- Feature 4: Small -->
+<div class="glass-card rounded-3xl p-8 hover:bg-surface-container-high transition-all">
+<div class="space-y-4">
+<div class="w-12 h-12 bg-secondary-container/20 rounded-xl flex items-center justify-center text-secondary-fixed-dim">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">forum</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Vida Social &amp; Oráculo</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                                Matrimonios, Confesiones anónimas y respuestas inteligentes potenciadas por IA de última generación.
+                            </p>
+</div>
+</div>
+<!-- Feature 5: Small -->
+<div class="glass-card rounded-3xl p-8 hover:bg-surface-container-high transition-all">
+<div class="space-y-4">
+<div class="w-12 h-12 bg-primary-container/20 rounded-xl flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">security</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Auto-Moderación</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                                Protección 24/7 con filtros avanzados anti-spam, anti-raid y gestión inteligente de sanciones automáticas.
+                            </p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Pricing Section -->
+<section class="py-24 bg-surface-container-lowest relative" id="pricing">
+<div class="max-w-7xl mx-auto px-6">
+<div class="text-center mb-16 space-y-4">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Planes del Olimpo</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Elige el poder que mejor se adapte a tu reino.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+<!-- Basic Plan -->
+<div class="glass-card rounded-3xl p-8 flex flex-col hover:border-primary/50 transition-colors">
+<div class="mb-8">
+<h4 class="font-label-md text-label-md uppercase tracking-widest text-outline mb-2">Básico</h4>
+<div class="flex items-baseline gap-1">
+<span class="text-4xl font-bold">19€</span>
+<span class="text-on-surface-variant">/mes</span>
+</div>
+</div>
+<ul class="space-y-4 mb-8 flex-1">
+<li class="flex items-center gap-3 text-body-sm"><span class="material-symbols-outlined text-primary">check_circle</span> Moderación Básica</li>
+<li class="flex items-center gap-3 text-body-sm"><span class="material-symbols-outlined text-primary">check_circle</span> Sistema Guardian</li>
+<li class="flex items-center gap-3 text-body-sm"><span class="material-symbols-outlined text-primary">check_circle</span> Música Estándar</li>
+<li class="flex items-center gap-3 text-body-sm"><span class="material-symbols-outlined text-primary">check_circle</span> Minijuegos Básicos</li>
+</ul>
+<button class="w-full py-3 rounded-xl border border-outline-variant font-bold hover:bg-surface-variant transition-colors">Elegir</button>
+</div>
+<!-- Pro Plan -->
+<div class="glass-card rounded-3xl p-8 flex flex-col border-primary/20 hover:border-primary/50 transition-colors">
+<div class="mb-8">
+<h4 class="font-label-md text-label-md uppercase tracking-widest text-outline mb-2">Pro</h4>
+<div class="flex items-baseline gap-1">
+<span class="text-4xl font-bold">39€</span>
+<span class="text-on-surface-variant">/mes</span>
+</div>
+</div>
+<ul class="space-y-4 mb-8 flex-1">
+<li class="flex items-center gap-3 text-body-sm font-semibold"><span class="material-symbols-outlined text-primary">add</span> Todo lo del Básico</li>
+<li class="flex items-center gap-3 text-body-sm"><span class="material-symbols-outlined text-primary">check_circle</span> Niveles y XP</li>
+<li class="flex items-center gap-3 text-body-sm"><span class="material-symbols-outlined text-primary">check_circle</span> Economía (Monedas)</li>
+<li class="flex items-center gap-3 text-body-sm"><span class="material-symbols-outlined text-primary">check_circle</span> Oráculo (IA Básica)</li>
+</ul>
+<button class="w-full py-3 rounded-xl border border-outline-variant font-bold hover:bg-surface-variant transition-colors">Elegir</button>
+</div>
+<!-- Élite Plan (Recommended) -->
+<div class="glass-card-premium rounded-3xl p-8 flex flex-col relative overflow-hidden gold-glow ring-1 ring-secondary-fixed-dim/50">
+<div class="absolute top-0 right-0 bg-secondary-container text-on-secondary-container px-4 py-1 font-label-md text-[10px] uppercase tracking-tighter font-black rounded-bl-xl">RECOMENDADO</div>
+<div class="mb-8">
+<h4 class="font-label-md text-label-md uppercase tracking-widest text-secondary-fixed-dim mb-2">Élite</h4>
+<div class="flex items-baseline gap-1 text-secondary-fixed-dim">
+<span class="text-4xl font-bold">69€</span>
+<span class="opacity-80">/mes</span>
+</div>
+</div>
+<ul class="space-y-4 mb-8 flex-1">
+<li class="flex items-center gap-3 text-body-sm font-semibold text-secondary-fixed-dim"><span class="material-symbols-outlined">star</span> Todo lo del Pro</li>
+<li class="flex items-center gap-3 text-body-sm"><span class="material-symbols-outlined text-secondary-fixed-dim">check_circle</span> Mascotas Evolutivas v2</li>
+<li class="flex items-center gap-3 text-body-sm"><span class="material-symbols-outlined text-secondary-fixed-dim">check_circle</span> Clanes y Matrimonios</li>
+<li class="flex items-center gap-3 text-body-sm"><span class="material-symbols-outlined text-secondary-fixed-dim">check_circle</span> Economía Avanzada</li>
+</ul>
+<button class="w-full py-3 rounded-xl bg-secondary-container text-on-secondary-container font-black hover:scale-105 transition-transform active:scale-95">Elegir</button>
+</div>
+<!-- Custom Plan -->
+<div class="glass-card rounded-3xl p-8 flex flex-col hover:border-primary/50 transition-colors">
+<div class="mb-8">
+<h4 class="font-label-md text-label-md uppercase tracking-widest text-outline mb-2">Custom</h4>
+<div class="flex items-baseline gap-1">
+<span class="text-4xl font-bold">99€</span>
+<span class="text-on-surface-variant">+ /mes</span>
+</div>
+</div>
+<ul class="space-y-4 mb-8 flex-1">
+<li class="flex items-center gap-3 text-body-sm font-semibold"><span class="material-symbols-outlined text-primary">bolt</span> Todo lo del Élite</li>
+<li class="flex items-center gap-3 text-body-sm"><span class="material-symbols-outlined text-primary">check_circle</span> Bot Marca Blanca</li>
+<li class="flex items-center gap-3 text-body-sm"><span class="material-symbols-outlined text-primary">check_circle</span> Funciones a Medida</li>
+<li class="flex items-center gap-3 text-body-sm"><span class="material-symbols-outlined text-primary">check_circle</span> Soporte 24/7</li>
+</ul>
+<button class="w-full py-3 rounded-xl border border-outline-variant font-bold hover:bg-surface-variant transition-colors">Elegir</button>
+</div>
+</div>
+<div class="mt-12 text-center">
+<button class="bg-surface-variant/50 hover:bg-surface-variant px-8 py-3 rounded-full font-bold text-primary transition-all inline-flex items-center gap-2">
+<span class="material-symbols-outlined">timer</span>
+                        Activar Prueba 7 días (Demo Limitada)
+                    </button>
+</div>
+</div>
+</section>
+<!-- Process Section -->
+<section class="py-24 bg-surface">
+<div class="max-w-7xl mx-auto px-6">
+<div class="text-center mb-16">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Cómo Funciona</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-4">Proceso guiado en 3 pasos, sin invitación pública del bot.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+<div class="relative text-center group">
+<div class="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center font-black text-2xl text-primary mx-auto mb-6 group-hover:scale-110 transition-transform">1</div>
+<h3 class="font-headline-sm text-headline-sm mb-4">Elige un plan</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Selecciona Básico, Pro, Élite o Custom según las necesidades de tu comunidad.</p>
+<div class="hidden md:block absolute top-8 left-full w-full h-px bg-gradient-to-r from-primary/50 to-transparent -translate-x-1/2"></div>
+</div>
+<div class="relative text-center group">
+<div class="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center font-black text-2xl text-primary mx-auto mb-6 group-hover:scale-110 transition-transform">2</div>
+<h3 class="font-headline-sm text-headline-sm mb-4">Envía el mensaje</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Pulsa “Elegir” y se abrirá nuestro canal directo con una plantilla preconfigurada.</p>
+<div class="hidden md:block absolute top-8 left-full w-full h-px bg-gradient-to-r from-primary/50 to-transparent -translate-x-1/2"></div>
+</div>
+<div class="text-center group">
+<div class="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center font-black text-2xl text-primary mx-auto mb-6 group-hover:scale-110 transition-transform">3</div>
+<h3 class="font-headline-sm text-headline-sm mb-4">Instalación</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Preparamos el bot según tu plan y te guiamos paso a paso en la configuración inicial.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- FAQ Section -->
+<section class="py-24 bg-surface-container-lowest" id="faq">
+<div class="max-w-4xl mx-auto px-6">
+<h2 class="font-headline-lg text-headline-lg text-on-surface text-center mb-16">Preguntas Frecuentes</h2>
+<div class="space-y-4">
+<details class="glass-card rounded-2xl overflow-hidden group">
+<summary class="p-6 cursor-pointer list-none flex items-center justify-between font-headline-sm text-headline-sm text-on-surface">
+                            ¿Por qué no hay enlace de invitación?
+                            <span class="material-symbols-outlined group-open:rotate-180 transition-transform">expand_more</span>
+</summary>
+<div class="p-6 pt-0 font-body-md text-body-md text-on-surface-variant">
+                            No hay acceso público para garantizar exclusividad y estabilidad. La instalación y la activación se realizan personalmente cuando contratas un plan o solicitas la demo, asegurando una configuración óptima.
+                        </div>
+</details>
+<details class="glass-card rounded-2xl overflow-hidden group">
+<summary class="p-6 cursor-pointer list-none flex items-center justify-between font-headline-sm text-headline-sm text-on-surface">
+                            ¿Hay prueba gratis?
+                            <span class="material-symbols-outlined group-open:rotate-180 transition-transform">expand_more</span>
+</summary>
+<div class="p-6 pt-0 font-body-md text-body-md text-on-surface-variant">
+                            Sí, ofrecemos una demo de 7 días. Te activamos funciones clave para que compruebes la estabilidad, el flujo y el rendimiento del bot antes de decidirte por un plan definitivo.
+                        </div>
+</details>
+<details class="glass-card rounded-2xl overflow-hidden group">
+<summary class="p-6 cursor-pointer list-none flex items-center justify-between font-headline-sm text-headline-sm text-on-surface">
+                            ¿Puedo cambiar de plan después?
+                            <span class="material-symbols-outlined group-open:rotate-180 transition-transform">expand_more</span>
+</summary>
+<div class="p-6 pt-0 font-body-md text-body-md text-on-surface-variant">
+                            Sin problema. Puedes subir o bajar de plan en cualquier momento. El bot se ajustará automáticamente a las nuevas funciones incluidas en tu suscripción de manera inmediata.
+                        </div>
+</details>
+<details class="glass-card rounded-2xl overflow-hidden group">
+<summary class="p-6 cursor-pointer list-none flex items-center justify-between font-headline-sm text-headline-sm text-on-surface">
+                            ¿Qué necesito para empezar?
+                            <span class="material-symbols-outlined group-open:rotate-180 transition-transform">expand_more</span>
+</summary>
+<div class="p-6 pt-0 font-body-md text-body-md text-on-surface-variant">
+                            Solo necesitas permisos de administrador en tu servidor. Nosotros te guiaremos en todo el proceso para dejar canales, roles, logs y módulos listos para producción.
+                        </div>
+</details>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-lowest border-t border-outline-variant py-16">
+<div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
+<div class="md:col-span-2 space-y-6">
+<div class="flex items-center gap-3">
+<img alt="PoseidonUI Logo Small" class="h-8" src="https://lh3.googleusercontent.com/aida/AP1WRLtV0Yc1NwwDmqsm1pRMrhJeW2exGBxpkdPPROy-aKCXp7I3tgeXjpwwpnpT4FkhA-EKt9v_21OYjqVtisosSiy5_3pMdBKiuti7E7HLiIEclswFn0iVL5f6yXu8WFNxkd10HPqBzJhG11lXMOxJbp4ZF-uvFQp8NgeJNh5ATThDmvceFVR2g4qdGPh9istkMwQhSeazVZzZTwiQ97QGIM_aIaSKc5Luobq0cIdgza1SP71VwIOZGIUK0BZF"/>
+<span class="font-headline-md text-headline-md font-black text-on-surface">PoseidonUI</span>
+</div>
+<p class="font-body-md text-body-md text-outline max-w-sm">
+                    El mejor bot multifunción para Discord. Empoderando comunidades con tecnología divina y soporte técnico de primer nivel.
+                </p>
+<div class="flex gap-4">
+<a class="w-10 h-10 bg-surface-variant flex items-center justify-center rounded-full hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">code</span>
+</a>
+<a class="w-10 h-10 bg-surface-variant flex items-center justify-center rounded-full hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+</a>
+</div>
+</div>
+<div>
+<h4 class="font-label-md text-label-md font-semibold text-on-surface mb-6 uppercase tracking-widest">Producto</h4>
+<ul class="space-y-4 font-body-sm text-body-sm text-outline">
+<li><a class="hover:text-primary transition-colors" href="#features">Funciones</a></li>
+<li><a class="hover:text-primary transition-colors" href="#pricing">Planes Premium</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Términos de Servicio</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-label-md text-label-md font-semibold text-on-surface mb-6 uppercase tracking-widest">Soporte</h4>
+<ul class="space-y-4 font-body-sm text-body-sm text-outline">
+<li><a class="hover:text-primary transition-colors" href="#">Comunidad de Discord</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Documentación</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Repositorio GitHub</a></li>
+</ul>
+</div>
+</div>
+<div class="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-outline-variant flex flex-col md:flex-row justify-between items-center gap-4 text-body-sm text-outline">
+<p>© 2026 PoseidonUI Systems. Todos los derechos reservados.</p>
+<div class="flex gap-8">
+<a class="hover:text-on-surface" href="#">Panel de Admin</a>
+<a class="hover:text-on-surface" href="#">Privacidad</a>
+</div>
+</div>
+</footer>
+<script>
+        // Smooth scroll for anchors
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Simple scroll reveal effect for cards
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('opacity-100', 'translate-y-0');
+                    entry.target.classList.remove('opacity-0', 'translate-y-10');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.glass-card, .glass-card-premium').forEach(el => {
+            el.classList.add('opacity-0', 'translate-y-10', 'transition-all', 'duration-700');
+            observer.observe(el);
+        });
+    </script>
+</body></html>
