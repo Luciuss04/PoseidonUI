@@ -187,8 +187,8 @@ class HotReload(commands.Cog):
             ephemeral=True,
         )
 
-    @cog_reload.autocomplete("modulo")
-    async def cog_reload_autocomplete(self, interaction: discord.Interaction, current: str):
+    @cogs_reload.autocomplete("modulo")
+    async def cogs_reload_autocomplete(self, interaction: discord.Interaction, current: str):
         allowed = await self._allowed_modules()
         current_low = (current or "").lower()
         items = [m for m in allowed if current_low in m.lower()]

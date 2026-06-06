@@ -10,7 +10,7 @@ from aiohttp import web
 from discord import app_commands
 from discord.ext import commands
 
-from bot.auth import verify_login
+from bot.auth import add_web_user, get_user_data, verify_login
 from bot.config import BOT_VERSION, get_guild_config, get_guild_setting, set_guild_setting
 from bot.themes import Theme
 
@@ -36,43 +36,37 @@ class WebServer(commands.Cog):
     async def web_register(
         self, interaction: discord.Interaction, usuario: str, contrasena: str
     ):
+        # Diferir la respuesta inmediatamente para evitar que el comando expire
+        await interaction.response.defer(ephemeral=True)
+
         # Asegurarnos de que estamos en un servidor
         if not interaction.guild:
-            return await interaction.response.send_message("❌ Este comando solo se puede usar en servidores.", ephemeral=True)
+            return await interaction.followup.send("❌ Este comando solo se puede usar en servidores.", ephemeral=True)
 
-        # Verificar si el usuario ya existe en la base de datos
-        # Buscamos en la colección 'web_users' de la base de datos del bot
+        # Verificar si el usuario ya existe
         try:
-            db = getattr(self.bot, "db", None)
-            if db is None:
-                return await interaction.response.send_message("❌ Error: Base de datos no conectada.", ephemeral=True)
-
-            existing = db.web_users.find_one({"username": usuario})
+            existing = get_user_data(usuario)
             if existing:
-                return await interaction.response.send_message(
+                return await interaction.followup.send(
                     f"❌ El usuario `{usuario}` ya existe.", ephemeral=True
                 )
 
             # Crear el nuevo usuario vinculado a este servidor
-            new_user = {
-                "username": usuario,
-                "password": contrasena,
-                "guild_id": str(interaction.guild_id),
-                "discord_id": str(interaction.user.id),
-                "avatar_url": str(interaction.user.display_avatar.url),
-                "is_global_admin": False,
-                "created_at": datetime.datetime.utcnow()
-            }
-
-            # Si es el dueño del bot, hacerlo admin global
+            is_global = False
             owner_id = getattr(self.bot.config, "OWNER_ID", None)
             if owner_id and str(interaction.user.id) == str(owner_id):
-                new_user["is_global_admin"] = True
-                new_user["guild_id"] = None
+                is_global = True
 
-            db.web_users.insert_one(new_user)
+            add_web_user(
+                username=usuario,
+                password=contrasena,
+                guild_id=str(interaction.guild_id) if not is_global else None,
+                discord_id=str(interaction.user.id),
+                avatar_url=str(interaction.user.display_avatar.url),
+                is_global_admin=is_global
+            )
 
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 f"✅ **Cuenta Creada Correctamente**\n\n"
                 f"👤 **Usuario:** `{usuario}`\n"
                 f"🔑 **Contraseña:** `••••••••` (la que elegiste)\n"
@@ -81,7 +75,7 @@ class WebServer(commands.Cog):
                 ephemeral=True,
             )
         except Exception as e:
-            await interaction.response.send_message(f"❌ Error al crear la cuenta: {e}", ephemeral=True)
+            await interaction.followup.send(f"❌ Error al crear la cuenta: {e}", ephemeral=True)
 
     async def cog_load(self):
         loop = asyncio.get_running_loop()
@@ -187,14 +181,14 @@ class WebServer(commands.Cog):
                     self.login_attempts[ip] = (0, 0)
 
                 # Obtener datos del usuario para el token y la respuesta
-                user_data = self.bot.db.web_users.find_one({"username": username})
+                user_data = get_user_data(username)
                 token = secrets.token_hex(32)
                 self.sessions.add(token)
 
                 # Vincular token con datos del usuario para filtrar después
                 if not hasattr(self, "token_data"):
                     self.token_data = {}
-                
+
                 if user_data:
                     self.token_data[token] = {
                         "username": user_data["username"],
