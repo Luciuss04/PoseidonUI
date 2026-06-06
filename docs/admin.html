@@ -551,15 +551,31 @@
             try {
                 const response = await fetch(`${BOT_URL}/api/guilds`, { headers: {'Authorization': TOKEN} });
                 if (response.ok) {
-                    guilds = await response.json();
-                    const selector = document.getElementById('server-selector');
-                    selector.innerHTML = '<option value="">Seleccionar servidor...</option>';
-                    guilds.forEach(g => {
-                        const opt = document.createElement('option');
-                        opt.value = g.id;
-                        opt.innerText = g.name;
-                        selector.appendChild(opt);
-                    });
+                    if (guilds.length > 0) {
+                        const selector = document.getElementById('server-selector');
+                        selector.innerHTML = ''; // Limpiar
+                        
+                        // Si solo hay un servidor, seleccionarlo automáticamente
+                        if (guilds.length === 1) {
+                            const g = guilds[0];
+                            const opt = document.createElement('option');
+                            opt.value = g.id;
+                            opt.innerText = g.name;
+                            selector.appendChild(opt);
+                            currentGuildId = g.id;
+                            onServerChange();
+                        } else {
+                            selector.innerHTML = '<option value="">Seleccionar servidor...</option>';
+                            guilds.forEach(g => {
+                                const opt = document.createElement('option');
+                                opt.value = g.id;
+                                opt.innerText = g.name;
+                                selector.appendChild(opt);
+                            });
+                        }
+                    } else {
+                        document.getElementById('server-selector').innerHTML = '<option value="">Sin acceso a servidores</option>';
+                    }
                 }
             } catch (err) { console.error('Error fetching guilds:', err); }
         }

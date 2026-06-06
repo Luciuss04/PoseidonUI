@@ -4,8 +4,10 @@ import os
 import secrets
 import time
 
+import discord
 import psutil
 from aiohttp import web
+from discord import app_commands
 from discord.ext import commands
 
 from bot.auth import verify_login
@@ -21,6 +23,49 @@ class WebServer(commands.Cog):
         self.port = int(os.getenv("SERVER_PORT", "8080"))
         self.start_time = time.time()
         self.sessions = set()  # Tokens de sesión activos
+
+    @app_commands.command(
+        name="web-register",
+        description="Registra una cuenta para el panel web (Solo para administradores del servidor)",
+    )
+    @app_commands.describe(
+        usuario="Nombre de usuario para el panel",
+        contrasena="Contraseña para el panel",
+    )
+    @app_commands.checks.has_permissions(administrator=True)
+    async def web_register(
+        self, interaction: discord.Interaction, usuario: str, contrasena: str
+    ):
+        # Verificar si el usuario ya existe
+        existing = self.bot.db.web_users.find_one({"username": usuario})
+        if existing:
+            return await interaction.response.send_message(
+                f"❌ El usuario `{usuario}` ya existe.", ephemeral=True
+            )
+
+        # Crear el nuevo usuario vinculado a este servidor
+        new_user = {
+            "username": usuario,
+            "password": contrasena,  # En un entorno real, esto debería estar hasheado
+            "guild_id": str(interaction.guild_id),
+            "discord_id": str(interaction.user.id),
+            "avatar_url": str(interaction.user.display_avatar.url),
+            "is_global_admin": False,
+        }
+
+        # El dueño original del bot (si existe en config) puede ser global admin
+        if str(interaction.user.id) == getattr(self.bot.config, "OWNER_ID", ""):
+            new_user["is_global_admin"] = True
+            new_user["guild_id"] = None
+
+        self.bot.db.web_users.insert_one(new_user)
+
+        await interaction.response.send_message(
+            f"✅ Cuenta creada para `{usuario}`.\n"
+            f"Acceso restringido al servidor: **{interaction.guild.name}**\n"
+            f"Panel: {getattr(self.bot.config, 'DASHBOARD_URL', 'https://luciuss04.github.io/PoseidonUI/')}",
+            ephemeral=True,
+        )
 
     async def cog_load(self):
         loop = asyncio.get_running_loop()
@@ -125,17 +170,33 @@ class WebServer(commands.Cog):
                 if peername:
                     self.login_attempts[ip] = (0, 0)
 
+                # Obtener datos del usuario para el token y la respuesta
+                user_data = self.bot.db.web_users.find_one({"username": username})
                 token = secrets.token_hex(32)
                 self.sessions.add(token)
-                return web.json_response(
-                    {
-                        "token": token,
-                        "user": {
-                            "username": user_data["username"],
-                            "avatar": user_data.get("avatar_url", ""),
-                        },
+
+                # Vincular token con datos del usuario para filtrar después
+                if not hasattr(self, "token_data"):
+                    self.token_data = {}
+                
+                if user_data:
+                    self.token_data[token] = {
+                        "username": user_data["username"],
+                        "guild_id": user_data.get("guild_id"),
+                        "is_global_admin": user_data.get("is_global_admin", False),
                     }
-                )
+
+                    return web.json_response(
+                        {
+                            "token": token,
+                            "user": {
+                                "username": user_data["username"],
+                                "avatar": user_data.get("avatar_url", ""),
+                                "is_global_admin": user_data.get("is_global_admin", False),
+                                "guild_id": user_data.get("guild_id"),
+                            },
+                        }
+                    )
 
             return web.json_response({"error": "Invalid credentials"}, status=401)
 
@@ -205,18 +266,25 @@ class WebServer(commands.Cog):
 
         async def get_guilds_list(request):
             """Retorna lista de servidores con detalles básicos (Privado)."""
+            token = request.headers.get("Authorization")
+            user_info = getattr(self, "token_data", {}).get(token, {})
+            is_global = user_info.get("is_global_admin", False)
+            restricted_guild = user_info.get("guild_id")
+
             guilds = []
             for g in self.bot.guilds:
-                guilds.append(
-                    {
-                        "id": str(g.id),
-                        "name": g.name,
-                        "icon": str(g.icon.url) if g.icon else None,
-                        "members": g.member_count,
-                        "owner": str(g.owner),
-                        "config": get_guild_config(g.id),
-                    }
-                )
+                # Si es admin global, ve todo. Si no, solo ve su servidor restringido.
+                if is_global or (restricted_guild and str(g.id) == restricted_guild):
+                    guilds.append(
+                        {
+                            "id": str(g.id),
+                            "name": g.name,
+                            "icon": str(g.icon.url) if g.icon else None,
+                            "members": g.member_count,
+                            "owner": str(g.owner),
+                            "config": get_guild_config(g.id),
+                        }
+                    )
             return web.json_response(guilds)
 
         async def get_guild_settings(request):
