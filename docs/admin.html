@@ -176,6 +176,40 @@
         .view-section.active {
             display: block;
         }
+
+        input[type="text"], input[type="password"], select, textarea {
+            background: rgba(35, 20, 53, 0.6);
+            border: 1px solid rgba(207, 188, 255, 0.1);
+            color: #eedbff;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            width: 100%;
+            transition: all 0.3s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #6200ea;
+            box-shadow: 0 0 10px rgba(98, 0, 234, 0.2);
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #cbc3d9;
+        }
+        .btn-primary {
+            background: #6200ea;
+            color: white;
+            font-weight: 700;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(98, 0, 234, 0.3);
+        }
     </style>
 </head>
 <body class="bg-background text-on-background">
@@ -219,9 +253,6 @@
             </button>
         </nav>
         <div class="mt-auto flex flex-col gap-xs pt-lg border-t border-outline-variant/10">
-            <button class="w-full py-sm px-md mb-sm bg-primary-container text-on-primary-container font-bold rounded-lg shadow-lg hover:scale-[1.02] active:scale-95 transition-all">
-                Upgrade to VIP
-            </button>
             <button onclick="logout()" class="side-nav-item text-error hover:bg-error/10">
                 <span class="material-symbols-outlined">logout</span>
                 <span class="font-body-md">Logout</span>
@@ -236,7 +267,7 @@
             <div class="flex items-center gap-md flex-1">
                 <div class="relative w-72 group">
                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">dns</span>
-                    <select id="server-selector" onchange="onServerChange()" class="w-full bg-surface-container-low border-none rounded-full py-2 pl-10 pr-8 text-body-sm focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                    <select id="server-selector" onchange="onServerChange()" class="w-full appearance-none cursor-pointer">
                         <option value="">Cargando servidores...</option>
                     </select>
                 </div>
@@ -341,37 +372,124 @@
                     <p class="text-on-surface-variant">Activa o desactiva las funciones divinas para tu servidor</p>
                 </div>
                 <div id="modules-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-md">
-                    <!-- Modules will be rendered here -->
+                    <!-- Modules rendered by JS -->
                 </div>
             </div>
 
-            <!-- VIEW: OTHERS (Placeholder for now) -->
+            <!-- VIEW: RPG -->
             <div id="view-rpg" class="view-section">
-                <div class="glass-card p-xl rounded-3xl text-center">
-                    <span class="material-symbols-outlined text-6xl text-primary mb-4">pets</span>
-                    <h2 class="text-3xl font-bold">Mascotas RPG</h2>
-                    <p class="text-on-surface-variant mt-4">Panel detallado de mascotas en desarrollo.</p>
+                <div class="mb-12">
+                    <h2 class="text-3xl font-bold text-on-surface">RPG Pets</h2>
+                    <p class="text-on-surface-variant">Estadísticas globales del sistema de mascotas</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-md mb-lg">
+                    <div class="glass-card p-lg rounded-2xl text-center">
+                        <span class="material-symbols-outlined text-primary text-4xl mb-2">pets</span>
+                        <p class="text-outline">Mascotas Totales</p>
+                        <h4 class="text-2xl font-bold">1,240</h4>
+                    </div>
+                    <div class="glass-card p-lg rounded-2xl text-center">
+                        <span class="material-symbols-outlined text-secondary-fixed text-4xl mb-2">trending_up</span>
+                        <p class="text-outline">Nivel Promedio</p>
+                        <h4 class="text-2xl font-bold">LVL 24</h4>
+                    </div>
+                    <div class="glass-card p-lg rounded-2xl text-center">
+                        <span class="material-symbols-outlined text-tertiary text-4xl mb-2">swords</span>
+                        <p class="text-outline">Batallas Hoy</p>
+                        <h4 class="text-2xl font-bold">452</h4>
+                    </div>
+                </div>
+                <div class="glass-card p-lg rounded-3xl">
+                    <h3 class="text-xl font-bold mb-6">Configuración de Mascotas</h3>
+                    <p class="text-on-surface-variant italic">Próximamente: Ajustes de probabilidad de captura y multiplicadores de XP.</p>
                 </div>
             </div>
+
+            <!-- VIEW: ECONOMY -->
             <div id="view-economy" class="view-section">
-                <div class="glass-card p-xl rounded-3xl text-center">
-                    <span class="material-symbols-outlined text-6xl text-secondary-fixed mb-4">payments</span>
-                    <h2 class="text-3xl font-bold">Economía Global</h2>
-                    <p class="text-on-surface-variant mt-4">Panel detallado de economía en desarrollo.</p>
+                <div class="mb-12">
+                    <h2 class="text-3xl font-bold text-on-surface">Economía Global</h2>
+                    <p class="text-on-surface-variant">Gestión financiera y mercado del Olimpo</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-md mb-lg">
+                    <div class="glass-card p-lg rounded-3xl">
+                        <h3 class="text-xl font-bold mb-4">Estado del Mercado</h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center p-4 bg-surface-container rounded-xl">
+                                <span>Moneda en Circulación</span>
+                                <span class="font-bold text-secondary-fixed">4.2B POS</span>
+                            </div>
+                            <div class="flex justify-between items-center p-4 bg-surface-container rounded-xl">
+                                <span>Inflación Estimada</span>
+                                <span class="font-bold text-emerald-400">-0.2%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="glass-card p-lg rounded-3xl">
+                        <h3 class="text-xl font-bold mb-4">Ajustes Rápidos</h3>
+                        <div class="space-y-4">
+                            <label>Multiplicador de Salario</label>
+                            <input type="text" value="1.0x" disabled class="opacity-50">
+                            <button class="btn-primary w-full opacity-50 cursor-not-allowed">Guardar (Próximamente)</button>
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            <!-- VIEW: MUSIC -->
             <div id="view-music" class="view-section">
-                <div class="glass-card p-xl rounded-3xl text-center">
-                    <span class="material-symbols-outlined text-6xl text-tertiary mb-4">music_note</span>
-                    <h2 class="text-3xl font-bold">Música Hi-Fi</h2>
-                    <p class="text-on-surface-variant mt-4">Panel detallado de música en desarrollo.</p>
+                <div class="mb-12">
+                    <h2 class="text-3xl font-bold text-on-surface">Música Hi-Fi</h2>
+                    <p class="text-on-surface-variant">Control de reproducciones y estado de audio</p>
+                </div>
+                <div class="glass-card p-xl rounded-3xl text-center border-dashed border-2 border-outline/20">
+                    <span class="material-symbols-outlined text-6xl text-tertiary mb-4 animate-pulse">music_note</span>
+                    <h3 class="text-2xl font-bold">Panel de Reproducción</h3>
+                    <p class="text-on-surface-variant mt-4">Conéctate a un canal de voz para ver los controles en tiempo real.</p>
                 </div>
             </div>
+
+            <!-- VIEW: MODERATION -->
             <div id="view-moderation" class="view-section">
-                <div class="glass-card p-xl rounded-3xl text-center">
-                    <span class="material-symbols-outlined text-6xl text-error mb-4">gavel</span>
-                    <h2 class="text-3xl font-bold">Moderación Guardian</h2>
-                    <p class="text-on-surface-variant mt-4">Panel detallado de moderación en desarrollo.</p>
+                <div class="mb-12">
+                    <h2 class="text-3xl font-bold text-on-surface">Moderación Guardian</h2>
+                    <p class="text-on-surface-variant">Configuración de seguridad y canales de log</p>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-md">
+                    <div class="glass-card p-lg rounded-3xl">
+                        <h3 class="text-xl font-bold mb-6">Canales de Sistema</h3>
+                        <form id="moderation-form" class="space-y-4" onsubmit="saveModerationSettings(event)">
+                            <div>
+                                <label>Canal de Logs</label>
+                                <select id="select-logs-channel" class="channel-select"></select>
+                            </div>
+                            <div>
+                                <label>Canal de Alertas</label>
+                                <select id="select-alerts-channel" class="channel-select"></select>
+                            </div>
+                            <div>
+                                <label>Canal de Confesiones</label>
+                                <select id="select-confesiones-channel" class="channel-select"></select>
+                            </div>
+                            <button type="submit" class="btn-primary w-full mt-4">Guardar Canales</button>
+                        </form>
+                    </div>
+                    <div class="glass-card p-lg rounded-3xl">
+                        <h3 class="text-xl font-bold mb-6">Roles de Staff</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label>Rol de Administración</label>
+                                <select id="select-staff-role" class="role-select"></select>
+                            </div>
+                            <div class="p-4 bg-error/10 border border-error/20 rounded-xl">
+                                <p class="text-xs text-error font-bold flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-sm">warning</span>
+                                    ATENCIÓN
+                                </p>
+                                <p class="text-xs text-on-surface-variant mt-1">Los usuarios con este rol podrán gestionar el bot en este servidor.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -437,7 +555,7 @@
                     container.innerHTML = '';
                     logs.slice(0, 8).forEach(log => {
                         const div = document.createElement('div');
-                        div.className = 'flex gap-sm p-sm rounded-lg bg-surface-variant/20 border-l-2 border-primary transition-colors hover:bg-surface-variant/30 text-xs';
+                        div.className = 'flex gap-sm p-sm rounded-lg bg-surface-variant/20 border-l-2 border-primary transition-colors hover:bg-surface-variant/30 text-xs mb-2';
                         div.innerHTML = `<div><p class="font-bold">${log.message}</p><p class="text-outline">${new Date(log.timestamp).toLocaleTimeString()}</p></div>`;
                         container.appendChild(div);
                     });
@@ -445,28 +563,92 @@
             } catch (err) {}
         }
 
-        function onServerChange() {
+        async function onServerChange() {
             currentGuildId = document.getElementById('server-selector').value;
             if (!currentGuildId) {
                 resetGuildInfo();
                 return;
             }
-            const guild = guilds.find(g => g.id === currentGuildId);
-            if (guild) {
-                document.getElementById('guild-name').innerText = guild.name;
-                document.getElementById('guild-members').innerText = `${guild.members} miembros`;
-                if (guild.icon) {
-                    document.getElementById('guild-icon').src = guild.icon;
-                    document.getElementById('guild-icon').classList.remove('hidden');
-                    document.getElementById('guild-icon-placeholder').classList.add('hidden');
-                } else {
-                    document.getElementById('guild-icon').classList.add('hidden');
-                    document.getElementById('guild-icon-placeholder').classList.remove('hidden');
-                    document.getElementById('guild-icon-placeholder').innerText = guild.name.charAt(0);
+            
+            // Cargar datos detallados del servidor
+            try {
+                const response = await fetch(`${BOT_URL}/api/config/${currentGuildId}`, { headers: {'Authorization': TOKEN} });
+                if (response.ok) {
+                    const data = await response.json();
+                    const guild = guilds.find(g => g.id === currentGuildId);
+                    
+                    // Actualizar info básica
+                    document.getElementById('guild-name').innerText = data.name;
+                    document.getElementById('guild-members').innerText = `${guild.members} miembros`;
+                    if (guild.icon) {
+                        document.getElementById('guild-icon').src = guild.icon;
+                        document.getElementById('guild-icon').classList.remove('hidden');
+                        document.getElementById('guild-icon-placeholder').classList.add('hidden');
+                    } else {
+                        document.getElementById('guild-icon').classList.add('hidden');
+                        document.getElementById('guild-icon-placeholder').classList.remove('hidden');
+                        document.getElementById('guild-icon-placeholder').innerText = data.name.charAt(0);
+                    }
+
+                    // Rellenar selects de moderación
+                    fillSelects(data.channels, data.roles, data.config);
+                    renderModules(data);
                 }
-                renderModules(guild);
-            }
+            } catch (err) { console.error(err); }
+            
             fetchLogs();
+        }
+
+        function fillSelects(channels, roles, config) {
+            const channelSelects = document.querySelectorAll('.channel-select');
+            const roleSelects = document.querySelectorAll('.role-select');
+
+            channelSelects.forEach(s => {
+                s.innerHTML = '<option value="">Ninguno / Desactivado</option>';
+                channels.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.innerText = `# ${c.name}`;
+                    s.appendChild(opt);
+                });
+            });
+
+            roleSelects.forEach(s => {
+                s.innerHTML = '<option value="">Ninguno</option>';
+                roles.forEach(r => {
+                    const opt = document.createElement('option');
+                    opt.value = r.id;
+                    opt.innerText = `@ ${r.name}`;
+                    s.appendChild(opt);
+                });
+            });
+
+            // Set values from config
+            document.getElementById('select-logs-channel').value = config.log_channel_id || '';
+            document.getElementById('select-alerts-channel').value = config.alert_channel_id || '';
+            document.getElementById('select-confesiones-channel').value = config.confesiones_channel_id || '';
+            document.getElementById('select-staff-role').value = config.staff_role_id || (config.staff_role_ids ? config.staff_role_ids[0] : '');
+        }
+
+        async function saveModerationSettings(e) {
+            e.preventDefault();
+            if (!currentGuildId) return;
+
+            const updates = {
+                log_channel_id: document.getElementById('select-logs-channel').value || null,
+                alert_channel_id: document.getElementById('select-alerts-channel').value || null,
+                confesiones_channel_id: document.getElementById('select-confesiones-channel').value || null,
+                staff_role_id: document.getElementById('select-staff-role').value || null
+            };
+
+            try {
+                const response = await fetch(`${BOT_URL}/api/config/update`, {
+                    method: 'POST',
+                    headers: { 'Authorization': TOKEN, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ guild_id: currentGuildId, updates })
+                });
+                if (response.ok) alert('Configuración guardada correctamente');
+            } catch (err) { alert('Error al guardar'); }
         }
 
         function resetGuildInfo() {
@@ -478,10 +660,10 @@
             document.getElementById('modules-grid').innerHTML = '<div class="col-span-full text-center py-12 text-outline">Selecciona un servidor para ver los módulos</div>';
         }
 
-        function renderModules(guild) {
+        function renderModules(data) {
             const grid = document.getElementById('modules-grid');
             grid.innerHTML = '';
-            const enabled = guild.config.enabled_modules || AVAILABLE_MODULES.map(m => m.id);
+            const enabled = data.config.enabled_modules || AVAILABLE_MODULES.map(m => m.id);
 
             AVAILABLE_MODULES.forEach(m => {
                 const isEnabled = enabled.includes(m.id);
@@ -530,13 +712,11 @@
                 });
                 if (response.ok) {
                     guild.config.enabled_modules = enabled;
-                    renderModules(guild);
+                    renderModules({config: {enabled_modules: enabled}});
                 } else {
                     checkbox.checked = !checkbox.checked;
                 }
-            } catch (err) {
-                checkbox.checked = !checkbox.checked;
-            }
+            } catch (err) { checkbox.checked = !checkbox.checked; }
         }
 
         function showView(viewId) {
@@ -544,7 +724,8 @@
             document.getElementById(`view-${viewId}`).classList.add('active');
             
             document.querySelectorAll('.side-nav-item').forEach(i => i.classList.remove('side-nav-active'));
-            document.querySelector(`[data-view="${viewId}"]`).classList.add('side-nav-active');
+            const activeItem = document.querySelector(`[onclick="showView('${viewId}')"]`);
+            if (activeItem) activeItem.classList.add('side-nav-active');
         }
 
         async function rebootBot() {
