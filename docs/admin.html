@@ -307,8 +307,8 @@
             </div>
             <div class="flex items-center gap-md">
                 <div class="flex items-center gap-sm border-l border-outline-variant/20 pl-md">
-                    <img alt="User Avatar" class="w-8 h-8 rounded-full border border-primary/30" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9UOxWgF9GI8gei82VV2zXmIsGX-7nZEf8hlgTvgBxf-r_nDUYJt3AYobyUerOZU4mfBxYX2LRton6mQ4TcL5jODUm_J4ddAqBFpJ6gCf3ER3B-2nqBuaBv5hBEjqkxv9lUvcTuoZ5Z47macweE83lmqvONa7Gmk9oamADlB5xhtqOgKC-lfRyUkBPnsvOhfH6TAbrNT0ZkMPnRXQ90qQDuzBw9fNK7SykH821Otr0zM7lXhLxow6gANymX0UYCiRGcmzVM7tVlOr3"/>
-                    <span class="font-label-md text-on-surface hidden lg:block">Admin. Poseidon</span>
+                    <img id="user-avatar" alt="User Avatar" class="w-8 h-8 rounded-full border border-primary/30" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9UOxWgF9GI8gei82VV2zXmIsGX-7nZEf8hlgTvgBxf-r_nDUYJt3AYobyUerOZU4mfBxYX2LRton6mQ4TcL5jODUm_J4ddAqBFpJ6gCf3ER3B-2nqBuaBv5hBEjqkxv9lUvcTuoZ5Z47macweE83lmqvONa7Gmk9oamADlB5xhtqOgKC-lfRyUkBPnsvOhfH6TAbrNT0ZkMPnRXQ90qQDuzBw9fNK7SykH821Otr0zM7lXhLxow6gANymX0UYCiRGcmzVM7tVlOr3"/>
+                    <span id="user-name" class="font-label-md text-on-surface hidden lg:block">Admin. Poseidon</span>
                 </div>
             </div>
         </header>
@@ -783,10 +783,23 @@
 
         function logout() {
             localStorage.removeItem('poseidon_token');
+            localStorage.removeItem('poseidon_user');
             window.location.href = 'login.html';
         }
 
+        function loadUserData() {
+            const userStr = localStorage.getItem('poseidon_user');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                document.getElementById('user-name').innerText = user.username;
+                if (user.avatar) {
+                    document.getElementById('user-avatar').src = user.avatar;
+                }
+            }
+        }
+
         window.addEventListener('load', async () => {
+            loadUserData();
             await fetchGuilds();
             fetchStats();
             fetchLogs();

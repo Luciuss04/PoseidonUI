@@ -127,7 +127,15 @@ class WebServer(commands.Cog):
 
                 token = secrets.token_hex(32)
                 self.sessions.add(token)
-                return web.json_response({"token": token})
+                return web.json_response(
+                    {
+                        "token": token,
+                        "user": {
+                            "username": user_data["username"],
+                            "avatar": user_data.get("avatar_url", ""),
+                        },
+                    }
+                )
 
             return web.json_response({"error": "Invalid credentials"}, status=401)
 

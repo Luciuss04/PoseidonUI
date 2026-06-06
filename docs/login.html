@@ -118,6 +118,9 @@
                 if (response.ok) {
                     const data = await response.json();
                     localStorage.setItem('poseidon_token', data.token);
+                    if (data.user) {
+                        localStorage.setItem('poseidon_user', JSON.stringify(data.user));
+                    }
                     window.location.href = 'admin.html';
                 } else {
                     error.classList.remove('hidden');
