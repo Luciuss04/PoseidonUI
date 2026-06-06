@@ -103,7 +103,13 @@ class PoseidonUIBot(commands.Bot):
                 print(f"Error loading cog {modname}: {e}")
                 pass
         # Sincronizar slash commands
-        await self.tree.sync()
+        try:
+            # Sincronización global forzada al inicio
+            await self.tree.sync()
+            print("✅ [Bot] Comandos globales sincronizados con éxito.")
+        except Exception as e:
+            print(f"❌ [Bot] Error sincronizando comandos globales: {e}")
+        
         try:
             if not getattr(self, "_license_watchdog_started", False):
                 self._license_watchdog_started = True

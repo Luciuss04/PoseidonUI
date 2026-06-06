@@ -36,36 +36,52 @@ class WebServer(commands.Cog):
     async def web_register(
         self, interaction: discord.Interaction, usuario: str, contrasena: str
     ):
-        # Verificar si el usuario ya existe
-        existing = self.bot.db.web_users.find_one({"username": usuario})
-        if existing:
-            return await interaction.response.send_message(
-                f"❌ El usuario `{usuario}` ya existe.", ephemeral=True
+        # Asegurarnos de que estamos en un servidor
+        if not interaction.guild:
+            return await interaction.response.send_message("❌ Este comando solo se puede usar en servidores.", ephemeral=True)
+
+        # Verificar si el usuario ya existe en la base de datos
+        # Buscamos en la colección 'web_users' de la base de datos del bot
+        try:
+            db = getattr(self.bot, "db", None)
+            if db is None:
+                return await interaction.response.send_message("❌ Error: Base de datos no conectada.", ephemeral=True)
+
+            existing = db.web_users.find_one({"username": usuario})
+            if existing:
+                return await interaction.response.send_message(
+                    f"❌ El usuario `{usuario}` ya existe.", ephemeral=True
+                )
+
+            # Crear el nuevo usuario vinculado a este servidor
+            new_user = {
+                "username": usuario,
+                "password": contrasena,
+                "guild_id": str(interaction.guild_id),
+                "discord_id": str(interaction.user.id),
+                "avatar_url": str(interaction.user.display_avatar.url),
+                "is_global_admin": False,
+                "created_at": datetime.datetime.utcnow()
+            }
+
+            # Si es el dueño del bot, hacerlo admin global
+            owner_id = getattr(self.bot.config, "OWNER_ID", None)
+            if owner_id and str(interaction.user.id) == str(owner_id):
+                new_user["is_global_admin"] = True
+                new_user["guild_id"] = None
+
+            db.web_users.insert_one(new_user)
+
+            await interaction.response.send_message(
+                f"✅ **Cuenta Creada Correctamente**\n\n"
+                f"👤 **Usuario:** `{usuario}`\n"
+                f"🔑 **Contraseña:** `••••••••` (la que elegiste)\n"
+                f"🌐 **Servidor:** {interaction.guild.name}\n\n"
+                f"Ya puedes entrar aquí: https://luciuss04.github.io/PoseidonUI/login.html",
+                ephemeral=True,
             )
-
-        # Crear el nuevo usuario vinculado a este servidor
-        new_user = {
-            "username": usuario,
-            "password": contrasena,  # En un entorno real, esto debería estar hasheado
-            "guild_id": str(interaction.guild_id),
-            "discord_id": str(interaction.user.id),
-            "avatar_url": str(interaction.user.display_avatar.url),
-            "is_global_admin": False,
-        }
-
-        # El dueño original del bot (si existe en config) puede ser global admin
-        if str(interaction.user.id) == getattr(self.bot.config, "OWNER_ID", ""):
-            new_user["is_global_admin"] = True
-            new_user["guild_id"] = None
-
-        self.bot.db.web_users.insert_one(new_user)
-
-        await interaction.response.send_message(
-            f"✅ Cuenta creada para `{usuario}`.\n"
-            f"Acceso restringido al servidor: **{interaction.guild.name}**\n"
-            f"Panel: {getattr(self.bot.config, 'DASHBOARD_URL', 'https://luciuss04.github.io/PoseidonUI/')}",
-            ephemeral=True,
-        )
+        except Exception as e:
+            await interaction.response.send_message(f"❌ Error al crear la cuenta: {e}", ephemeral=True)
 
     async def cog_load(self):
         loop = asyncio.get_running_loop()
@@ -665,4 +681,11 @@ class WebServer(commands.Cog):
 
 
 async def setup(bot):
-    await bot.add_cog(WebServer(bot))
+    cog = WebServer(bot)
+    await bot.add_cog(cog)
+    # Sincronizar comandos de barra para este cog
+    try:
+        await bot.tree.sync()
+        print("✅ [WebServer] Comandos de barra sincronizados.")
+    except Exception as e:
+        print(f"❌ [WebServer] Error al sincronizar comandos: {e}")
