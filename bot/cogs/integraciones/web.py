@@ -227,8 +227,53 @@ class WebServer(commands.Cog):
             channels = [{"id": str(c.id), "name": c.name} for c in guild.text_channels]
             roles = [{"id": str(r.id), "name": r.name} for r in guild.roles if not r.is_default()]
 
+            # --- ESTADÍSTICAS REALES ---
+            stats = {
+                "pets": {"total": 0, "avg_level": 0},
+                "economy": {"total_bal": 0, "avg_bal": 0},
+                "moderation": {"total_logs": 0},
+            }
+
+            # RPG Stats
+            mascotas_cog = self.bot.get_cog("Mascotas")
+            if mascotas_cog:
+                guild_pets = []
+                for member in guild.members:
+                    p = mascotas_cog.pets.get(str(member.id))
+                    if p:
+                        guild_pets.append(p)
+                if guild_pets:
+                    stats["pets"]["total"] = len(guild_pets)
+                    stats["pets"]["avg_level"] = round(
+                        sum(p["level"] for p in guild_pets) / len(guild_pets), 1
+                    )
+
+            # Economy Stats
+            monedas_cog = self.bot.get_cog("Monedas")
+            if monedas_cog:
+                guild_bals = []
+                for member in guild.members:
+                    b = monedas_cog.bal.get(str(member.id), 0)
+                    if b > 0:
+                        guild_bals.append(b)
+                if guild_bals:
+                    stats["economy"]["total_bal"] = sum(guild_bals)
+                    stats["economy"]["avg_bal"] = round(sum(guild_bals) / len(guild_bals), 1)
+
+            # Moderation Stats
+            logs = getattr(self.bot, "recent_logs", [])
+            stats["moderation"]["total_logs"] = len(
+                [l for l in logs if l.get("guild_id") == str(guild.id)]
+            )
+
             return web.json_response(
-                {"config": config, "channels": channels, "roles": roles, "name": guild.name}
+                {
+                    "config": config,
+                    "channels": channels,
+                    "roles": roles,
+                    "name": guild.name,
+                    "stats": stats,
+                }
             )
 
         async def update_guild_config(request):

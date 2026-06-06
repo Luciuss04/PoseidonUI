@@ -210,6 +210,34 @@
             transform: scale(1.02);
             box-shadow: 0 4px 15px rgba(98, 0, 234, 0.3);
         }
+
+        /* Fix for bugged selector */
+        #server-selector {
+            background-color: rgba(39, 24, 57, 0.8);
+            border: 1px solid rgba(207, 188, 255, 0.2);
+            color: #eedbff;
+            padding-left: 2.5rem;
+            border-radius: 9999px;
+            cursor: pointer;
+            height: 2.5rem;
+            line-height: 1;
+        }
+        #server-selector:hover {
+            border-color: #6200ea;
+        }
+        .selector-container {
+            position: relative;
+            width: 18rem;
+        }
+        .selector-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #cbc3d9;
+            pointer-events: none;
+            z-index: 10;
+        }
     </style>
 </head>
 <body class="bg-background text-on-background">
@@ -265,10 +293,10 @@
         <!-- TopNavBar -->
         <header class="fixed top-0 right-0 w-[calc(100%-256px)] h-16 bg-surface/80 backdrop-blur-md border-b border-outline-variant/10 shadow-sm flex justify-between items-center px-margin-desktop z-40">
             <div class="flex items-center gap-md flex-1">
-                <div class="relative w-72 group">
-                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">dns</span>
-                    <select id="server-selector" onchange="onServerChange()" class="w-full appearance-none cursor-pointer">
-                        <option value="">Cargando servidores...</option>
+                <div class="selector-container">
+                    <span class="material-symbols-outlined selector-icon">dns</span>
+                    <select id="server-selector" onchange="onServerChange()" class="w-full">
+                        <option value="">Seleccionar servidor...</option>
                     </select>
                 </div>
             </div>
@@ -380,23 +408,23 @@
             <div id="view-rpg" class="view-section">
                 <div class="mb-12">
                     <h2 class="text-3xl font-bold text-on-surface">RPG Pets</h2>
-                    <p class="text-on-surface-variant">Estadísticas globales del sistema de mascotas</p>
+                    <p class="text-on-surface-variant">Estadísticas reales del sistema de mascotas en este servidor</p>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-md mb-lg">
                     <div class="glass-card p-lg rounded-2xl text-center">
                         <span class="material-symbols-outlined text-primary text-4xl mb-2">pets</span>
-                        <p class="text-outline">Mascotas Totales</p>
-                        <h4 class="text-2xl font-bold">1,240</h4>
+                        <p class="text-outline">Mascotas en el Servidor</p>
+                        <h4 class="text-2xl font-bold" id="rpg-total-pets">0</h4>
                     </div>
                     <div class="glass-card p-lg rounded-2xl text-center">
                         <span class="material-symbols-outlined text-secondary-fixed text-4xl mb-2">trending_up</span>
                         <p class="text-outline">Nivel Promedio</p>
-                        <h4 class="text-2xl font-bold">LVL 24</h4>
+                        <h4 class="text-2xl font-bold" id="rpg-avg-level">LVL 0</h4>
                     </div>
                     <div class="glass-card p-lg rounded-2xl text-center">
-                        <span class="material-symbols-outlined text-tertiary text-4xl mb-2">swords</span>
-                        <p class="text-outline">Batallas Hoy</p>
-                        <h4 class="text-2xl font-bold">452</h4>
+                        <span class="material-symbols-outlined text-tertiary text-4xl mb-2">monitoring</span>
+                        <p class="text-outline">Actividad</p>
+                        <h4 class="text-2xl font-bold">ALTA</h4>
                     </div>
                 </div>
                 <div class="glass-card p-lg rounded-3xl">
@@ -413,15 +441,15 @@
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-md mb-lg">
                     <div class="glass-card p-lg rounded-3xl">
-                        <h3 class="text-xl font-bold mb-4">Estado del Mercado</h3>
+                        <h3 class="text-xl font-bold mb-4">Estado del Servidor</h3>
                         <div class="space-y-4">
                             <div class="flex justify-between items-center p-4 bg-surface-container rounded-xl">
                                 <span>Moneda en Circulación</span>
-                                <span class="font-bold text-secondary-fixed">4.2B POS</span>
+                                <span class="font-bold text-secondary-fixed" id="eco-total-bal">0 POS</span>
                             </div>
                             <div class="flex justify-between items-center p-4 bg-surface-container rounded-xl">
-                                <span>Inflación Estimada</span>
-                                <span class="font-bold text-emerald-400">-0.2%</span>
+                                <span>Balance Promedio</span>
+                                <span class="font-bold text-emerald-400" id="eco-avg-bal">0 POS</span>
                             </div>
                         </div>
                     </div>
@@ -520,7 +548,7 @@
                 if (response.ok) {
                     guilds = await response.json();
                     const selector = document.getElementById('server-selector');
-                    selector.innerHTML = '<option value="">Selecciona un servidor</option>';
+                    selector.innerHTML = '<option value="">Seleccionar servidor...</option>';
                     guilds.forEach(g => {
                         const opt = document.createElement('option');
                         opt.value = g.id;
@@ -593,6 +621,14 @@
                     // Rellenar selects de moderación
                     fillSelects(data.channels, data.roles, data.config);
                     renderModules(data);
+
+                    // ACTUALIZAR ESTADÍSTICAS REALES (NUEVO)
+                    if (data.stats) {
+                        document.getElementById('rpg-total-pets').innerText = data.stats.pets.total;
+                        document.getElementById('rpg-avg-level').innerText = `LVL ${data.stats.pets.avg_level}`;
+                        document.getElementById('eco-total-bal').innerText = `${data.stats.economy.total_bal.toLocaleString()} POS`;
+                        document.getElementById('eco-avg-bal').innerText = `${data.stats.economy.avg_bal.toLocaleString()} POS`;
+                    }
                 }
             } catch (err) { console.error(err); }
             
@@ -658,6 +694,12 @@
             document.getElementById('guild-icon-placeholder').classList.remove('hidden');
             document.getElementById('guild-icon-placeholder').innerText = 'P';
             document.getElementById('modules-grid').innerHTML = '<div class="col-span-full text-center py-12 text-outline">Selecciona un servidor para ver los módulos</div>';
+            
+            // Reset stats
+            document.getElementById('rpg-total-pets').innerText = '0';
+            document.getElementById('rpg-avg-level').innerText = 'LVL 0';
+            document.getElementById('eco-total-bal').innerText = '0 POS';
+            document.getElementById('eco-avg-bal').innerText = '0 POS';
         }
 
         function renderModules(data) {
