@@ -1,94 +1,94 @@
 <!DOCTYPE html>
-<html lang="es">
+<html class="dark" lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | PoseidonUI Dashboard</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>PoseidonUI - Acceso al Olimpo</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#cfbcff",
+                        "primary-container": "#6200ea",
+                        "surface": "#1a0c2c",
+                        "surface-container": "#271839",
+                        "on-surface": "#eedbff",
+                        "on-surface-variant": "#cbc3d9",
+                        "outline": "#958da2",
+                        "error": "#ffb4ab"
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        .login-container {
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #0a0e14;
+        body {
+            background-color: #1a0c2c;
+            color: #eedbff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow: hidden;
         }
-        .login-card {
-            background: #151d27;
-            padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            width: 100%;
-            max-width: 400px;
-            border: 1px solid #1e2a3a;
+        .glass-card {
+            background: rgba(39, 24, 57, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(207, 188, 255, 0.1);
         }
-        .login-card h2 {
-            text-align: center;
-            color: #fff;
-            margin-bottom: 30px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        .form-group label {
-            display: block;
-            color: #a0aec0;
-            margin-bottom: 8px;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            background: #0a0e14;
-            border: 1px solid #2d3748;
-            color: #fff;
-            border-radius: 8px;
-            outline: none;
-        }
-        .form-group input:focus {
-            border-color: #3498db;
-        }
-        .login-btn {
-            width: 100%;
-            padding: 12px;
-            background: #3498db;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background 0.3s;
-        }
-        .login-btn:hover {
-            background: #2980b9;
-        }
-        .error-msg {
-            color: #e74c3c;
-            text-align: center;
-            margin-top: 15px;
-            display: none;
+        .purple-glow {
+            box-shadow: 0 0 30px rgba(98, 0, 234, 0.2);
         }
     </style>
 </head>
-<body>
-    <div class="login-container">
-        <div class="login-card">
-            <h2>🔱 Poseidon Dashboard</h2>
-            <div class="form-group">
-                <label>Usuario</label>
-                <input type="text" id="username" placeholder="admin">
+<body class="min-h-screen flex items-center justify-center p-6">
+    <div class="absolute inset-0 z-0">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(98,0,234,0.15)_0%,_transparent_70%)]"></div>
+    </div>
+
+    <div class="relative z-10 w-full max-w-md">
+        <div class="glass-card rounded-3xl p-8 purple-glow">
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center gap-3 mb-4">
+                    <img alt="PoseidonUI Logo" class="h-10 w-auto" src="https://lh3.googleusercontent.com/aida/AP1WRLtV0Yc1NwwDmqsm1pRMrhJeW2exGBxpkdPPROy-aKCXp7I3tgeXjpwwpnpT4FkhA-EKt9v_21OYjqVtisosSiy5_3pMdBKiuti7E7HLiIEclswFn0iVL5f6yXu8WFNxkd10HPqBzJhG11lXMOxJbp4ZF-uvFQp8NgeJNh5ATThDmvceFVR2g4qdGPh9istkMwQhSeazVZzZTwiQ97QGIM_aIaSKc5Luobq0cIdgza1SP71VwIOZGIUK0BZF"/>
+                    <span class="text-2xl font-black text-primary tracking-tight">PoseidonUI</span>
+                </div>
+                <h1 class="text-2xl font-bold text-on-surface">Bienvenido al Olimpo</h1>
+                <p class="text-on-surface-variant mt-2">Identifícate para gestionar tu servidor</p>
             </div>
-            <div class="form-group">
-                <label>Contraseña</label>
-                <input type="password" id="password" placeholder="••••••••">
+
+            <form onsubmit="doLogin(event)" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-semibold text-on-surface-variant mb-2" for="username">Usuario</label>
+                    <input class="w-full bg-surface-container border border-outline/20 rounded-xl px-4 py-3 text-on-surface focus:outline-none focus:ring-2 focus:ring-primary-container transition-all" id="username" placeholder="Tu nombre de usuario" required="" type="text"/>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-on-surface-variant mb-2" for="password">Contraseña</label>
+                    <input class="w-full bg-surface-container border border-outline/20 rounded-xl px-4 py-3 text-on-surface focus:outline-none focus:ring-2 focus:ring-primary-container transition-all" id="password" placeholder="••••••••" required="" type="password"/>
+                </div>
+
+                <div id="error" class="hidden text-error text-sm text-center bg-error/10 py-2 rounded-lg border border-error/20">
+                    Credenciales incorrectas
+                </div>
+
+                <button class="w-full bg-primary-container text-white py-4 rounded-xl font-bold hover:scale-[1.02] transition-all active:scale-95 shadow-lg shadow-primary-container/20" type="submit">
+                    Entrar al Olimpo
+                </button>
+            </form>
+
+            <div class="mt-8 pt-6 border-t border-outline/10 text-center">
+                <a href="index.html" class="text-on-surface-variant hover:text-primary transition-colors text-sm flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-sm">arrow_back</span>
+                    Volver al inicio
+                </a>
             </div>
-            <button class="login-btn" onclick="doLogin()">Entrar al Olimpo</button>
-            <p id="error" class="error-msg">Credenciales incorrectas</p>
         </div>
     </div>
 
     <script>
-        // Intentar obtener URL guardada o pedirla
+        // Lógica de Login (Portado de la versión anterior)
         let BOT_URL = localStorage.getItem('poseidon_bot_url') || '';
         
         if (!BOT_URL && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
@@ -97,9 +97,13 @@
                 BOT_URL = inputUrl.replace(/\/$/, "");
                 localStorage.setItem('poseidon_bot_url', BOT_URL);
             }
+        } else if (!BOT_URL) {
+            // Localhost fallback
+            BOT_URL = window.location.origin;
         }
 
-        async function doLogin() {
+        async function doLogin(event) {
+            event.preventDefault();
             const user = document.getElementById('username').value;
             const pass = document.getElementById('password').value;
             const error = document.getElementById('error');
@@ -114,12 +118,12 @@
                 if (response.ok) {
                     const data = await response.json();
                     localStorage.setItem('poseidon_token', data.token);
-                    window.location.href = 'admin.html'; // Redirigir al panel real
+                    window.location.href = 'admin.html';
                 } else {
-                    error.style.display = 'block';
+                    error.classList.remove('hidden');
                 }
             } catch (err) {
-                error.style.display = 'block';
+                error.classList.remove('hidden');
                 error.innerText = 'Error de conexión con el bot';
             }
         }
