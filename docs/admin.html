@@ -178,13 +178,18 @@
         }
 
         input[type="text"], input[type="password"], select, textarea {
-            background: rgba(35, 20, 53, 0.6);
-            border: 1px solid rgba(207, 188, 255, 0.1);
-            color: #eedbff;
+            background-color: #271839 !important;
+            border: 1px solid rgba(207, 188, 255, 0.2) !important;
+            color: #eedbff !important;
             border-radius: 0.75rem;
             padding: 0.75rem 1rem;
             width: 100%;
             transition: all 0.3s;
+            appearance: none;
+        }
+        select option {
+            background-color: #1a0c2c;
+            color: #eedbff;
         }
         input:focus, select:focus, textarea:focus {
             outline: none;
@@ -213,9 +218,9 @@
 
         /* Fix for bugged selector */
         #server-selector {
-            background-color: rgba(39, 24, 57, 0.8);
-            border: 1px solid rgba(207, 188, 255, 0.2);
-            color: #eedbff;
+            background-color: #271839 !important;
+            border: 1px solid rgba(207, 188, 255, 0.3) !important;
+            color: #eedbff !important;
             padding-left: 2.5rem;
             border-radius: 9999px;
             cursor: pointer;
