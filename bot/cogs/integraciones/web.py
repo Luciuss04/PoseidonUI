@@ -53,7 +53,7 @@ class WebServer(commands.Cog):
 
             # Crear el nuevo usuario vinculado a este servidor
             is_global = False
-            owner_id = getattr(self.bot.config, "OWNER_ID", None)
+            owner_id = os.getenv("OWNER_ID")
             if owner_id and str(interaction.user.id) == str(owner_id):
                 is_global = True
 
