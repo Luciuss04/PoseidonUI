@@ -54,12 +54,12 @@ class HotReload(commands.Cog):
         except Exception:
             pass
 
-    cog_group = app_commands.Group(name="cog", description="Gestión de cogs (hot-reload)")
+    cogs_group = app_commands.Group(name="cog", description="Gestión de cogs (hot-reload)")
 
-    @cog_group.command(name="list", description="Lista cogs cargados y módulos permitidos")
+    @cogs_group.command(name="list", description="Lista cogs cargados y módulos permitidos")
     @app_commands.guild_only()
     @app_commands.checks.has_permissions(administrator=True)
-    async def cog_list(self, interaction: discord.Interaction):
+    async def cogs_list(self, interaction: discord.Interaction):
         allowed = getattr(self.bot, "allowed_cogs", None)
         if not isinstance(allowed, list):
             allowed = []
@@ -80,11 +80,11 @@ class HotReload(commands.Cog):
             return [str(x) for x in allowed]
         return sorted({cog.__module__ for cog in self.bot.cogs.values()})
 
-    @cog_group.command(name="reload", description="Recarga un cog por módulo")
+    @cogs_group.command(name="reload", description="Recarga un cog por módulo")
     @app_commands.guild_only()
     @app_commands.checks.has_permissions(administrator=True)
     @app_commands.describe(modulo="Ej: bot.cogs.comunidad.musica", sync="guild|global")
-    async def cog_reload(
+    async def cogs_reload(
         self,
         interaction: discord.Interaction,
         modulo: str,
