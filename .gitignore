@@ -1,0 +1,6 @@
+# Ignorar TODO excepto la web
+*
+!docs/
+!docs/*
+!.gitignore
+!README.md

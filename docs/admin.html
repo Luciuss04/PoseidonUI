@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>PoseidonUI - Centro de Comando</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔱</text></svg>">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary-container": "#cfbcff",
+                    "surface-variant": "#3d2e50",
+                    "surface-container-highest": "#3d2e50",
+                    "surface-container-high": "#322344",
+                    "tertiary": "#cdbdff",
+                    "on-error": "#690005",
+                    "error-container": "#93000a",
+                    "outline-variant": "#494456",
+                    "primary": "#cfbcff",
+                    "on-tertiary": "#361288",
+                    "inverse-primary": "#6e25f6",
+                    "secondary-container": "#ffdb3c",
+                    "primary-container": "#6200ea",
+                    "tertiary-fixed-dim": "#cdbdff",
+                    "on-surface": "#eedbff",
+                    "tertiary-container": "#5a3eab",
+                    "on-tertiary-fixed-variant": "#4d309f",
+                    "secondary-fixed": "#ffe16d",
+                    "background": "#1a0c2c",
+                    "secondary-fixed-dim": "#e9c400",
+                    "on-background": "#eedbff",
+                    "inverse-on-surface": "#39294b",
+                    "surface": "#1a0c2c",
+                    "primary-fixed-dim": "#cfbcff",
+                    "on-secondary-container": "#725f00",
+                    "on-tertiary-fixed": "#20005f",
+                    "inverse-surface": "#eedbff",
+                    "primary-fixed": "#e9ddff",
+                    "surface-container-low": "#231435",
+                    "outline": "#958da2",
+                    "on-primary": "#3a0092",
+                    "surface-container": "#271839",
+                    "surface-tint": "#cfbcff",
+                    "on-secondary-fixed": "#221b00",
+                    "on-error-container": "#ffdad6",
+                    "surface-dim": "#1a0c2c",
+                    "on-secondary-fixed-variant": "#544600",
+                    "error": "#ffb4ab",
+                    "tertiary-fixed": "#e8deff",
+                    "surface-bright": "#423255",
+                    "secondary": "#fff9ef",
+                    "surface-container-lowest": "#150627",
+                    "on-tertiary-container": "#cdbdff",
+                    "on-primary-fixed": "#22005d",
+                    "on-secondary": "#3a3000",
+                    "on-surface-variant": "#cbc3d9",
+                    "on-primary-fixed-variant": "#5400cc"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-desktop": "64px",
+                    "xl": "80px",
+                    "lg": "48px",
+                    "md": "24px",
+                    "xs": "4px",
+                    "gutter": "24px",
+                    "sm": "12px",
+                    "margin-mobile": "16px",
+                    "base": "8px"
+            },
+            "fontFamily": {
+                    "headline-lg-mobile": ["Plus Jakarta Sans"],
+                    "body-md": ["Plus Jakarta Sans"],
+                    "label-md": ["Plus Jakarta Sans"],
+                    "headline-lg": ["Plus Jakarta Sans"],
+                    "body-sm": ["Plus Jakarta Sans"],
+                    "headline-sm": ["Plus Jakarta Sans"],
+                    "body-lg": ["Plus Jakarta Sans"],
+                    "headline-md": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+                    "headline-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-lg": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-sm": ["22px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-md": ["28px", {"lineHeight": "36px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+        body {
+            background-color: #1a0c2c;
+            color: #eedbff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 10% 10%, rgba(98, 0, 234, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 90% 90%, rgba(233, 196, 0, 0.08) 0%, transparent 40%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .glass-card {
+            background: rgba(39, 24, 57, 0.55);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(207, 188, 255, 0.15);
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(233, 196, 0, 0.4); /* Metallic Gold Hint */
+            background: rgba(39, 24, 57, 0.7);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px -15px rgba(110, 37, 246, 0.35);
+        }
+
+        .gold-accent {
+            background: linear-gradient(135deg, #ffe16d 0%, #e9c400 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status-glow {
+            box-shadow: 0 0 15px rgba(207, 188, 255, 0.5);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #494456, #6200ea);
+            border-radius: 10px;
+        }
+
+        .side-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: #cbc3d9;
+            border-radius: 0.75rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .side-nav-item:hover {
+            background: rgba(61, 46, 80, 0.5);
+            color: #eedbff;
+            transform: translateX(4px);
+        }
+        .side-nav-active {
+            background: linear-gradient(135deg, #6200ea 0%, #5a3eab 100%);
+            color: #cfbcff;
+            font-weight: 700;
+            box-shadow: 0 10px 30px -10px rgba(98, 0, 234, 0.5);
+        }
+        
+        #loading-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: #1a0c2c; display: flex; align-items: center;
+            justify-content: center; z-index: 1000;
+        }
+
+        .view-section {
+            display: none;
+        }
+        .view-section.active {
+            display: block;
+        }
+
+        input[type="text"], input[type="password"], select, textarea {
+            background-color: #271839 !important;
+            border: 1px solid rgba(207, 188, 255, 0.25) !important;
+            color: #eedbff !important;
+            border-radius: 0.875rem;
+            padding: 0.875rem 1.125rem;
+            width: 100%;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            appearance: none;
+        }
+        select option {
+            background-color: #1a0c2c;
+            color: #eedbff;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #6200ea;
+            box-shadow: 0 0 0 4px rgba(98, 0, 234, 0.15), 0 0 15px rgba(98, 0, 234, 0.3);
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #cbc3d9;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #6200ea 0%, #5a3eab 100%);
+            color: white;
+            font-weight: 700;
+            padding: 0.875rem 1.75rem;
+            border-radius: 0.875rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-primary:hover {
+            transform: scale(1.03) translateY(-2px);
+            box-shadow: 0 10px 30px -10px rgba(98, 0, 234, 0.5);
+        }
+
+        /* Fix for bugged selector */
+        #server-selector {
+            background-color: #271839 !important;
+            border: 1px solid rgba(207, 188, 255, 0.35) !important;
+            color: #eedbff !important;
+            padding-left: 2.75rem;
+            border-radius: 9999px;
+            cursor: pointer;
+            height: 2.75rem;
+            line-height: 1;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #server-selector:hover {
+            border-color: #6200ea;
+            box-shadow: 0 0 0 4px rgba(98, 0, 234, 0.1);
+        }
+        .selector-container {
+            position: relative;
+            width: 19rem;
+        }
+        .selector-icon {
+            position: absolute;
+            left: 0.875rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #cbc3d9;
+            pointer-events: none;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background">
+    <div id="loading-overlay">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+    </div>
+
+    <!-- SideNavBar -->
+    <aside class="h-screen w-64 fixed left-0 top-0 bg-surface-container-low backdrop-blur-xl border-r border-outline-variant/20 shadow-md flex flex-col p-md gap-sm z-50">
+        <div class="flex items-center gap-sm mb-lg">
+            <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" fill="#cfbcff"/>
+            </svg>
+            <div>
+                <h1 class="font-headline-md text-headline-sm font-bold text-primary">PoseidonUI</h1>
+                <p class="font-label-md text-[10px] uppercase tracking-widest text-outline">Premium Bot Control</p>
+            </div>
+        </div>
+        <nav class="flex-1 flex flex-col gap-xs" id="sidebar-nav">
+            <button onclick="showView('overview')" class="side-nav-item side-nav-active" data-view="overview">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span class="font-body-md">Overview</span>
+            </button>
+            <button onclick="showView('welcome')" class="side-nav-item" data-view="welcome">
+                <span class="material-symbols-outlined">waving_hand</span>
+                <span class="font-body-md">Bienvenida</span>
+            </button>
+            <button onclick="showView('automod')" class="side-nav-item" data-view="automod">
+                <span class="material-symbols-outlined">shield</span>
+                <span class="font-body-md">AutoMod</span>
+            </button>
+            <button onclick="showView('oracle')" class="side-nav-item" data-view="oracle">
+                <span class="material-symbols-outlined">psychology</span>
+                <span class="font-body-md">Oráculos</span>
+            </button>
+            <button onclick="showView('terms')" class="side-nav-item" data-view="terms">
+                <span class="material-symbols-outlined">description</span>
+                <span class="font-body-md">Términos</span>
+            </button>
+            <button onclick="showView('modules')" class="side-nav-item" data-view="modules">
+                <span class="material-symbols-outlined">extension</span>
+                <span class="font-body-md">Módulos</span>
+            </button>
+            <button onclick="showView('rpg')" class="side-nav-item" data-view="rpg">
+                <span class="material-symbols-outlined">pets</span>
+                <span class="font-body-md">RPG Pets</span>
+            </button>
+            <button onclick="showView('economy')" class="side-nav-item" data-view="economy">
+                <span class="material-symbols-outlined">payments</span>
+                <span class="font-body-md">Economy</span>
+            </button>
+            <button onclick="showView('music')" class="side-nav-item" data-view="music">
+                <span class="material-symbols-outlined">music_note</span>
+                <span class="font-body-md">Music</span>
+            </button>
+            <button onclick="showView('moderation')" class="side-nav-item" data-view="moderation">
+                <span class="material-symbols-outlined">gavel</span>
+                <span class="font-body-md">Moderation</span>
+            </button>
+            <button onclick="showView('streaming')" class="side-nav-item" data-view="streaming">
+                <span class="material-symbols-outlined">live_tv</span>
+                <span class="font-body-md">Streaming</span>
+            </button>
+        </nav>
+        <div class="mt-auto flex flex-col gap-xs pt-lg border-t border-outline-variant/10">
+            <button onclick="logout()" class="side-nav-item text-error hover:bg-error/10">
+                <span class="material-symbols-outlined">logout</span>
+                <span class="font-body-md">Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="ml-64 min-h-screen">
+        <!-- TopNavBar -->
+        <header class="fixed top-0 right-0 w-[calc(100%-256px)] h-16 bg-surface/80 backdrop-blur-md border-b border-outline-variant/10 shadow-sm flex justify-between items-center px-margin-desktop z-40">
+            <div class="flex items-center gap-md flex-1">
+                <div class="selector-container">
+                    <span class="material-symbols-outlined selector-icon">dns</span>
+                    <select id="server-selector" onchange="onServerChange()" class="w-full">
+                        <option value="">Seleccionar servidor...</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex items-center gap-md">
+                <div class="flex items-center gap-sm border-l border-outline-variant/20 pl-md">
+                    <img id="user-avatar" alt="User Avatar" class="w-8 h-8 rounded-full border border-primary/30" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9UOxWgF9GI8gei82VV2zXmIsGX-7nZEf8hlgTvgBxf-r_nDUYJt3AYobyUerOZU4mfBxYX2LRton6mQ4TcL5jODUm_J4ddAqBFpJ6gCf3ER3B-2nqBuaBv5hBEjqkxv9lUvcTuoZ5Z47macweE83lmqvONa7Gmk9oamADlB5xhtqOgKC-lfRyUkBPnsvOhfH6TAbrNT0ZkMPnRXQ90qQDuzBw9fNK7SykH821Otr0zM7lXhLxow6gANymX0UYCiRGcmzVM7tVlOr3"/>
+                    <span id="user-name" class="font-label-md text-on-surface hidden lg:block">Admin. Poseidon</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Canvas -->
+        <div class="pt-24 px-margin-desktop pb-xl max-w-7xl mx-auto">
+            
+            <!-- VIEW: OVERVIEW -->
+            <div id="view-overview" class="view-section active">
+                <section class="mb-lg flex flex-col md:flex-row md:items-end justify-between gap-md">
+                    <div>
+                        <h2 class="font-headline-lg text-headline-lg text-on-surface mb-xs">Bienvenido al Olimpo, <span class="gold-accent">Poseidon</span></h2>
+                        <div class="flex items-center gap-sm">
+                            <div class="flex items-center gap-xs px-sm py-xs bg-emerald-500/10 text-emerald-400 rounded-full text-label-md border border-emerald-500/20">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                Sistemas Operativos
+                            </div>
+                            <span class="text-outline font-body-sm">•</span>
+                            <p class="text-outline font-body-sm" id="bot-version">V.4.2.0-STABLE | Latencia: ...</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-sm">
+                        <button onclick="rebootBot()" class="flex items-center gap-xs px-md py-sm bg-surface-container-high text-on-surface font-label-md rounded-lg border border-outline-variant/20 hover:bg-surface-container-highest transition-all">
+                            <span class="material-symbols-outlined text-[18px]">refresh</span> Reiniciar Bot
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Statistics Grid -->
+                <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-md mb-lg">
+                    <div class="glass-card p-md rounded-xl relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
+                        <div class="flex items-center justify-between mb-sm">
+                            <span class="material-symbols-outlined text-primary">dns</span>
+                        </div>
+                        <p class="text-outline font-label-md mb-xs">Servidores Activos</p>
+                        <h3 class="font-headline-md text-headline-md text-on-surface" id="stat-guilds">...</h3>
+                    </div>
+                    <div class="glass-card p-md rounded-xl relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-secondary-fixed/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
+                        <div class="flex items-center justify-between mb-sm">
+                            <span class="material-symbols-outlined text-secondary-fixed">group</span>
+                        </div>
+                        <p class="text-outline font-label-md mb-xs">Usuarios Totales</p>
+                        <h3 class="font-headline-md text-headline-md text-on-surface" id="stat-users">...</h3>
+                    </div>
+                    <div class="glass-card p-md rounded-xl relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-tertiary/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
+                        <div class="flex items-center justify-between mb-sm">
+                            <span class="material-symbols-outlined text-tertiary">bolt</span>
+                        </div>
+                        <p class="text-outline font-label-md mb-xs">Uptime Global</p>
+                        <h3 class="font-headline-md text-headline-md text-on-surface" id="stat-uptime">...</h3>
+                    </div>
+                    <div class="glass-card p-md rounded-xl relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-error/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
+                        <div class="flex items-center justify-between mb-sm">
+                            <span class="material-symbols-outlined text-error">speed</span>
+                        </div>
+                        <p class="text-outline font-label-md mb-xs">Latencia API</p>
+                        <h3 class="font-headline-md text-headline-md text-on-surface" id="stat-ping">...<span class="text-body-sm text-outline">ms</span></h3>
+                    </div>
+                </section>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-md">
+                    <div class="lg:col-span-2">
+                        <div class="flex items-center justify-between mb-xs">
+                            <h4 class="font-headline-sm text-headline-sm text-on-surface">Estado del Servidor Actual</h4>
+                        </div>
+                        <div id="guild-status-card" class="glass-card p-lg rounded-2xl flex items-center gap-lg">
+                            <img id="guild-icon" src="" class="w-20 h-20 rounded-2xl border border-primary/20 hidden" alt="Icon">
+                            <div id="guild-icon-placeholder" class="w-20 h-20 rounded-2xl bg-primary/20 flex items-center justify-center text-primary text-3xl font-bold">P</div>
+                            <div>
+                                <h3 id="guild-name" class="text-2xl font-bold text-on-surface">Selecciona un servidor</h3>
+                                <p id="guild-members" class="text-on-surface-variant">Para gestionar sus módulos</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-md">
+                        <h4 class="font-headline-sm text-headline-sm text-on-surface">Actividad en Vivo</h4>
+                        <div class="glass-card rounded-xl p-md h-[300px] overflow-hidden flex flex-col">
+                            <div class="custom-scrollbar flex-1 overflow-y-auto space-y-sm pr-sm" id="logs-container">
+                                <p class="text-outline text-center py-4 text-sm">Cargando actividad...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: MODULES -->
+            <div id="view-modules" class="view-section">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-on-surface">Gestión de Módulos</h2>
+                    <p class="text-on-surface-variant">Activa o desactiva las funciones divinas para tu servidor</p>
+                </div>
+                <div id="modules-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-md">
+                    <!-- Modules rendered by JS -->
+                </div>
+            </div>
+
+            <!-- VIEW: RPG -->
+            <div id="view-rpg" class="view-section">
+                <div class="mb-12">
+                    <h2 class="text-3xl font-bold text-on-surface">RPG Pets</h2>
+                    <p class="text-on-surface-variant">Estadísticas reales del sistema de mascotas en este servidor</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-md mb-lg">
+                    <div class="glass-card p-lg rounded-2xl text-center">
+                        <span class="material-symbols-outlined text-primary text-4xl mb-2">pets</span>
+                        <p class="text-outline">Mascotas en el Servidor</p>
+                        <h4 class="text-2xl font-bold" id="rpg-total-pets">0</h4>
+                    </div>
+                    <div class="glass-card p-lg rounded-2xl text-center">
+                        <span class="material-symbols-outlined text-secondary-fixed text-4xl mb-2">trending_up</span>
+                        <p class="text-outline">Nivel Promedio</p>
+                        <h4 class="text-2xl font-bold" id="rpg-avg-level">LVL 0</h4>
+                    </div>
+                    <div class="glass-card p-lg rounded-2xl text-center">
+                        <span class="material-symbols-outlined text-tertiary text-4xl mb-2">monitoring</span>
+                        <p class="text-outline">Actividad</p>
+                        <h4 class="text-2xl font-bold">ALTA</h4>
+                    </div>
+                </div>
+                <div class="glass-card p-lg rounded-3xl">
+                    <h3 class="text-xl font-bold mb-6">Configuración de Mascotas</h3>
+                    <p class="text-on-surface-variant italic">Próximamente: Ajustes de probabilidad de captura y multiplicadores de XP.</p>
+                </div>
+            </div>
+
+            <!-- VIEW: ECONOMY -->
+            <div id="view-economy" class="view-section">
+                <div class="mb-12">
+                    <h2 class="text-3xl font-bold text-on-surface">Economía Global</h2>
+                    <p class="text-on-surface-variant">Gestión financiera y mercado del Olimpo</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-md mb-lg">
+                    <div class="glass-card p-lg rounded-3xl">
+                        <h3 class="text-xl font-bold mb-4">Estado del Servidor</h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center p-4 bg-surface-container rounded-xl">
+                                <span>Moneda en Circulación</span>
+                                <span class="font-bold text-secondary-fixed" id="eco-total-bal">0 POS</span>
+                            </div>
+                            <div class="flex justify-between items-center p-4 bg-surface-container rounded-xl">
+                                <span>Balance Promedio</span>
+                                <span class="font-bold text-emerald-400" id="eco-avg-bal">0 POS</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="glass-card p-lg rounded-3xl">
+                        <h3 class="text-xl font-bold mb-4">Ajustes Rápidos</h3>
+                        <div class="space-y-4">
+                            <label>Multiplicador de Salario</label>
+                            <input type="text" value="1.0x" disabled class="opacity-50">
+                            <button class="btn-primary w-full opacity-50 cursor-not-allowed">Guardar (Próximamente)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: MUSIC -->
+            <div id="view-music" class="view-section">
+                <div class="mb-12">
+                    <h2 class="text-3xl font-bold text-on-surface">Música Hi-Fi</h2>
+                    <p class="text-on-surface-variant">Control de reproducciones y estado de audio</p>
+                </div>
+                <div class="glass-card p-xl rounded-3xl text-center border-dashed border-2 border-outline/20">
+                    <span class="material-symbols-outlined text-6xl text-tertiary mb-4 animate-pulse">music_note</span>
+                    <h3 class="text-2xl font-bold">Panel de Reproducción</h3>
+                    <p class="text-on-surface-variant mt-4">Conéctate a un canal de voz para ver los controles en tiempo real.</p>
+                </div>
+            </div>
+
+            <!-- VIEW: MODERATION -->
+            <div id="view-moderation" class="view-section">
+                <div class="mb-12">
+                    <h2 class="text-3xl font-bold text-on-surface">Moderación Guardian</h2>
+                    <p class="text-on-surface-variant">Configuración de seguridad y canales de log</p>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-md">
+                    <div class="glass-card p-lg rounded-3xl">
+                        <h3 class="text-xl font-bold mb-6">Canales de Sistema</h3>
+                        <form id="moderation-form" class="space-y-4" onsubmit="saveModerationSettings(event)">
+                            <div>
+                                <label>Canal de Logs</label>
+                                <select id="select-logs-channel" class="channel-select"></select>
+                            </div>
+                            <div>
+                                <label>Canal de Alertas</label>
+                                <select id="select-alerts-channel" class="channel-select"></select>
+                            </div>
+                            <div>
+                                <label>Canal de Confesiones</label>
+                                <select id="select-confesiones-channel" class="channel-select"></select>
+                            </div>
+                            <button type="submit" class="btn-primary w-full mt-4">Guardar Canales</button>
+                        </form>
+                    </div>
+                    <div class="glass-card p-lg rounded-3xl">
+                        <h3 class="text-xl font-bold mb-6">Roles de Staff</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label>Rol de Administración</label>
+                                <select id="select-staff-role" class="role-select"></select>
+                            </div>
+                            <div class="p-4 bg-error/10 border border-error/20 rounded-xl">
+                                <p class="text-xs text-error font-bold flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-sm">warning</span>
+                                    ATENCIÓN
+                                </p>
+                                <p class="text-xs text-on-surface-variant mt-1">Los usuarios con este rol podrán gestionar el bot en este servidor.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: STREAMING -->
+            <div id="view-streaming" class="view-section">
+                <div class="mb-12">
+                    <h2 class="text-3xl font-bold text-on-surface">Notificaciones de Streaming</h2>
+                    <p class="text-on-surface-variant">Aviso automático cuando alguien empiece un directo</p>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-md">
+                    <div class="glass-card p-lg rounded-3xl">
+                        <h3 class="text-xl font-bold mb-6">Configuración General</h3>
+                        <form id="streaming-form" class="space-y-4" onsubmit="saveStreamingSettings(event)">
+                            <div class="flex items-center justify-between">
+                                <label>Activar Notificaciones</label>
+                                <input type="checkbox" id="streaming-enabled" class="w-5 h-5">
+                            </div>
+                            <div>
+                                <label>Canal de Notificaciones</label>
+                                <select id="select-streaming-channel" class="channel-select"></select>
+                            </div>
+                            <div>
+                                <label>Mensaje Personalizado</label>
+                                <input type="text" id="streaming-message" placeholder="¡@everyone **{user}** está en directo en {platform}! 🔴" class="w-full">
+                                <p class="text-xs text-outline mt-1">Variables: {user}, {platform}, {title}, {url}</p>
+                            </div>
+                            <button type="submit" class="btn-primary w-full mt-4">Guardar Configuración</button>
+                        </form>
+                    </div>
+                    <div class="glass-card p-lg rounded-3xl">
+                        <h3 class="text-xl font-bold mb-6">¿Quién recibirá notificación?</h3>
+                        <p class="text-on-surface-variant text-sm mb-4">Actualmente, el bot avisará a todos los miembros del servidor que empiecen un directo.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: WELCOME/FAREWELL -->
+            <div id="view-welcome" class="view-section">
+                <div class="mb-12">
+                    <h2 class="text-3xl font-bold text-on-surface">Bienvenida y Despedida</h2>
+                    <p class="text-on-surface-variant">Configura los mensajes de cuando un miembro entra o sale del servidor</p>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-md">
+                    <div class="glass-card p-lg rounded-3xl">
+                        <h3 class="text-xl font-bold mb-6">Bienvenida</h3>
+                        <form id="welcome-form" class="space-y-4" onsubmit="saveWelcomeSettings(event)">
+                            <div class="flex items-center justify-between">
+                                <label>Activar Bienvenida</label>
+                                <input type="checkbox" id="welcome-enabled" class="w-5 h-5">
+                            </div>
+                            <div>
+                                <label>Canal de Bienvenida</label>
+                                <select id="select-welcome-channel" class="channel-select"></select>
+                            </div>
+                            <div>
+                                <label>Título del Mensaje</label>
+                                <input type="text" id="welcome-title" placeholder="¡Bienvenido {user}!" class="w-full">
+                                <p class="text-xs text-outline mt-1">Variables: {user}, {username}, {guild}, {member_count}</p>
+                            </div>
+                            <div>
+                                <label>Descripción del Mensaje</label>
+                                <textarea id="welcome-description" placeholder="¡Bienvenido a {guild}! Ahora somos {member_count} miembros!" rows="3" class="w-full"></textarea>
+                            </div>
+                            <button type="submit" class="btn-primary w-full mt-4">Guardar Bienvenida</button>
+                        </form>
+                    </div>
+                    <div class="glass-card p-lg rounded-3xl">
+                        <h3 class="text-xl font-bold mb-6">Despedida</h3>
+                        <form id="farewell-form" class="space-y-4" onsubmit="saveFarewellSettings(event)">
+                            <div class="flex items-center justify-between">
+                                <label>Activar Despedida</label>
+                                <input type="checkbox" id="farewell-enabled" class="w-5 h-5">
+                            </div>
+                            <div>
+                                <label>Canal de Despedida</label>
+                                <select id="select-farewell-channel" class="channel-select"></select>
+                            </div>
+                            <div>
+                                <label>Título del Mensaje</label>
+                                <input type="text" id="farewell-title" placeholder="¡Adiós {username}!" class="w-full">
+                                <p class="text-xs text-outline mt-1">Variables: {user}, {username}, {guild}, {member_count}</p>
+                            </div>
+                            <div>
+                                <label>Descripción del Mensaje</label>
+                                <textarea id="farewell-description" placeholder="¡{username} ha salido de {guild}!" rows="3" class="w-full"></textarea>
+                            </div>
+                            <button type="submit" class="btn-primary w-full mt-4">Guardar Despedida</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: AUTOMOD -->
+            <div id="view-automod" class="view-section">
+                <div class="mb-12">
+                    <h2 class="text-3xl font-bold text-on-surface">AutoMod</h2>
+                    <p class="text-on-surface-variant">Configura filtros de palabras y mayúsculas</p>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-md">
+                    <div class="glass-card p-lg rounded-3xl">
+                        <h3 class="text-xl font-bold mb-6">Filtros Generales</h3>
+                        <form id="automod-form" class="space-y-4" onsubmit="saveAutoModSettings(event)">
+                            <div class="flex items-center justify-between">
+                                <label>Activar Filtro de Palabras</label>
+                                <input type="checkbox" id="automod-bad-enabled" class="w-5 h-5">
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <label>Activar Filtro de Mayúsculas</label>
+                                <input type="checkbox" id="automod-caps-enabled" class="w-5 h-5">
+                            </div>
+                            <div>
+                                <label>Umbral de Mayúsculas (%)</label>
+                                <input type="number" id="automod-caps-threshold" min="10" max="100" value="70" class="w-full">
+                            </div>
+                            <div>
+                                <label>Palabras Prohibidas (una por línea)</label>
+                                <textarea id="automod-bad-words" rows="5" class="w-full"></textarea>
+                            </div>
+                            <div>
+                                <label>Palabras Silenciosas (borran el mensaje sin aviso) (una por línea)</label>
+                                <textarea id="automod-silent-words" rows="5" class="w-full"></textarea>
+                            </div>
+                            <button type="submit" class="btn-primary w-full mt-4">Guardar AutoMod</button>
+                        </form>
+                    </div>
+                    <div class="glass-card p-lg rounded-3xl">
+                        <h3 class="text-xl font-bold mb-6">Excepciones</h3>
+                        <p class="text-on-surface-variant text-sm mb-4">Próximamente: configuración de roles y canales ignorados</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: ORACLES -->
+            <div id="view-oracle" class="view-section">
+                <div class="mb-12">
+                    <h2 class="text-3xl font-bold text-on-surface">Oráculos</h2>
+                    <p class="text-on-surface-variant">Configura los tipos de oráculos, mensajes y guías</p>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-md">
+                    <div class="glass-card p-lg rounded-3xl">
+                        <h3 class="text-xl font-bold mb-6">Configuración General</h3>
+                        <form id="oracle-general-form" class="space-y-4">
+                            <div>
+                                <label>Nombre del Canal de Panel</label>
+                                <input type="text" id="oracle-panel-channel" class="w-full" placeholder="📩-oráculo-de-ayuda">
+                            </div>
+                            <div>
+                                <label>Nombre del Canal de Alertas</label>
+                                <input type="text" id="oracle-alert-channel" class="w-full" placeholder="⚔️-alertas-de-atenea">
+                            </div>
+                            <div>
+                                <label>Nombre de la Categoría de Abiertos</label>
+                                <input type="text" id="oracle-category-open" class="w-full" placeholder="Oráculos de Atenea">
+                            </div>
+                            <div>
+                                <label>Nombre de la Categoría de Cerrados</label>
+                                <input type="text" id="oracle-category-closed" class="w-full" placeholder="Oráculos Sellados">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="glass-card p-lg rounded-3xl">
+                        <h3 class="text-xl font-bold mb-6">Mensajes de Cierre</h3>
+                        <form id="oracle-messages-form" class="space-y-4">
+                            <div>
+                                <label>Mensajes de Cierre (uno por línea)</label>
+                                <textarea id="oracle-closing-messages" rows="5" class="w-full"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="glass-card p-lg rounded-3xl lg:col-span-2">
+                        <h3 class="text-xl font-bold mb-6">Tipos de Oráculos</h3>
+                        <div id="oracle-types-container" class="space-y-4"></div>
+                        <button onclick="addOracleType()" class="btn-primary w-full mt-4">Añadir Tipo de Oráculo</button>
+                    </div>
+                </div>
+                <div class="glass-card p-lg rounded-3xl mt-md">
+                    <button onclick="saveOracleConfig()" class="btn-primary w-full">Guardar Configuración de Oráculos</button>
+                </div>
+            </div>
+
+            <!-- VIEW: TERMS OF USE -->
+            <div id="view-terms" class="view-section">
+                <div class="mb-12">
+                    <h2 class="text-3xl font-bold text-on-surface">Términos de Uso</h2>
+                    <p class="text-on-surface-variant">Configura los términos de uso del servidor</p>
+                </div>
+                <div class="glass-card p-lg rounded-3xl">
+                    <form id="terms-form" class="space-y-4" onsubmit="saveTermsOfUse(event)">
+                        <div>
+                            <label>Términos de Uso</label>
+                            <textarea id="terms-content" rows="15" class="w-full"></textarea>
+                        </div>
+                        <button type="submit" class="btn-primary w-full mt-4">Guardar Términos</button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        let BOT_URL = localStorage.getItem('poseidon_bot_url') || '';
+        const TOKEN = localStorage.getItem('poseidon_token');
+        let currentGuildId = null;
+        let guilds = [];
+
+        const AVAILABLE_MODULES = [
+            { id: 'pets', name: 'Mascotas RPG', desc: 'Ecosistema interactivo de mascotas', icon: 'pets', color: 'primary' },
+            { id: 'economy', name: 'Economía Global', desc: 'Mercado, trabajos y transacciones', icon: 'payments', color: 'secondary-fixed' },
+            { id: 'music', name: 'Música Hi-Fi', desc: 'Audio 320kbps sin lag', icon: 'music_note', color: 'tertiary' },
+            { id: 'moderation', name: 'Guardian v2', desc: 'Anti-spam y filtrado inteligente', icon: 'security', color: 'error' },
+            { id: 'social', name: 'Vida Social', desc: 'Matrimonios y confesiones', icon: 'forum', color: 'secondary-container' },
+            { id: 'oracle', name: 'Oráculo IA', desc: 'Respuestas inteligentes con IA', icon: 'auto_awesome', color: 'primary-container' }
+        ];
+
+        if (!TOKEN) window.location.href = 'login.html';
+        if (!BOT_URL) BOT_URL = window.location.origin;
+
+        async function fetchGuilds() {
+            try {
+                const response = await fetch(`${BOT_URL}/api/guilds`, { headers: {'Authorization': TOKEN} });
+                if (response.ok) {
+                    guilds = await response.json();
+                    const selector = document.getElementById('server-selector');
+                    selector.innerHTML = '';
+                    
+                    // Si solo hay un servidor, seleccionarlo automáticamente
+                    if (guilds.length === 1) {
+                        const g = guilds[0];
+                        const opt = document.createElement('option');
+                        opt.value = g.id;
+                        opt.innerText = g.name;
+                        selector.appendChild(opt);
+                        currentGuildId = g.id;
+                        onServerChange();
+                    } else if (guilds.length > 1) {
+                        selector.innerHTML = '<option value="">Seleccionar servidor...</option>';
+                        guilds.forEach(g => {
+                            const opt = document.createElement('option');
+                            opt.value = g.id;
+                            opt.innerText = g.name;
+                            selector.appendChild(opt);
+                        });
+                    } else {
+                        document.getElementById('server-selector').innerHTML = '<option value="">Sin acceso a servidores</option>';
+                    }
+                }
+            } catch (err) { console.error('Error fetching guilds:', err); }
+        }
+
+        async function fetchStats() {
+            try {
+                const response = await fetch(`${BOT_URL}/api/stats`);
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('stat-guilds').innerText = data.guilds_count;
+                    document.getElementById('stat-users').innerText = (data.users_count / 1000).toFixed(1) + 'k';
+                    document.getElementById('stat-ping').innerText = data.latency;
+                    document.getElementById('bot-version').innerText = `${data.version} | Latencia: ${data.latency}ms`;
+                    const up = data.uptime_secs;
+                    document.getElementById('stat-uptime').innerText = `${Math.floor(up/86400)}d ${Math.floor((up%86400)/3600)}h`;
+                }
+            } catch (err) {}
+        }
+
+        async function fetchLogs() {
+            try {
+                const response = await fetch(`${BOT_URL}/api/logs/${currentGuildId || 'global'}`, { headers: {'Authorization': TOKEN} });
+                if (response.ok) {
+                    const logs = await response.json();
+                    const container = document.getElementById('logs-container');
+                    container.innerHTML = '';
+                    logs.slice(0, 8).forEach(log => {
+                        const div = document.createElement('div');
+                        div.className = 'flex gap-sm p-sm rounded-lg bg-surface-variant/20 border-l-2 border-primary transition-colors hover:bg-surface-variant/30 text-xs mb-2';
+                        div.innerHTML = `<div><p class="font-bold">${log.message}</p><p class="text-outline">${new Date(log.timestamp).toLocaleTimeString()}</p></div>`;
+                        container.appendChild(div);
+                    });
+                }
+            } catch (err) {}
+        }
+
+        async function onServerChange() {
+            currentGuildId = document.getElementById('server-selector').value;
+            if (!currentGuildId) {
+                resetGuildInfo();
+                return;
+            }
+            
+            // Cargar datos detallados del servidor
+            try {
+                const response = await fetch(`${BOT_URL}/api/config/${currentGuildId}`, { headers: {'Authorization': TOKEN} });
+                if (response.ok) {
+                    const data = await response.json();
+                    const guild = guilds.find(g => g.id === currentGuildId);
+                    
+                    // Actualizar info básica
+                    document.getElementById('guild-name').innerText = data.name;
+                    document.getElementById('guild-members').innerText = `${guild.members} miembros`;
+                    if (guild.icon) {
+                        document.getElementById('guild-icon').src = guild.icon;
+                        document.getElementById('guild-icon').classList.remove('hidden');
+                        document.getElementById('guild-icon-placeholder').classList.add('hidden');
+                    } else {
+                        document.getElementById('guild-icon').classList.add('hidden');
+                        document.getElementById('guild-icon-placeholder').classList.remove('hidden');
+                        document.getElementById('guild-icon-placeholder').innerText = data.name.charAt(0);
+                    }
+
+                    // Rellenar selects de moderación y streaming
+                    fillSelects(data.channels, data.roles, data.config);
+                    renderModules(data);
+                    // Cargar configuraciones
+                    loadStreamingConfig();
+                    loadWelcomeFarewellConfig();
+                    loadAutoModConfig();
+                    loadTermsOfUse();
+                    loadOracleConfig();
+
+                    // ACTUALIZAR ESTADÍSTICAS REALES (NUEVO)
+                    if (data.stats) {
+                        document.getElementById('rpg-total-pets').innerText = data.stats.pets.total;
+                        document.getElementById('rpg-avg-level').innerText = `LVL ${data.stats.pets.avg_level}`;
+                        document.getElementById('eco-total-bal').innerText = `${data.stats.economy.total_bal.toLocaleString()} POS`;
+                        document.getElementById('eco-avg-bal').innerText = `${data.stats.economy.avg_bal.toLocaleString()} POS`;
+                    }
+                }
+            } catch (err) { console.error(err); }
+            
+            fetchLogs();
+        }
+
+        function fillSelects(channels, roles, config) {
+            const channelSelects = document.querySelectorAll('.channel-select');
+            const roleSelects = document.querySelectorAll('.role-select');
+
+            channelSelects.forEach(s => {
+                s.innerHTML = '<option value="">Ninguno / Desactivado</option>';
+                channels.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.innerText = `# ${c.name}`;
+                    s.appendChild(opt);
+                });
+            });
+
+            roleSelects.forEach(s => {
+                s.innerHTML = '<option value="">Ninguno</option>';
+                roles.forEach(r => {
+                    const opt = document.createElement('option');
+                    opt.value = r.id;
+                    opt.innerText = `@ ${r.name}`;
+                    s.appendChild(opt);
+                });
+            });
+
+            // Set values from config
+            document.getElementById('select-logs-channel').value = config.log_channel_id || '';
+            document.getElementById('select-alerts-channel').value = config.alert_channel_id || '';
+            document.getElementById('select-confesiones-channel').value = config.confesiones_channel_id || '';
+            document.getElementById('select-staff-role').value = config.staff_role_id || (config.staff_role_ids ? config.staff_role_ids[0] : '');
+        }
+
+        async function saveModerationSettings(e) {
+            e.preventDefault();
+            if (!currentGuildId) return;
+
+            const updates = {
+                log_channel_id: document.getElementById('select-logs-channel').value || null,
+                alert_channel_id: document.getElementById('select-alerts-channel').value || null,
+                confesiones_channel_id: document.getElementById('select-confesiones-channel').value || null,
+                staff_role_id: document.getElementById('select-staff-role').value || null
+            };
+
+            try {
+                const response = await fetch(`${BOT_URL}/api/config/update`, {
+                    method: 'POST',
+                    headers: { 'Authorization': TOKEN, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ guild_id: currentGuildId, updates })
+                });
+                if (response.ok) alert('Configuración guardada correctamente');
+            } catch (err) { alert('Error al guardar'); }
+        }
+
+        async function loadWelcomeFarewellConfig() {
+            if (!currentGuildId) return;
+            try {
+                const response = await fetch(`${BOT_URL}/api/welcome_farewell/${currentGuildId}`, { headers: {'Authorization': TOKEN} });
+                if (response.ok) {
+                    const config = await response.json();
+                    console.log('Welcome/Farewell Config:', config);
+                    document.getElementById('welcome-enabled').checked = config.welcome_enabled || false;
+                    document.getElementById('select-welcome-channel').value = config.welcome_channel_id || '';
+                    document.getElementById('welcome-title').value = config.welcome_title || '';
+                    document.getElementById('welcome-description').value = config.welcome_description || '';
+                    document.getElementById('farewell-enabled').checked = config.farewell_enabled || false;
+                    document.getElementById('select-farewell-channel').value = config.farewell_channel_id || '';
+                    document.getElementById('farewell-title').value = config.farewell_title || '';
+                    document.getElementById('farewell-description').value = config.farewell_description || '';
+                }
+            } catch (err) { console.error('Error loading welcome/farewell config:', err); }
+        }
+
+        async function saveWelcomeSettings(e) {
+            e.preventDefault();
+            if (!currentGuildId) return;
+
+            const config = {
+                welcome_enabled: document.getElementById('welcome-enabled').checked,
+                welcome_channel_id: document.getElementById('select-welcome-channel').value || null,
+                welcome_title: document.getElementById('welcome-title').value,
+                welcome_description: document.getElementById('welcome-description').value,
+            };
+
+            try {
+                const response = await fetch(`${BOT_URL}/api/welcome_farewell/update`, {
+                    method: 'POST',
+                    headers: { 'Authorization': TOKEN, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ guild_id: currentGuildId, config }),
+                });
+                if (response.ok) alert('Bienvenida guardada correctamente');
+            } catch (err) { alert('Error al guardar bienvenida'); }
+        }
+
+        async function saveFarewellSettings(e) {
+            e.preventDefault();
+            if (!currentGuildId) return;
+
+            const config = {
+                farewell_enabled: document.getElementById('farewell-enabled').checked,
+                farewell_channel_id: document.getElementById('select-farewell-channel').value || null,
+                farewell_title: document.getElementById('farewell-title').value,
+                farewell_description: document.getElementById('farewell-description').value,
+            };
+
+            try {
+                const response = await fetch(`${BOT_URL}/api/welcome_farewell/update`, {
+                    method: 'POST',
+                    headers: { 'Authorization': TOKEN, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ guild_id: currentGuildId, config }),
+                });
+                if (response.ok) alert('Despedida guardada correctamente');
+            } catch (err) { alert('Error al guardar despedida'); }
+        }
+
+        async function loadAutoModConfig() {
+            if (!currentGuildId) return;
+            try {
+                const response = await fetch(`${BOT_URL}/api/automod/${currentGuildId}`, { headers: {'Authorization': TOKEN} });
+                if (response.ok) {
+                    const config = await response.json();
+                    document.getElementById('automod-bad-enabled').checked = config.enabled_bad_words || false;
+                    document.getElementById('automod-caps-enabled').checked = config.enabled_caps || false;
+                    document.getElementById('automod-caps-threshold').value = Math.round((config.caps_threshold || 0.7) * 100);
+                    document.getElementById('automod-bad-words').value = (config.bad_words || []).join('\n');
+                    document.getElementById('automod-silent-words').value = (config.silent_words || []).join('\n');
+                }
+            } catch (err) { console.error('Error loading automod config:', err); }
+        }
+
+        async function saveAutoModSettings(e) {
+            e.preventDefault();
+            if (!currentGuildId) return;
+
+            const config = {
+                enabled_bad_words: document.getElementById('automod-bad-enabled').checked,
+                enabled_caps: document.getElementById('automod-caps-enabled').checked,
+                caps_threshold: parseInt(document.getElementById('automod-caps-threshold').value) / 100,
+                bad_words: document.getElementById('automod-bad-words').value.split('\n').map(w => w.trim().toLowerCase()).filter(w => w.length > 0),
+                silent_words: document.getElementById('automod-silent-words').value.split('\n').map(w => w.trim().toLowerCase()).filter(w => w.length > 0),
+            };
+
+            try {
+                const response = await fetch(`${BOT_URL}/api/automod/update`, {
+                    method: 'POST',
+                    headers: { 'Authorization': TOKEN, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ guild_id: currentGuildId, config }),
+                });
+                if (response.ok) alert('AutoMod guardado correctamente');
+            } catch (err) { alert('Error al guardar AutoMod'); }
+        }
+
+        async function loadTermsOfUse() {
+            if (!currentGuildId) return;
+            try {
+                const response = await fetch(`${BOT_URL}/api/terms/${currentGuildId}`, { headers: {'Authorization': TOKEN} });
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('terms-content').value = data.terms_of_use || '';
+                }
+            } catch (err) { console.error('Error loading terms of use:', err); }
+        }
+
+        async function saveTermsOfUse(e) {
+            e.preventDefault();
+            if (!currentGuildId) return;
+
+            try {
+                const response = await fetch(`${BOT_URL}/api/terms/update`, {
+                    method: 'POST',
+                    headers: { 'Authorization': TOKEN, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ guild_id: currentGuildId, terms_of_use: document.getElementById('terms-content').value }),
+                });
+                if (response.ok) alert('Términos guardados correctamente');
+            } catch (err) { alert('Error al guardar términos'); }
+        }
+
+        async function loadStreamingConfig() {
+            if (!currentGuildId) return;
+            try {
+                const response = await fetch(`${BOT_URL}/api/streaming/${currentGuildId}`, { headers: {'Authorization': TOKEN} });
+                if (response.ok) {
+                    const config = await response.json();
+                    document.getElementById('streaming-enabled').checked = config.enabled || false;
+                    document.getElementById('select-streaming-channel').value = config.channel_id || '';
+                    document.getElementById('streaming-message').value = config.message || '';
+                }
+            } catch (err) { console.error('Error loading streaming config:', err); }
+        }
+
+        async function saveStreamingSettings(e) {
+            e.preventDefault();
+            if (!currentGuildId) return;
+
+            const config = {
+                enabled: document.getElementById('streaming-enabled').checked,
+                channel_id: document.getElementById('select-streaming-channel').value || null,
+                message: document.getElementById('streaming-message').value || null
+            };
+
+            try {
+                const response = await fetch(`${BOT_URL}/api/streaming/update`, {
+                    method: 'POST',
+                    headers: { 'Authorization': TOKEN, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ guild_id: currentGuildId, config })
+                });
+                if (response.ok) alert('Configuración de streaming guardada correctamente');
+            } catch (err) { alert('Error al guardar la configuración de streaming'); }
+        }
+
+        function resetGuildInfo() {
+            document.getElementById('guild-name').innerText = 'Selecciona un servidor';
+            document.getElementById('guild-members').innerText = 'Para gestionar sus módulos';
+            document.getElementById('guild-icon').classList.add('hidden');
+            document.getElementById('guild-icon-placeholder').classList.remove('hidden');
+            document.getElementById('guild-icon-placeholder').innerText = 'P';
+            document.getElementById('modules-grid').innerHTML = '<div class="col-span-full text-center py-12 text-outline">Selecciona un servidor para ver los módulos</div>';
+            
+            // Reset stats
+            document.getElementById('rpg-total-pets').innerText = '0';
+            document.getElementById('rpg-avg-level').innerText = 'LVL 0';
+            document.getElementById('eco-total-bal').innerText = '0 POS';
+            document.getElementById('eco-avg-bal').innerText = '0 POS';
+        }
+
+        function renderModules(data) {
+            const grid = document.getElementById('modules-grid');
+            grid.innerHTML = '';
+            const enabled = data.config.enabled_modules || AVAILABLE_MODULES.map(m => m.id);
+
+            AVAILABLE_MODULES.forEach(m => {
+                const isEnabled = enabled.includes(m.id);
+                const card = document.createElement('div');
+                card.className = `glass-card p-md rounded-xl flex flex-col gap-md ${!isEnabled ? 'opacity-60' : ''}`;
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center gap-sm">
+                            <div class="w-12 h-12 rounded-lg bg-${m.color}/20 flex items-center justify-center text-${m.color}">
+                                <span class="material-symbols-outlined text-3xl">${m.icon}</span>
+                            </div>
+                            <div>
+                                <h5 class="font-body-lg font-bold">${m.name}</h5>
+                                <p class="text-xs text-outline">${m.desc}</p>
+                            </div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" ${isEnabled ? 'checked' : ''} onchange="toggleModule('${m.id}', this)" class="sr-only peer">
+                            <div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+                        </label>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        async function toggleModule(moduleId, checkbox) {
+            if (!currentGuildId) return;
+            const guild = guilds.find(g => g.id === currentGuildId);
+            let enabled = guild.config.enabled_modules || AVAILABLE_MODULES.map(m => m.id);
+
+            if (checkbox.checked) {
+                if (!enabled.includes(moduleId)) enabled.push(moduleId);
+            } else {
+                enabled = enabled.filter(id => id !== moduleId);
+            }
+
+            try {
+                const response = await fetch(`${BOT_URL}/api/config/update`, {
+                    method: 'POST',
+                    headers: { 'Authorization': TOKEN, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        guild_id: currentGuildId,
+                        updates: { enabled_modules: enabled }
+                    })
+                });
+                if (response.ok) {
+                    guild.config.enabled_modules = enabled;
+                    renderModules({config: {enabled_modules: enabled}});
+                } else {
+                    checkbox.checked = !checkbox.checked;
+                }
+            } catch (err) { checkbox.checked = !checkbox.checked; }
+        }
+
+        let oracleConfig = {}; // To hold current config
+
+        async function loadOracleConfig() {
+            if (!currentGuildId) return;
+            try {
+                const response = await fetch(`${BOT_URL}/api/oracle/${currentGuildId}`, { headers: {'Authorization': TOKEN} });
+                if (response.ok) {
+                    oracleConfig = await response.json();
+                    // Fill general fields
+                    document.getElementById('oracle-panel-channel').value = oracleConfig.panel_channel_name || '📩-oráculo-de-ayuda';
+                    document.getElementById('oracle-alert-channel').value = oracleConfig.alert_channel_name || '⚔️-alertas-de-atenea';
+                    document.getElementById('oracle-category-open').value = oracleConfig.category_opened || 'Oráculos de Atenea';
+                    document.getElementById('oracle-category-closed').value = oracleConfig.category_closed || 'Oráculos Sellados';
+                    // Fill closing messages
+                    const closingMessages = oracleConfig.closing_messages || ['⚖️ *El Oráculo ha hablado, y su voz queda sellada en la eternidad.*', '🔒 *Atenea guarda silencio, tu consulta ha sido archivada.*', '📜 *Las palabras se desvanecen, pero la sabiduría permanece.*', '🏛️ *El Olimpo cierra sus puertas hasta tu próxima invocación.*'];
+                    document.getElementById('oracle-closing-messages').value = closingMessages.join('\n');
+                    // Render oracle types
+                    renderOracleTypes(oracleConfig.oracle_types || [
+                        {id:'general', label:'General', description:'Consulta general', emoji:'🌟'},
+                        {id:'soporte', label:'Soporte', description:'Asistencia técnica', emoji:'🛠️'},
+                        {id:'urgente', label:'Urgente', description:'Atención prioritaria', emoji:'⚡'},
+                        {id:'creativo', label:'Creativo', description:'Ideas y proyectos', emoji:'🎨'},
+                        {id:'administrativo', label:'Administrativo', description:'Gestión y trámites', emoji:'📑'},
+                        {id:'denuncia', label:'Denuncia', description:'Reportes y evidencias', emoji:'🚨'},
+                        {id:'colaboración', label:'Colaboración', description:'Propuestas y alianzas', emoji:'🤝'},
+                        {id:'místico', label:'Místico', description:'Simbolismo y rol', emoji:'🔮'}
+                    ]);
+                }
+            } catch (err) { console.error('Error loading oracle config:', err); }
+        }
+
+        async function saveOracleConfig() {
+            if (!currentGuildId) return;
+            try {
+                // Collect data from form
+                oracleConfig.panel_channel_name = document.getElementById('oracle-panel-channel').value;
+                oracleConfig.alert_channel_name = document.getElementById('oracle-alert-channel').value;
+                oracleConfig.category_opened = document.getElementById('oracle-category-open').value;
+                oracleConfig.category_closed = document.getElementById('oracle-category-closed').value;
+                // Collect closing messages
+                oracleConfig.closing_messages = document.getElementById('oracle-closing-messages').value.split('\n').filter(m => m.trim() !== '');
+                // Collect oracle types
+                oracleConfig.oracle_types = collectOracleTypes();
+                // Collect opening messages and guides
+                oracleConfig.opening_messages = {};
+                oracleConfig.guides = {};
+                const typesContainer = document.getElementById('oracle-types-container');
+                const typeCards = typesContainer.querySelectorAll('.oracle-type-card');
+                typeCards.forEach((card, idx) => {
+                    const typeId = oracleConfig.oracle_types[idx].id;
+                    // Opening messages
+                    const openingTextarea = card.querySelector('.oracle-opening-messages');
+                    oracleConfig.opening_messages[typeId] = openingTextarea.value.split('\n').filter(m => m.trim() !== '');
+                    // Guide
+                    const guideTextarea = card.querySelector('.oracle-guide');
+                    oracleConfig.guides[typeId] = guideTextarea.value;
+                });
+                // Send to server
+                const response = await fetch(`${BOT_URL}/api/oracle/update`, {
+                    method: 'POST',
+                    headers: { 'Authorization': TOKEN, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ guild_id: currentGuildId, config: oracleConfig })
+                });
+                if (response.ok) alert('Configuración de Oráculos guardada correctamente');
+            } catch (err) { alert('Error al guardar la configuración de Oráculos'); }
+        }
+
+        function renderOracleTypes(types) {
+            const container = document.getElementById('oracle-types-container');
+            container.innerHTML = '';
+            types.forEach((type, idx) => {
+                const card = document.createElement('div');
+                card.className = 'glass-card p-md rounded-xl oracle-type-card';
+                // Get opening messages
+                const openingMessages = (oracleConfig.opening_messages || {})[type.id] || [];
+                const guide = (oracleConfig.guides || {})[type.id] || '';
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-md">
+                            <input type="text" value="${type.emoji}" class="oracle-emoji w-12 text-center" maxlength="2">
+                            <div class="flex flex-col gap-xs">
+                                <input type="text" value="${type.label}" class="oracle-label font-bold" placeholder="Nombre del tipo">
+                                <input type="text" value="${type.description}" class="oracle-description text-sm text-outline" placeholder="Descripción">
+                            </div>
+                        </div>
+                        <button onclick="removeOracleType(${idx})" class="text-error hover:text-error/80">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+                        <div>
+                            <label>Mensajes de Apertura (uno por línea)</label>
+                            <textarea class="oracle-opening-messages w-full" rows="4">${openingMessages.join('\n')}</textarea>
+                        </div>
+                        <div>
+                            <label>Guía del Tipo</label>
+                            <textarea class="oracle-guide w-full" rows="4">${guide}</textarea>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function collectOracleTypes() {
+            const container = document.getElementById('oracle-types-container');
+            const typeCards = container.querySelectorAll('.oracle-type-card');
+            const types = [];
+            typeCards.forEach(card => {
+                const emoji = card.querySelector('.oracle-emoji').value;
+                const label = card.querySelector('.oracle-label').value;
+                const description = card.querySelector('.oracle-description').value;
+                const id = label.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-ñáéíóúü]/g, '');
+                types.push({ id, label, description, emoji });
+            });
+            return types;
+        }
+
+        function addOracleType() {
+            const currentTypes = collectOracleTypes();
+            currentTypes.push({ id: 'nuevo-tipo', label: 'Nuevo Tipo', description: 'Descripción del tipo', emoji: '✨' });
+            renderOracleTypes(currentTypes);
+        }
+
+        function removeOracleType(idx) {
+            const currentTypes = collectOracleTypes();
+            currentTypes.splice(idx, 1);
+            renderOracleTypes(currentTypes);
+        }
+
+        function showView(viewId) {
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(`view-${viewId}`).classList.add('active');
+            
+            document.querySelectorAll('.side-nav-item').forEach(i => i.classList.remove('side-nav-active'));
+            const activeItem = document.querySelector(`[onclick="showView('${viewId}')"]`);
+            if (activeItem) activeItem.classList.add('side-nav-active');
+        }
+
+        async function rebootBot() {
+            if (!confirm('¿Reiniciar el bot?')) return;
+            await fetch(`${BOT_URL}/api/reboot`, { method: 'POST', headers: {'Authorization': TOKEN} });
+            alert('Reinicio enviado');
+        }
+
+        function logout() {
+            localStorage.removeItem('poseidon_token');
+            localStorage.removeItem('poseidon_user');
+            window.location.href = 'login.html';
+        }
+
+        function loadUserData() {
+            const userStr = localStorage.getItem('poseidon_user');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                document.getElementById('user-name').innerText = user.username;
+                if (user.avatar) {
+                    document.getElementById('user-avatar').src = user.avatar;
+                }
+            }
+        }
+
+        window.addEventListener('load', async () => {
+            loadUserData();
+            await fetchGuilds();
+            fetchStats();
+            fetchLogs();
+            document.getElementById('loading-overlay').style.display = 'none';
+            setInterval(fetchStats, 30000);
+            setInterval(fetchLogs, 10000);
+        });
+    </script>
+</body>
+</html>
